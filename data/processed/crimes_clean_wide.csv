@@ -1,0 +1,718 @@
+state_clean,Year,DV,AoW,K&A,Rape,AoM,DD,WT,state_original_label,is_repaired
+A & N Islands,2001,9,19,2,3,1,0,0,A & N Islands,False
+A & N Islands,2002,4,17,1,2,3,0,0,A & N Islands,False
+A & N Islands,2003,7,9,2,2,2,0,0,A & N Islands,False
+A & N Islands,2004,5,6,3,10,3,0,0,A & N Islands,False
+A & N Islands,2005,5,11,1,4,1,0,0,A & N Islands,False
+A & N Islands,2006,7,14,5,6,4,0,0,A & N Islands,False
+A & N Islands,2007,18,21,9,3,2,1,0,A & N Islands,False
+A & N Islands,2008,26,24,13,12,3,2,0,A & N Islands,False
+A & N Islands,2009,21,30,14,18,7,1,0,A & N Islands,False
+A & N Islands,2010,9,31,8,24,10,0,0,A & N Islands,False
+A & N Islands,2011,5,0,12,13,3,0,3,A & N Islands,False
+A & N Islands,2012,5,10,7,12,4,2,2,A & N Islands,False
+A & N Islands,2013,9,45,12,27,8,1,4,A & N Islands,False
+A & N Islands,2014,14,41,17,32,18,0,1,A & N Islands,False
+A & N Islands,2015,14,57,21,36,23,0,0,A & N Islands,False
+A & N Islands,2016,7,46,21,30,15,0,0,A & N Islands,False
+A & N Islands,2017,4,38,3,13,11,1,0,A & N Islands,False
+A & N Islands,2018,4,35,2,30,4,0,0,A & N Islands,False
+A & N Islands,2019,1,25,0,13,3,0,0,A & N Islands,False
+A & N Islands,2020,2,15,1,2,3,0,0,West Bengal,True
+A & N Islands,2021,4,32,0,15,4,1,0,West Bengal,True
+Andhra Pradesh,2001,5791,3544,765,871,2271,420,7,Andhra Pradesh,False
+Andhra Pradesh,2002,7018,3799,854,1002,2024,449,0,Andhra Pradesh,False
+Andhra Pradesh,2003,8167,4128,931,946,2286,466,5,Andhra Pradesh,False
+Andhra Pradesh,2004,8388,3817,1030,1016,2310,512,2,Andhra Pradesh,False
+Andhra Pradesh,2005,8696,3595,995,935,2508,443,3,Andhra Pradesh,False
+Andhra Pradesh,2006,9164,4534,1329,1049,2411,519,0,Andhra Pradesh,False
+Andhra Pradesh,2007,11335,4406,1564,1070,3316,613,0,Andhra Pradesh,False
+Andhra Pradesh,2008,10306,4730,1396,1257,3551,556,0,Andhra Pradesh,False
+Andhra Pradesh,2009,11297,5147,1526,1188,3520,546,0,Andhra Pradesh,False
+Andhra Pradesh,2010,12080,4634,1531,1362,4562,588,0,Andhra Pradesh,False
+Andhra Pradesh,2011,13376,0,1612,1442,3658,599,497,Andhra Pradesh,False
+Andhra Pradesh,2012,13389,4816,1403,1341,3714,504,472,Andhra Pradesh,False
+Andhra Pradesh,2013,15084,6930,1595,1635,4702,492,489,Andhra Pradesh,False
+Andhra Pradesh,2014,6362,4547,721,961,1072,468,204,Andhra Pradesh,False
+Andhra Pradesh,2015,6121,4616,684,1027,1070,174,204,Andhra Pradesh,False
+Andhra Pradesh,2016,6461,4829,626,994,1305,193,186,Andhra Pradesh,False
+Andhra Pradesh,2017,7156,5129,712,988,1998,152,121,Andhra Pradesh,False
+Andhra Pradesh,2018,6831,4445,697,971,1802,140,152,Andhra Pradesh,False
+Andhra Pradesh,2019,7851,4444,589,1086,1892,112,88,Andhra Pradesh,False
+Andhra Pradesh,2020,6546,4886,534,1095,2342,111,48,Andhra Pradesh,True
+Andhra Pradesh,2021,7092,5108,613,1188,2370,108,70,Andhra Pradesh,True
+Arunachal Pradesh,2001,11,78,55,33,3,0,0,Arunachal Pradesh,False
+Arunachal Pradesh,2002,13,68,38,38,2,0,0,Arunachal Pradesh,False
+Arunachal Pradesh,2003,14,43,51,31,0,0,0,Arunachal Pradesh,False
+Arunachal Pradesh,2004,4,61,41,42,0,0,0,Arunachal Pradesh,False
+Arunachal Pradesh,2005,9,67,39,35,0,0,0,Arunachal Pradesh,False
+Arunachal Pradesh,2006,14,63,51,37,2,1,0,Arunachal Pradesh,False
+Arunachal Pradesh,2007,20,72,44,48,1,0,0,Arunachal Pradesh,False
+Arunachal Pradesh,2008,13,72,47,42,1,0,0,Arunachal Pradesh,False
+Arunachal Pradesh,2009,13,58,28,59,6,0,0,Arunachal Pradesh,False
+Arunachal Pradesh,2010,12,84,46,47,1,0,0,Arunachal Pradesh,False
+Arunachal Pradesh,2011,18,0,60,42,0,0,0,Arunachal Pradesh,False
+Arunachal Pradesh,2012,26,67,58,46,2,1,1,Arunachal Pradesh,False
+Arunachal Pradesh,2013,29,93,86,75,3,0,2,Arunachal Pradesh,False
+Arunachal Pradesh,2014,42,121,91,83,21,0,0,Arunachal Pradesh,False
+Arunachal Pradesh,2015,66,101,128,71,15,0,2,Arunachal Pradesh,False
+Arunachal Pradesh,2016,50,109,85,92,4,1,0,Arunachal Pradesh,False
+Arunachal Pradesh,2017,56,97,74,59,5,0,2,Arunachal Pradesh,False
+Arunachal Pradesh,2018,60,103,87,67,12,0,0,Arunachal Pradesh,False
+Arunachal Pradesh,2019,54,80,68,63,6,1,0,Arunachal Pradesh,False
+Arunachal Pradesh,2020,69,73,45,60,3,0,0,Arunachal Pradesh,True
+Arunachal Pradesh,2021,112,74,50,83,10,0,0,Arunachal Pradesh,True
+Assam,2001,1248,850,1070,817,4,59,0,Assam,False
+Assam,2002,1694,984,1276,970,7,70,0,Assam,False
+Assam,2003,1808,878,1351,1095,6,60,0,Assam,False
+Assam,2004,1945,883,1552,1171,11,74,0,Assam,False
+Assam,2005,2206,899,1456,1238,19,99,3,Assam,False
+Assam,2006,2548,1290,1544,1244,10,105,0,Assam,False
+Assam,2007,3000,789,1471,1437,10,100,0,Assam,False
+Assam,2008,3478,1272,1789,1438,2,103,0,Assam,False
+Assam,2009,4398,1342,2092,1631,10,170,1,Assam,False
+Assam,2010,5410,1400,2767,1721,20,175,0,Assam,False
+Assam,2011,5246,0,3192,1700,8,121,21,Assam,False
+Assam,2012,6407,1840,3360,1716,5,140,30,Assam,False
+Assam,2013,8636,2409,4222,1937,14,170,18,Assam,False
+Assam,2014,9626,3099,3895,1980,458,92,29,Assam,False
+Assam,2015,11225,4293,5039,1733,499,216,47,Assam,False
+Assam,2016,9321,3378,5339,1779,677,157,65,Assam,False
+Assam,2017,9782,3569,5554,1772,108,171,40,Assam,False
+Assam,2018,11136,4180,6401,1648,171,173,37,Assam,False
+Assam,2019,11943,4619,6989,1773,385,156,12,Assam,False
+Assam,2020,11408,4642,5364,1657,90,148,18,Assam,True
+Assam,2021,12950,4499,5739,1733,184,198,22,Assam,True
+Bihar,2001,1558,562,518,888,21,859,83,Bihar,False
+Bihar,2002,1577,621,744,1040,6,927,38,Bihar,False
+Bihar,2003,1880,688,674,985,11,909,37,Bihar,False
+Bihar,2004,2679,704,997,1390,13,1029,35,Bihar,False
+Bihar,2005,1574,451,929,1147,13,1014,74,Bihar,False
+Bihar,2006,1689,530,1084,1232,53,1188,42,Bihar,False
+Bihar,2007,1635,853,1260,1555,12,1172,56,Bihar,False
+Bihar,2008,1992,999,1789,1302,21,1210,22,Bihar,False
+Bihar,2009,2532,726,1986,929,12,1295,31,Bihar,False
+Bihar,2010,2271,534,2569,795,16,1257,8,Bihar,False
+Bihar,2011,2607,0,3050,934,11,1413,23,Bihar,False
+Bihar,2012,3686,118,3789,927,37,1275,35,Bihar,False
+Bihar,2013,4533,331,4419,1128,52,1182,64,Bihar,False
+Bihar,2014,4672,572,4735,1127,271,2203,31,Bihar,False
+Bihar,2015,3792,198,5158,1041,78,1154,21,Bihar,False
+Bihar,2016,3794,324,5496,1008,124,987,50,Bihar,False
+Bihar,2017,3776,197,6182,605,1,1081,24,Bihar,False
+Bihar,2018,2539,262,7951,651,30,1107,49,Bihar,False
+Bihar,2019,2397,312,9025,730,11,1120,40,Bihar,False
+Bihar,2020,1935,584,6671,806,6,1046,30,Bihar,True
+Bihar,2021,2069,387,8661,786,1,1000,32,Bihar,True
+Chandigarh,2001,36,24,50,18,15,3,0,Chandigarh,False
+Chandigarh,2002,56,36,47,18,28,1,0,Chandigarh,False
+Chandigarh,2003,93,11,28,18,4,1,0,Chandigarh,False
+Chandigarh,2004,73,20,43,19,18,6,0,Chandigarh,False
+Chandigarh,2005,75,31,45,33,9,3,0,Chandigarh,False
+Chandigarh,2006,102,20,57,19,13,10,0,Chandigarh,False
+Chandigarh,2007,112,32,46,22,11,1,0,Chandigarh,False
+Chandigarh,2008,49,19,42,20,2,3,0,Chandigarh,False
+Chandigarh,2009,51,26,36,29,2,2,0,Chandigarh,False
+Chandigarh,2010,41,29,28,31,4,5,0,Chandigarh,False
+Chandigarh,2011,46,0,46,27,12,2,1,Chandigarh,False
+Chandigarh,2012,73,45,66,27,25,5,0,Chandigarh,False
+Chandigarh,2013,92,143,174,45,26,1,6,Chandigarh,False
+Chandigarh,2014,141,87,133,59,31,2,0,Chandigarh,False
+Chandigarh,2015,126,76,165,72,22,5,0,Chandigarh,False
+Chandigarh,2016,122,76,112,68,26,4,0,Chandigarh,False
+Chandigarh,2017,121,100,138,65,12,1,0,Chandigarh,False
+Chandigarh,2018,93,100,139,86,3,6,0,Chandigarh,False
+Chandigarh,2019,177,66,129,112,15,6,0,Chandigarh,False
+Chandigarh,2020,96,42,90,60,4,1,0,A & N Islands,True
+Chandigarh,2021,95,37,120,74,6,4,0,A & N Islands,True
+Chhattisgarh,2001,840,1763,171,959,161,70,0,Chhattisgarh,False
+Chhattisgarh,2002,653,1483,154,992,147,85,0,Chhattisgarh,False
+Chhattisgarh,2003,601,1481,149,898,105,79,0,Chhattisgarh,False
+Chhattisgarh,2004,741,1661,174,969,131,71,0,Chhattisgarh,False
+Chhattisgarh,2005,732,1450,184,990,132,100,0,Chhattisgarh,False
+Chhattisgarh,2006,717,1598,178,995,143,103,1,Chhattisgarh,False
+Chhattisgarh,2007,824,1549,181,982,111,100,0,Chhattisgarh,False
+Chhattisgarh,2008,897,1621,216,978,125,106,0,Chhattisgarh,False
+Chhattisgarh,2009,893,1598,229,976,152,128,0,Chhattisgarh,False
+Chhattisgarh,2010,861,1706,279,1012,182,115,2,Chhattisgarh,False
+Chhattisgarh,2011,834,0,365,1053,174,104,15,Chhattisgarh,False
+Chhattisgarh,2012,980,1601,350,1034,162,81,5,Chhattisgarh,False
+Chhattisgarh,2013,1181,2261,1881,1380,180,109,8,Chhattisgarh,False
+Chhattisgarh,2014,964,2122,1393,1436,649,8,2,Chhattisgarh,False
+Chhattisgarh,2015,620,1868,1354,1560,507,89,4,Chhattisgarh,False
+Chhattisgarh,2016,622,1770,1447,1626,244,84,17,Chhattisgarh,False
+Chhattisgarh,2017,582,1899,1457,1908,144,74,16,Chhattisgarh,False
+Chhattisgarh,2018,503,1854,1842,2091,184,79,15,Chhattisgarh,False
+Chhattisgarh,2019,732,1316,2033,1036,232,76,12,Chhattisgarh,False
+Chhattisgarh,2020,641,1461,1341,1210,279,71,3,Chhattisgarh,True
+Chhattisgarh,2021,963,1248,1158,1093,238,65,3,Chhattisgarh,True
+D & N Haveli and Daman & Diu,2001,8,7,5,6,0,0,0,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2002,6,3,7,4,0,0,0,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2003,2,7,5,6,0,1,0,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2004,7,6,7,8,0,0,0,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2005,8,6,11,7,0,1,0,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2006,7,7,15,9,1,1,0,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2007,6,0,7,8,0,1,0,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2008,9,6,12,6,1,0,0,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2009,6,6,9,5,2,0,0,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2010,6,13,12,4,2,0,0,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2011,5,0,10,5,0,0,7,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2012,3,2,9,8,0,0,5,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2013,3,3,17,13,1,0,8,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2014,7,5,8,7,3,0,8,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2015,5,12,22,13,3,1,0,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2016,14,5,14,26,0,0,4,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2017,9,9,0,8,1,0,0,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2018,5,11,0,10,3,0,0,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2019,7,8,3,4,3,5,1,D & N Haveli + Daman & Diu,False
+D & N Haveli and Daman & Diu,2020,4,6,0,4,3,1,0,Chandigarh,True
+D & N Haveli and Daman & Diu,2021,6,7,23,3,0,0,0,Chandigarh,True
+Delhi UT,2011,1575,0,2085,572,162,142,33,Delhi UT,False
+Delhi UT,2012,1985,727,2160,706,208,134,24,Delhi UT,False
+Delhi UT,2013,3033,3515,3609,1636,916,144,20,Delhi UT,False
+Delhi UT,2014,3173,4322,4034,2096,1186,13,8,Delhi UT,False
+Delhi UT,2015,3521,5367,4301,2199,1150,122,3,Delhi UT,False
+Delhi UT,2016,3877,4165,3891,2155,796,162,4,Delhi UT,False
+Delhi UT,2017,2735,2874,3783,1229,619,120,6,Delhi UT,False
+Delhi UT,2018,3416,2705,3715,1215,552,153,1,Delhi UT,False
+Delhi UT,2019,3792,2355,3672,1253,456,116,4,Delhi UT,False
+Delhi UT,2020,2557,1840,2938,997,416,110,3,D & N Haveli,True
+Delhi UT,2021,4731,2068,4083,1250,417,141,4,D & N Haveli,True
+Goa,2001,11,17,6,12,7,2,0,Goa,False
+Goa,2002,8,18,5,12,6,2,0,Goa,False
+Goa,2003,24,19,13,31,7,2,0,Goa,False
+Goa,2004,17,23,10,37,15,2,0,Goa,False
+Goa,2005,11,30,12,20,8,2,0,Goa,False
+Goa,2006,14,18,10,21,7,0,0,Goa,False
+Goa,2007,14,20,7,20,7,2,0,Goa,False
+Goa,2008,12,32,28,30,12,2,0,Goa,False
+Goa,2009,21,37,22,47,10,3,0,Goa,False
+Goa,2010,17,36,18,36,16,1,0,Goa,False
+Goa,2011,18,0,17,29,12,1,18,Goa,False
+Goa,2012,24,49,16,55,16,0,40,Goa,False
+Goa,2013,40,162,70,86,54,0,28,Goa,False
+Goa,2014,35,202,86,95,50,0,9,Goa,False
+Goa,2015,19,150,70,86,58,0,3,Goa,False
+Goa,2016,23,143,69,61,41,2,3,Goa,False
+Goa,2017,21,134,61,76,31,1,1,Goa,False
+Goa,2018,9,125,78,61,26,0,7,Goa,False
+Goa,2019,9,119,52,72,37,1,1,Goa,False
+Goa,2020,8,67,31,60,35,0,0,Goa,True
+Goa,2021,1,74,39,72,20,0,1,Goa,True
+Gujarat,2001,3667,756,857,286,111,67,0,Gujarat,False
+Gujarat,2002,3321,750,807,267,104,62,0,Gujarat,False
+Gujarat,2003,3684,722,859,236,92,54,0,Gujarat,False
+Gujarat,2004,3955,757,905,339,164,58,0,Gujarat,False
+Gujarat,2005,4090,802,916,324,104,48,0,Gujarat,False
+Gujarat,2006,4977,736,945,354,138,50,0,Gujarat,False
+Gujarat,2007,5827,822,1089,316,120,42,0,Gujarat,False
+Gujarat,2008,6094,828,1119,374,122,27,0,Gujarat,False
+Gujarat,2009,5506,727,1162,433,114,24,0,Gujarat,False
+Gujarat,2010,5600,668,1290,408,110,19,0,Gujarat,False
+Gujarat,2011,6052,0,1442,439,93,30,46,Gujarat,False
+Gujarat,2012,6658,745,1527,473,93,21,44,Gujarat,False
+Gujarat,2013,7812,1243,2230,732,77,29,76,Gujarat,False
+Gujarat,2014,5991,1352,2187,841,405,53,45,Gujarat,False
+Gujarat,2015,4133,1164,1569,503,536,12,35,Gujarat,False
+Gujarat,2016,3732,1224,2146,982,473,12,76,Gujarat,False
+Gujarat,2017,3223,1058,1259,477,17,9,28,Gujarat,False
+Gujarat,2018,2923,1208,1024,553,12,9,34,Gujarat,False
+Gujarat,2019,3619,1048,922,528,16,9,24,Gujarat,False
+Gujarat,2020,3345,846,597,486,17,6,47,Gujarat,True
+Gujarat,2021,2271,660,881,589,7,11,38,Gujarat,True
+Haryana,2001,1513,478,297,398,401,285,0,Haryana,False
+Haryana,2002,1565,454,290,361,1424,256,0,Haryana,False
+Haryana,2003,1618,344,271,353,1302,222,0,Haryana,False
+Haryana,2004,2026,403,292,386,850,251,0,Haryana,False
+Haryana,2005,2075,380,344,461,597,212,0,Haryana,False
+Haryana,2006,2254,486,431,608,491,255,0,Haryana,False
+Haryana,2007,2412,417,554,488,409,269,0,Haryana,False
+Haryana,2008,2435,435,644,631,605,302,0,Haryana,False
+Haryana,2009,2617,451,659,603,605,281,0,Haryana,False
+Haryana,2010,2720,476,714,720,580,284,0,Haryana,False
+Haryana,2011,2740,0,733,733,490,255,57,Haryana,False
+Haryana,2012,3137,525,900,668,434,258,69,Haryana,False
+Haryana,2013,3617,1560,1957,971,643,263,63,Haryana,False
+Haryana,2014,3478,1688,1922,1174,599,13,43,Haryana,False
+Haryana,2015,3525,1886,2336,1070,688,243,44,Haryana,False
+Haryana,2016,3313,1860,2697,1187,699,260,59,Haryana,False
+Haryana,2017,3326,2031,2949,1099,179,245,57,Haryana,False
+Haryana,2018,4154,2671,3419,1296,192,216,43,Haryana,False
+Haryana,2019,4867,2581,2803,1480,173,248,28,Haryana,False
+Haryana,2020,4119,2339,2423,1373,183,251,28,Haryana,True
+Haryana,2021,5755,2882,2958,1716,290,275,28,Haryana,True
+Himachal Pradesh,2001,317,310,105,124,14,10,0,Himachal Pradesh,False
+Himachal Pradesh,2002,234,326,116,137,12,6,0,Himachal Pradesh,False
+Himachal Pradesh,2003,221,250,96,126,18,6,0,Himachal Pradesh,False
+Himachal Pradesh,2004,252,284,99,153,16,8,0,Himachal Pradesh,False
+Himachal Pradesh,2005,228,286,102,141,29,2,0,Himachal Pradesh,False
+Himachal Pradesh,2006,259,275,109,113,31,3,0,Himachal Pradesh,False
+Himachal Pradesh,2007,342,322,150,159,33,8,0,Himachal Pradesh,False
+Himachal Pradesh,2008,343,295,137,157,41,3,0,Himachal Pradesh,False
+Himachal Pradesh,2009,284,318,122,183,37,1,0,Himachal Pradesh,False
+Himachal Pradesh,2010,275,350,162,160,78,2,0,Himachal Pradesh,False
+Himachal Pradesh,2011,239,0,191,168,62,4,2,Himachal Pradesh,False
+Himachal Pradesh,2012,251,250,152,183,68,2,6,Himachal Pradesh,False
+Himachal Pradesh,2013,328,493,290,250,111,0,4,Himachal Pradesh,False
+Himachal Pradesh,2014,325,538,227,283,159,2,5,Himachal Pradesh,False
+Himachal Pradesh,2015,226,434,239,244,99,2,6,Himachal Pradesh,False
+Himachal Pradesh,2016,214,410,201,252,114,3,7,Himachal Pradesh,False
+Himachal Pradesh,2017,191,397,242,249,52,3,8,Himachal Pradesh,False
+Himachal Pradesh,2018,183,513,341,344,78,4,10,Himachal Pradesh,False
+Himachal Pradesh,2019,228,498,337,359,72,4,10,Himachal Pradesh,False
+Himachal Pradesh,2020,259,538,281,331,88,1,0,Himachal Pradesh,True
+Himachal Pradesh,2021,221,487,344,358,94,2,6,Himachal Pradesh,True
+Jammu & Kashmir,2001,50,622,504,169,288,13,0,Jammu & Kashmir,False
+Jammu & Kashmir,2002,54,785,596,192,368,18,0,Jammu & Kashmir,False
+Jammu & Kashmir,2003,71,875,615,211,376,10,0,Jammu & Kashmir,False
+Jammu & Kashmir,2004,82,990,632,218,264,9,0,Jammu & Kashmir,False
+Jammu & Kashmir,2005,76,830,658,201,371,5,0,Jammu & Kashmir,False
+Jammu & Kashmir,2006,135,960,723,250,347,10,0,Jammu & Kashmir,False
+Jammu & Kashmir,2007,176,986,707,288,353,9,0,Jammu & Kashmir,False
+Jammu & Kashmir,2008,162,935,656,219,296,21,0,Jammu & Kashmir,False
+Jammu & Kashmir,2009,196,972,825,237,371,12,0,Jammu & Kashmir,False
+Jammu & Kashmir,2010,211,1038,840,245,262,9,0,Jammu & Kashmir,False
+Jammu & Kashmir,2011,286,0,1023,277,350,11,1,Jammu & Kashmir,False
+Jammu & Kashmir,2012,301,1322,1041,303,347,8,3,Jammu & Kashmir,False
+Jammu & Kashmir,2013,428,1389,949,378,354,7,1,Jammu & Kashmir,False
+Jammu & Kashmir,2014,467,1421,813,331,242,1,1,Jammu & Kashmir,False
+Jammu & Kashmir,2015,400,1343,1071,296,244,6,0,Jammu & Kashmir,False
+Jammu & Kashmir,2016,342,1235,774,256,253,6,1,Jammu & Kashmir,False
+Jammu & Kashmir,2017,377,1417,931,296,41,8,0,Jammu & Kashmir,False
+Jammu & Kashmir,2018,325,1597,1061,320,25,8,1,Jammu & Kashmir,False
+Jammu & Kashmir,2019,347,1440,893,223,15,8,0,Jammu & Kashmir,False
+Jammu & Kashmir,2020,349,1744,775,243,35,9,0,Daman & Diu,True
+Jammu & Kashmir,2021,501,1851,904,315,10,16,1,Daman & Diu,True
+Jharkhand,2001,484,297,279,567,5,217,2,Jharkhand,False
+Jharkhand,2002,588,411,178,797,3,275,36,Jharkhand,False
+Jharkhand,2003,559,424,262,712,2,262,0,Jharkhand,False
+Jharkhand,2004,588,411,178,797,3,275,36,Jharkhand,False
+Jharkhand,2005,590,293,283,753,36,257,4,Jharkhand,False
+Jharkhand,2006,668,414,410,799,44,281,5,Jharkhand,False
+Jharkhand,2007,801,342,534,855,15,303,0,Jharkhand,False
+Jharkhand,2008,851,271,499,791,23,266,39,Jharkhand,False
+Jharkhand,2009,710,276,517,719,83,295,6,Jharkhand,False
+Jharkhand,2010,650,245,696,773,16,276,8,Jharkhand,False
+Jharkhand,2011,659,0,660,784,7,282,15,Jharkhand,False
+Jharkhand,2012,1261,284,786,812,10,302,12,Jharkhand,False
+Jharkhand,2013,2084,524,926,1204,18,307,11,Jharkhand,False
+Jharkhand,2014,1462,440,885,1050,114,1538,11,Jharkhand,False
+Jharkhand,2015,1654,844,930,1053,531,267,3,Jharkhand,False
+Jharkhand,2016,1002,667,693,1109,373,278,0,Jharkhand,False
+Jharkhand,2017,998,748,1033,914,104,248,4,Jharkhand,False
+Jharkhand,2018,1032,1378,1018,1090,37,252,9,Jharkhand,False
+Jharkhand,2019,1426,1646,1008,1416,7,299,4,Jharkhand,False
+Jharkhand,2020,857,1358,993,1321,6,275,2,Jammu & Kashmir,True
+Jharkhand,2021,931,1335,1159,1425,6,281,3,Jammu & Kashmir,True
+Karnataka,2001,1755,1665,271,293,81,220,0,Karnataka,False
+Karnataka,2002,1826,1648,300,292,100,233,0,Karnataka,False
+Karnataka,2003,1704,1585,244,321,84,194,0,Karnataka,False
+Karnataka,2004,1588,1435,286,291,57,259,0,Karnataka,False
+Karnataka,2005,1883,1585,312,343,71,261,0,Karnataka,False
+Karnataka,2006,2129,1683,328,400,38,244,0,Karnataka,False
+Karnataka,2007,2507,1828,390,436,28,251,0,Karnataka,False
+Karnataka,2008,2638,1954,405,446,44,259,1,Karnataka,False
+Karnataka,2009,3185,2186,408,509,64,264,2,Karnataka,False
+Karnataka,2010,3441,2544,586,586,83,248,0,Karnataka,False
+Karnataka,2011,3712,0,715,636,81,267,351,Karnataka,False
+Karnataka,2012,3684,2978,1070,621,100,218,335,Karnataka,False
+Karnataka,2013,3276,3913,1359,1030,137,277,340,Karnataka,False
+Karnataka,2014,3025,5263,1457,1324,253,1730,388,Karnataka,False
+Karnataka,2015,2732,5112,1611,589,535,254,420,Karnataka,False
+Karnataka,2016,2556,5260,1923,1655,703,234,323,Karnataka,False
+Karnataka,2017,2332,5763,967,546,212,206,236,Karnataka,False
+Karnataka,2018,2053,5204,1240,492,138,200,179,Karnataka,False
+Karnataka,2019,2472,4937,1056,505,107,194,214,Karnataka,False
+Karnataka,2020,2055,4751,923,504,70,176,159,Jharkhand,True
+Karnataka,2021,2336,5105,906,555,71,158,190,Jharkhand,True
+Kerala,2001,2561,1942,97,562,81,27,0,Kerala,False
+Kerala,2002,2836,2123,91,499,102,17,0,Kerala,False
+Kerala,2003,2930,1947,102,394,68,33,0,Kerala,False
+Kerala,2004,3222,2260,142,480,133,31,0,Kerala,False
+Kerala,2005,3283,2339,129,478,175,21,0,Kerala,False
+Kerala,2006,3708,2543,202,601,222,25,0,Kerala,False
+Kerala,2007,3999,2624,177,512,262,27,0,Kerala,False
+Kerala,2008,4138,2745,166,568,258,31,0,Kerala,False
+Kerala,2009,4007,2540,173,568,395,20,0,Kerala,False
+Kerala,2010,4797,2936,184,634,537,22,0,Kerala,False
+Kerala,2011,5377,0,221,1132,573,15,197,Kerala,False
+Kerala,2012,5216,3735,214,1019,498,32,210,Kerala,False
+Kerala,2013,4820,4362,185,1221,404,21,180,Kerala,False
+Kerala,2014,4919,4367,143,1347,980,3,91,Kerala,False
+Kerala,2015,3668,3987,192,1256,1145,8,135,Kerala,False
+Kerala,2016,3455,4029,166,1656,1273,25,113,Kerala,False
+Kerala,2017,2856,4413,184,2003,421,12,21,Kerala,False
+Kerala,2018,2046,4544,173,1945,461,17,4,Kerala,False
+Kerala,2019,2970,4507,227,2023,435,8,10,Kerala,False
+Kerala,2020,2707,3890,151,637,442,6,5,Karnataka,True
+Kerala,2021,4997,4059,179,771,504,9,5,Karnataka,True
+Ladakh,2020,3,4,0,2,0,0,0,Delhi UT,True
+Ladakh,2021,9,5,1,2,1,0,0,Delhi UT,True
+Lakshadweep,2001,0,0,0,0,0,0,0,Lakshadweep,False
+Lakshadweep,2002,0,1,0,1,0,0,0,Lakshadweep,False
+Lakshadweep,2003,1,1,0,2,0,0,0,Lakshadweep,False
+Lakshadweep,2004,1,0,0,0,0,0,0,Lakshadweep,False
+Lakshadweep,2005,0,0,0,0,0,0,0,Lakshadweep,False
+Lakshadweep,2006,1,0,0,0,0,0,0,Lakshadweep,False
+Lakshadweep,2007,2,2,0,1,0,0,0,Lakshadweep,False
+Lakshadweep,2008,1,0,1,2,0,0,0,Lakshadweep,False
+Lakshadweep,2009,0,0,0,1,0,0,0,Lakshadweep,False
+Lakshadweep,2010,0,0,0,0,0,0,0,Lakshadweep,False
+Lakshadweep,2011,0,0,0,0,0,0,0,Lakshadweep,False
+Lakshadweep,2012,1,1,0,0,0,0,0,Lakshadweep,False
+Lakshadweep,2013,0,1,0,2,0,0,0,Lakshadweep,False
+Lakshadweep,2014,0,1,0,1,0,0,0,Lakshadweep,False
+Lakshadweep,2015,2,6,0,0,0,0,0,Lakshadweep,False
+Lakshadweep,2016,2,1,0,5,0,0,0,Lakshadweep,False
+Lakshadweep,2017,2,0,0,0,0,0,0,Lakshadweep,False
+Lakshadweep,2018,1,0,0,2,1,0,0,Lakshadweep,False
+Lakshadweep,2019,0,5,0,0,8,0,0,Lakshadweep,False
+Lakshadweep,2020,0,3,0,3,1,0,0,Lakshadweep,True
+Lakshadweep,2021,3,1,0,0,1,0,0,Lakshadweep,True
+Madhya Pradesh,2001,2562,7063,668,2851,751,609,0,Madhya Pradesh,False
+Madhya Pradesh,2002,3117,7118,639,2891,783,674,0,Madhya Pradesh,False
+Madhya Pradesh,2003,2938,6848,608,2738,705,648,0,Madhya Pradesh,False
+Madhya Pradesh,2004,3436,6690,584,2875,804,751,0,Madhya Pradesh,False
+Madhya Pradesh,2005,2989,6426,604,2921,792,739,3,Madhya Pradesh,False
+Madhya Pradesh,2006,2989,6243,617,2900,762,764,0,Madhya Pradesh,False
+Madhya Pradesh,2007,3294,6772,701,3010,780,742,0,Madhya Pradesh,False
+Madhya Pradesh,2008,3185,6445,736,2937,758,805,0,Madhya Pradesh,False
+Madhya Pradesh,2009,3983,6307,841,2998,728,858,1,Madhya Pradesh,False
+Madhya Pradesh,2010,3756,6646,1030,3135,918,892,5,Madhya Pradesh,False
+Madhya Pradesh,2011,3732,0,1088,3406,762,811,24,Madhya Pradesh,False
+Madhya Pradesh,2012,3988,6655,1127,3425,774,743,13,Madhya Pradesh,False
+Madhya Pradesh,2013,4988,8252,2873,4335,736,776,22,Madhya Pradesh,False
+Madhya Pradesh,2014,6451,9609,5688,5076,3163,113,15,Madhya Pradesh,False
+Madhya Pradesh,2015,5281,8049,4547,4391,2559,664,25,Madhya Pradesh,False
+Madhya Pradesh,2016,6264,8717,4904,4882,3128,629,20,Madhya Pradesh,False
+Madhya Pradesh,2017,6099,9252,5200,5562,277,632,27,Madhya Pradesh,False
+Madhya Pradesh,2018,4159,8790,6126,5433,270,547,40,Madhya Pradesh,False
+Madhya Pradesh,2019,5486,5585,6091,2485,174,550,21,Madhya Pradesh,False
+Madhya Pradesh,2020,5540,5378,4782,2339,200,608,14,Kerala,True
+Madhya Pradesh,2021,7929,5760,6106,2947,250,522,15,Kerala,True
+Maharashtra,2001,6090,2823,611,1302,1120,308,1,Maharashtra,False
+Maharashtra,2002,5353,2686,650,1352,769,303,0,Maharashtra,False
+Maharashtra,2003,5452,2661,626,1268,682,368,0,Maharashtra,False
+Maharashtra,2004,5646,2831,787,1388,862,314,0,Maharashtra,False
+Maharashtra,2005,6233,3228,851,1545,919,341,0,Maharashtra,False
+Maharashtra,2006,6738,3479,921,1500,984,387,1,Maharashtra,False
+Maharashtra,2007,7356,3306,967,1451,1039,436,0,Maharashtra,False
+Maharashtra,2008,7829,3619,998,1558,1091,390,0,Maharashtra,False
+Maharashtra,2009,7681,3196,926,1483,1099,341,0,Maharashtra,False
+Maharashtra,2010,7434,3661,1124,1599,1180,393,0,Maharashtra,False
+Maharashtra,2011,7136,0,1252,1701,1071,339,390,Maharashtra,False
+Maharashtra,2012,7415,3935,1140,1839,1294,329,366,Maharashtra,False
+Maharashtra,2013,8542,8132,1874,3063,2632,320,289,Maharashtra,False
+Maharashtra,2014,7696,10001,2457,3438,4052,39,202,Maharashtra,False
+Maharashtra,2015,7640,11713,5096,4144,4751,268,381,Maharashtra,False
+Maharashtra,2016,7215,11396,6170,4189,4057,248,303,Maharashtra,False
+Maharashtra,2017,6584,9392,6248,1933,919,233,248,Maharashtra,False
+Maharashtra,2018,6862,10835,6825,2142,1074,200,200,Maharashtra,False
+Maharashtra,2019,8430,10472,6906,2299,1074,196,152,Maharashtra,False
+Maharashtra,2020,6729,9965,5254,2061,969,197,85,Madhya Pradesh,True
+Maharashtra,2021,10095,10568,7559,2496,1038,172,95,Madhya Pradesh,True
+Manipur,2001,5,21,62,20,0,0,0,Manipur,False
+Manipur,2002,10,58,82,14,0,0,0,Manipur,False
+Manipur,2003,4,44,71,18,0,0,0,Manipur,False
+Manipur,2004,2,30,71,31,0,0,0,Manipur,False
+Manipur,2005,20,25,69,25,0,0,0,Manipur,False
+Manipur,2006,10,42,79,40,0,0,0,Manipur,False
+Manipur,2007,15,70,83,20,0,0,0,Manipur,False
+Manipur,2008,28,57,87,38,0,1,0,Manipur,False
+Manipur,2009,25,39,97,31,2,0,0,Manipur,False
+Manipur,2010,18,31,107,34,0,0,0,Manipur,False
+Manipur,2011,39,0,116,53,0,1,0,Manipur,False
+Manipur,2012,43,49,133,63,1,0,15,Manipur,False
+Manipur,2013,29,59,125,72,0,0,0,Manipur,False
+Manipur,2014,41,98,121,75,5,0,0,Manipur,False
+Manipur,2015,39,84,94,46,2,0,0,Manipur,False
+Manipur,2016,29,65,95,55,15,0,0,Manipur,False
+Manipur,2017,19,66,70,40,8,0,0,Manipur,False
+Manipur,2018,14,56,85,52,8,0,0,Manipur,False
+Manipur,2019,15,59,84,36,7,0,0,Manipur,False
+Manipur,2020,7,61,49,32,8,1,0,Maharashtra,True
+Manipur,2021,18,92,44,26,16,2,0,Maharashtra,True
+Meghalaya,2001,4,25,11,26,0,0,0,Meghalaya,False
+Meghalaya,2002,0,23,10,38,0,0,0,Meghalaya,False
+Meghalaya,2003,4,13,10,40,1,0,0,Meghalaya,False
+Meghalaya,2004,5,34,18,54,0,2,0,Meghalaya,False
+Meghalaya,2005,3,44,19,63,0,1,0,Meghalaya,False
+Meghalaya,2006,13,57,25,74,0,6,0,Meghalaya,False
+Meghalaya,2007,19,45,22,82,1,2,0,Meghalaya,False
+Meghalaya,2008,32,54,25,88,4,2,0,Meghalaya,False
+Meghalaya,2009,24,72,26,112,1,0,1,Meghalaya,False
+Meghalaya,2010,24,48,37,149,0,0,0,Meghalaya,False
+Meghalaya,2011,21,0,37,130,1,1,2,Meghalaya,False
+Meghalaya,2012,16,43,24,164,0,1,7,Meghalaya,False
+Meghalaya,2013,23,98,33,183,0,2,4,Meghalaya,False
+Meghalaya,2014,42,105,38,118,0,1,3,Meghalaya,False
+Meghalaya,2015,44,95,58,93,22,1,0,Meghalaya,False
+Meghalaya,2016,26,68,51,190,20,0,2,Meghalaya,False
+Meghalaya,2017,20,88,54,119,21,1,0,Meghalaya,False
+Meghalaya,2018,18,95,58,87,16,1,2,Meghalaya,False
+Meghalaya,2019,23,96,71,102,18,3,3,Meghalaya,False
+Meghalaya,2020,17,86,29,67,16,1,0,Manipur,True
+Meghalaya,2021,21,92,42,75,24,0,3,Manipur,True
+Mizoram,2001,16,52,1,52,0,0,3,Mizoram,False
+Mizoram,2002,3,73,2,76,0,0,0,Mizoram,False
+Mizoram,2003,3,88,2,54,0,0,0,Mizoram,False
+Mizoram,2004,0,66,0,20,0,0,0,Mizoram,False
+Mizoram,2005,0,49,0,37,4,4,0,Mizoram,False
+Mizoram,2006,1,51,1,72,0,0,0,Mizoram,False
+Mizoram,2007,2,66,0,83,0,0,0,Mizoram,False
+Mizoram,2008,5,78,1,77,0,0,0,Mizoram,False
+Mizoram,2009,4,61,0,83,1,0,0,Mizoram,False
+Mizoram,2010,3,75,0,92,0,0,0,Mizoram,False
+Mizoram,2011,9,0,0,77,1,0,8,Mizoram,False
+Mizoram,2012,8,85,3,103,0,0,0,Mizoram,False
+Mizoram,2013,5,81,2,89,0,0,0,Mizoram,False
+Mizoram,2014,8,97,3,120,53,0,0,Mizoram,False
+Mizoram,2015,9,75,8,58,53,0,0,Mizoram,False
+Mizoram,2016,19,71,3,23,44,0,3,Mizoram,False
+Mizoram,2017,20,64,0,25,2,0,0,Mizoram,False
+Mizoram,2018,6,67,1,50,1,0,0,Mizoram,False
+Mizoram,2019,5,35,2,42,0,0,0,Mizoram,False
+Mizoram,2020,7,26,1,33,3,0,0,Meghalaya,True
+Mizoram,2021,11,31,0,26,0,0,0,Meghalaya,True
+Nagaland,2001,0,6,6,17,0,0,0,Nagaland,False
+Nagaland,2002,0,1,4,17,0,0,0,Nagaland,False
+Nagaland,2003,0,4,3,14,2,0,1,Nagaland,False
+Nagaland,2004,0,3,4,18,1,0,0,Nagaland,False
+Nagaland,2005,0,7,9,17,0,0,0,Nagaland,False
+Nagaland,2006,3,3,3,23,2,0,0,Nagaland,False
+Nagaland,2007,0,8,6,13,1,0,0,Nagaland,False
+Nagaland,2008,4,15,7,19,1,0,0,Nagaland,False
+Nagaland,2009,0,11,10,22,0,0,0,Nagaland,False
+Nagaland,2010,1,13,6,16,3,0,0,Nagaland,False
+Nagaland,2011,1,0,3,23,0,0,2,Nagaland,False
+Nagaland,2012,0,16,10,21,0,0,4,Nagaland,False
+Nagaland,2013,4,18,11,31,1,1,1,Nagaland,False
+Nagaland,2014,3,16,13,30,5,0,1,Nagaland,False
+Nagaland,2015,4,8,30,35,6,0,3,Nagaland,False
+Nagaland,2016,3,14,50,26,6,1,0,Nagaland,False
+Nagaland,2017,3,12,7,10,0,0,3,Nagaland,False
+Nagaland,2018,3,10,35,10,5,0,1,Nagaland,False
+Nagaland,2019,0,8,13,8,1,0,0,Nagaland,False
+Nagaland,2020,2,7,6,4,2,1,0,Mizoram,True
+Nagaland,2021,2,11,5,4,1,0,0,Mizoram,True
+Odisha,2001,1266,1655,434,790,458,294,0,Odisha,False
+Odisha,2002,1167,1605,432,691,188,248,0,Odisha,False
+Odisha,2003,1289,1669,373,725,188,279,0,Odisha,False
+Odisha,2004,1192,1811,423,770,170,319,0,Odisha,False
+Odisha,2005,1671,2238,547,799,184,334,0,Odisha,False
+Odisha,2006,694,2415,577,985,247,457,12,Odisha,False
+Odisha,2007,728,2775,660,939,241,461,0,Odisha,False
+Odisha,2008,1618,2782,762,1113,282,401,0,Odisha,False
+Odisha,2009,2047,2697,799,1023,210,384,1,Odisha,False
+Odisha,2010,2067,2905,912,1025,232,388,5,Odisha,False
+Odisha,2011,2320,0,1008,1112,235,465,23,Odisha,False
+Odisha,2012,2638,4187,1364,1458,304,525,24,Odisha,False
+Odisha,2013,2792,4618,2067,1832,426,395,27,Odisha,False
+Odisha,2014,3114,5543,2436,1978,802,646,32,Odisha,False
+Odisha,2015,3605,6499,2587,2251,886,356,35,Odisha,False
+Odisha,2016,2781,8252,2291,1983,979,397,38,Odisha,False
+Odisha,2017,2525,9132,2773,2070,490,326,21,Odisha,False
+Odisha,2018,1984,9973,2611,918,506,372,10,Odisha,False
+Odisha,2019,2739,11308,3934,1382,536,342,19,Odisha,False
+Odisha,2020,3659,12605,3775,1211,615,320,19,Nagaland,True
+Odisha,2021,4889,14853,5175,1456,838,293,31,Nagaland,True
+Puducherry,2001,3,35,3,9,27,1,0,Puducherry,False
+Puducherry,2002,9,59,6,6,26,5,0,Puducherry,False
+Puducherry,2003,4,56,13,2,27,1,0,Puducherry,False
+Puducherry,2004,2,50,8,4,30,6,0,Puducherry,False
+Puducherry,2005,6,60,3,6,26,4,0,Puducherry,False
+Puducherry,2006,19,56,13,9,39,3,0,Puducherry,False
+Puducherry,2007,17,89,14,9,32,2,0,Puducherry,False
+Puducherry,2008,12,65,9,8,21,2,0,Puducherry,False
+Puducherry,2009,10,53,13,1,16,0,0,Puducherry,False
+Puducherry,2010,7,46,14,3,22,1,0,Puducherry,False
+Puducherry,2011,10,0,9,7,16,1,3,Puducherry,False
+Puducherry,2012,6,9,16,13,2,0,4,Puducherry,False
+Puducherry,2013,8,12,25,17,8,1,0,Puducherry,False
+Puducherry,2014,4,32,7,10,12,14,1,Puducherry,False
+Puducherry,2015,4,33,14,3,10,1,1,Puducherry,False
+Puducherry,2016,15,43,11,6,13,0,0,Puducherry,False
+Puducherry,2017,5,33,9,7,4,2,0,Puducherry,False
+Puducherry,2018,8,60,14,0,9,0,4,Puducherry,False
+Puducherry,2019,8,23,0,10,0,0,0,Puducherry,False
+Puducherry,2020,9,25,0,8,0,2,0,Puducherry,True
+Puducherry,2021,12,31,0,2,3,2,0,Puducherry,True
+Punjab,2001,1128,372,324,298,47,159,0,Punjab,False
+Punjab,2002,944,341,354,299,145,166,0,Punjab,False
+Punjab,2003,987,346,295,380,199,110,0,Punjab,False
+Punjab,2004,801,261,311,390,38,113,0,Punjab,False
+Punjab,2005,729,308,329,398,43,99,0,Punjab,False
+Punjab,2006,801,314,418,442,60,130,2,Punjab,False
+Punjab,2007,971,427,545,519,48,133,0,Punjab,False
+Punjab,2008,984,388,514,517,49,128,0,Punjab,False
+Punjab,2009,1061,319,513,511,33,126,0,Punjab,False
+Punjab,2010,1163,349,576,546,38,121,0,Punjab,False
+Punjab,2011,1136,0,517,479,31,143,50,Punjab,False
+Punjab,2012,1293,340,689,680,31,118,86,Punjab,False
+Punjab,2013,1741,1045,987,888,67,126,137,Punjab,False
+Punjab,2014,1681,1113,1176,981,344,5,63,Punjab,False
+Punjab,2015,1583,1123,1253,886,400,85,69,Punjab,False
+Punjab,2016,1568,1025,1208,838,325,80,64,Punjab,False
+Punjab,2017,1199,933,1099,530,22,68,7,Punjab,False
+Punjab,2018,1470,956,1266,831,19,67,6,Punjab,False
+Punjab,2019,1595,944,1534,1002,35,69,9,Punjab,False
+Punjab,2020,1271,731,1241,502,28,63,11,Odisha,True
+Punjab,2021,1714,678,1616,464,39,69,12,Odisha,True
+Rajasthan,2001,5532,2878,2165,1049,56,376,1,Rajasthan,False
+Rajasthan,2002,5691,2730,2019,1051,44,399,0,Rajasthan,False
+Rajasthan,2003,5733,2715,1750,1050,33,389,1,Rajasthan,False
+Rajasthan,2004,6781,2825,1881,1038,41,379,1,Rajasthan,False
+Rajasthan,2005,5997,2503,1549,993,28,361,0,Rajasthan,False
+Rajasthan,2006,7038,2582,1553,1085,31,394,3,Rajasthan,False
+Rajasthan,2007,8170,2477,1694,1238,28,439,0,Rajasthan,False
+Rajasthan,2008,8113,2520,1863,1355,19,439,0,Rajasthan,False
+Rajasthan,2009,10371,2485,2310,1519,24,436,0,Rajasthan,False
+Rajasthan,2010,11145,2339,2477,1571,23,462,0,Rajasthan,False
+Rajasthan,2011,12218,0,2713,1800,9,514,81,Rajasthan,False
+Rajasthan,2012,13312,2352,2697,2049,18,478,99,Rajasthan,False
+Rajasthan,2013,15094,4829,4047,3285,25,453,74,Rajasthan,False
+Rajasthan,2014,15905,5999,4421,3759,727,12,78,Rajasthan,False
+Rajasthan,2015,14383,4813,4167,3644,649,463,86,Rajasthan,False
+Rajasthan,2016,13811,4839,4010,3656,483,462,56,Rajasthan,False
+Rajasthan,2017,11508,4883,3838,3305,24,457,86,Rajasthan,False
+Rajasthan,2018,12250,5249,4247,4335,34,404,62,Rajasthan,False
+Rajasthan,2019,18432,8802,5907,5997,69,452,40,Rajasthan,False
+Rajasthan,2020,13765,8661,4739,5310,85,479,67,Punjab,True
+Rajasthan,2021,16949,9079,5964,6337,73,452,40,Punjab,True
+Sikkim,2001,0,0,2,8,14,0,0,Sikkim,False
+Sikkim,2002,3,17,2,6,0,0,0,Sikkim,False
+Sikkim,2003,1,25,0,10,0,0,0,Sikkim,False
+Sikkim,2004,1,40,4,3,0,0,0,Sikkim,False
+Sikkim,2005,4,38,2,18,0,0,0,Sikkim,False
+Sikkim,2006,6,14,7,20,0,0,0,Sikkim,False
+Sikkim,2007,7,13,9,24,0,0,0,Sikkim,False
+Sikkim,2008,5,19,4,20,0,0,0,Sikkim,False
+Sikkim,2009,6,10,6,18,0,0,0,Sikkim,False
+Sikkim,2010,3,11,6,18,0,1,0,Sikkim,False
+Sikkim,2011,4,0,10,16,0,0,1,Sikkim,False
+Sikkim,2012,4,19,10,34,0,1,0,Sikkim,False
+Sikkim,2013,5,29,16,43,0,0,0,Sikkim,False
+Sikkim,2014,5,34,12,47,14,0,0,Sikkim,False
+Sikkim,2015,2,21,21,5,5,1,0,Sikkim,False
+Sikkim,2016,2,34,12,92,8,0,0,Sikkim,False
+Sikkim,2017,5,21,27,17,7,0,0,Sikkim,False
+Sikkim,2018,1,23,7,16,5,1,0,Sikkim,False
+Sikkim,2019,1,21,0,11,2,0,0,Sikkim,False
+Sikkim,2020,1,18,11,12,0,0,0,Rajasthan,True
+Sikkim,2021,3,17,1,8,0,0,0,Rajasthan,True
+Tamil Nadu,2001,815,1773,607,423,1012,191,14,Tamil Nadu,False
+Tamil Nadu,2002,1052,1877,714,534,1718,243,0,Tamil Nadu,False
+Tamil Nadu,2003,1555,2022,632,557,881,220,1,Tamil Nadu,False
+Tamil Nadu,2004,1437,1861,692,618,1081,225,0,Tamil Nadu,False
+Tamil Nadu,2005,1650,1764,783,571,665,215,0,Tamil Nadu,False
+Tamil Nadu,2006,1248,1179,718,457,852,187,0,Tamil Nadu,False
+Tamil Nadu,2007,1976,1540,1097,523,875,208,0,Tamil Nadu,False
+Tamil Nadu,2008,1648,1705,1160,573,974,207,0,Tamil Nadu,False
+Tamil Nadu,2009,1460,1242,1133,596,501,194,0,Tamil Nadu,False
+Tamil Nadu,2010,1570,1405,1464,686,638,165,0,Tamil Nadu,False
+Tamil Nadu,2011,1812,0,1743,677,464,152,420,Tamil Nadu,False
+Tamil Nadu,2012,1965,1494,1693,737,382,110,500,Tamil Nadu,False
+Tamil Nadu,2013,2471,1271,1516,923,313,118,549,Tamil Nadu,False
+Tamil Nadu,2014,2103,1102,1502,455,46,292,471,Tamil Nadu,False
+Tamil Nadu,2015,1900,1163,1335,421,197,65,491,Tamil Nadu,False
+Tamil Nadu,2016,1256,854,1043,319,115,58,432,Tamil Nadu,False
+Tamil Nadu,2017,984,744,859,283,9,48,403,Tamil Nadu,False
+Tamil Nadu,2018,789,814,896,331,14,55,386,Tamil Nadu,False
+Tamil Nadu,2019,781,803,699,362,7,28,349,Tamil Nadu,False
+Tamil Nadu,2020,689,892,633,389,31,40,231,Sikkim,True
+Tamil Nadu,2021,875,1077,638,422,32,27,381,Sikkim,True
+Telangana,2011,0,0,0,0,0,0,0,Telangana,False
+Telangana,2012,0,0,0,0,0,0,0,Telangana,False
+Telangana,2013,0,0,0,0,0,0,0,Telangana,False
+Telangana,2014,6369,3188,711,979,620,563,192,Telangana,False
+Telangana,2015,7329,3608,648,1105,620,262,252,Telangana,False
+Telangana,2016,7202,3767,987,1278,859,254,240,Telangana,False
+Telangana,2017,7838,4409,934,552,1160,251,79,Telangana,False
+Telangana,2018,6286,4567,1121,606,878,186,81,Telangana,False
+Telangana,2019,8541,4190,1322,873,695,163,22,Telangana,False
+Telangana,2020,7453,4907,1314,764,565,158,13,Tamil Nadu,True
+Telangana,2021,9468,4365,1934,823,775,175,12,Tamil Nadu,True
+Tripura,2001,227,58,35,102,0,16,0,Tripura,False
+Tripura,2002,236,128,48,108,0,16,0,Tripura,False
+Tripura,2003,247,127,29,114,0,20,0,Tripura,False
+Tripura,2004,302,134,54,160,0,20,0,Tripura,False
+Tripura,2005,439,161,43,162,1,34,0,Tripura,False
+Tripura,2006,471,207,62,189,0,35,0,Tripura,False
+Tripura,2007,545,244,81,157,4,36,0,Tripura,False
+Tripura,2008,735,346,110,204,4,16,0,Tripura,False
+Tripura,2009,815,384,92,190,5,29,0,Tripura,False
+Tripura,2010,937,376,91,238,9,25,0,Tripura,False
+Tripura,2011,702,0,116,205,9,30,2,Tripura,False
+Tripura,2012,858,314,114,229,7,37,0,Tripura,False
+Tripura,2013,827,407,124,233,7,29,0,Tripura,False
+Tripura,2014,702,492,102,239,82,1,0,Tripura,False
+Tripura,2015,501,352,120,213,28,28,2,Tripura,False
+Tripura,2016,430,214,119,207,52,19,0,Tripura,False
+Tripura,2017,348,225,90,95,9,33,0,Tripura,False
+Tripura,2018,303,165,139,97,6,18,2,Tripura,False
+Tripura,2019,451,153,138,88,5,38,0,Tripura,False
+Tripura,2020,356,115,110,79,3,23,0,Telangana,True
+Tripura,2021,355,94,115,61,1,22,0,Telangana,True
+Uttar Pradesh,2001,7365,2870,2879,1958,2575,2211,0,Uttar Pradesh,False
+Uttar Pradesh,2002,5679,2145,2298,1415,1887,1893,0,Uttar Pradesh,False
+Uttar Pradesh,2003,2626,1098,1499,911,4970,1322,0,Uttar Pradesh,False
+Uttar Pradesh,2004,4950,1900,2324,1397,2682,1708,3,Uttar Pradesh,False
+Uttar Pradesh,2005,4505,1835,2256,1217,2881,1564,0,Uttar Pradesh,False
+Uttar Pradesh,2006,5204,2096,2551,1314,2714,1798,0,Uttar Pradesh,False
+Uttar Pradesh,2007,7650,2522,3363,1648,2882,2076,0,Uttar Pradesh,False
+Uttar Pradesh,2008,8312,2955,4439,1871,3374,2237,0,Uttar Pradesh,False
+Uttar Pradesh,2009,8566,2782,5078,1759,2524,2232,0,Uttar Pradesh,False
+Uttar Pradesh,2010,7978,2793,5468,1563,11,2217,0,Uttar Pradesh,False
+Uttar Pradesh,2011,7121,0,7525,2042,3,2322,43,Uttar Pradesh,False
+Uttar Pradesh,2012,7661,3247,7910,1963,8,2244,31,Uttar Pradesh,False
+Uttar Pradesh,2013,8781,7303,9737,3050,25,2335,37,Uttar Pradesh,False
+Uttar Pradesh,2014,10471,8605,10626,3467,4435,2133,37,Uttar Pradesh,False
+Uttar Pradesh,2015,8660,7885,10135,3025,5925,2335,33,Uttar Pradesh,False
+Uttar Pradesh,2016,11156,11335,12994,4816,9422,2473,50,Uttar Pradesh,False
+Uttar Pradesh,2017,12653,12607,14993,4246,91,2524,25,Uttar Pradesh,False
+Uttar Pradesh,2018,14233,12555,15381,3946,17,2444,27,Uttar Pradesh,False
+Uttar Pradesh,2019,18304,11988,11649,3065,42,2410,22,Uttar Pradesh,False
+Uttar Pradesh,2020,14454,9864,9109,2769,28,2274,25,Tripura,True
+Uttar Pradesh,2021,18375,9393,10574,2845,27,2222,12,Tripura,True
+Uttarakhand,2001,301,103,126,74,84,56,0,Uttarakhand,False
+Uttarakhand,2002,316,145,155,89,97,66,1,Uttarakhand,False
+Uttarakhand,2003,317,136,134,107,98,93,0,Uttarakhand,False
+Uttarakhand,2004,405,143,127,115,110,82,0,Uttarakhand,False
+Uttarakhand,2005,272,100,125,133,89,63,0,Uttarakhand,False
+Uttarakhand,2006,358,153,183,147,113,80,0,Uttarakhand,False
+Uttarakhand,2007,463,146,227,117,63,70,0,Uttarakhand,False
+Uttarakhand,2008,340,120,222,87,306,73,0,Uttarakhand,False
+Uttarakhand,2009,361,119,247,111,249,94,0,Uttarakhand,False
+Uttarakhand,2010,334,125,249,121,165,75,0,Uttarakhand,False
+Uttarakhand,2011,307,0,283,129,72,83,3,Uttarakhand,False
+Uttarakhand,2012,368,139,256,148,73,71,12,Uttarakhand,False
+Uttarakhand,2013,435,295,633,228,72,43,13,Uttarakhand,False
+Uttarakhand,2014,301,343,275,270,22,104,19,Uttarakhand,False
+Uttarakhand,2015,407,318,336,283,51,54,18,Uttarakhand,False
+Uttarakhand,2016,392,344,377,336,35,57,11,Uttarakhand,False
+Uttarakhand,2017,394,435,371,374,4,60,6,Uttarakhand,False
+Uttarakhand,2018,622,548,502,561,8,63,0,Uttarakhand,False
+Uttarakhand,2019,644,475,375,526,10,57,3,Uttarakhand,False
+Uttarakhand,2020,668,474,349,487,43,65,8,Uttar Pradesh,True
+Uttarakhand,2021,519,655,402,534,13,72,17,Uttar Pradesh,True
+West Bengal,2001,3859,954,695,709,48,265,3,West Bengal,False
+West Bengal,2002,4069,964,694,759,34,273,1,West Bengal,False
+West Bengal,2003,4948,1186,801,1002,71,329,1,West Bengal,False
+West Bengal,2004,6334,1566,1018,1475,64,396,12,West Bengal,False
+West Bengal,2005,6936,1572,1039,1686,54,446,61,West Bengal,False
+West Bengal,2006,7414,1837,1199,1731,63,445,1,West Bengal,False
+West Bengal,2007,9900,2281,1590,2106,99,451,5,West Bengal,False
+West Bengal,2008,13663,2396,1907,2263,94,451,5,West Bengal,False
+West Bengal,2009,16112,1942,2187,2336,108,506,5,West Bengal,False
+West Bengal,2010,17796,2465,2764,2311,163,507,8,West Bengal,False
+West Bengal,2011,19772,0,3711,2363,200,510,96,West Bengal,False
+West Bengal,2012,19865,3345,4168,2046,556,593,109,West Bengal,False
+West Bengal,2013,18116,4913,3830,1685,577,481,104,West Bengal,False
+West Bengal,2014,23278,5670,4976,1466,1045,1,80,West Bengal,False
+West Bengal,2015,20163,5069,3938,1199,674,498,101,West Bengal,False
+West Bengal,2016,19302,4177,4494,1110,663,535,87,West Bengal,False
+West Bengal,2017,16800,3832,4232,1084,448,499,67,West Bengal,False
+West Bengal,2018,16951,3399,4249,1069,391,444,97,West Bengal,False
+West Bengal,2019,16951,3399,4249,1069,391,444,97,West Bengal,False
+West Bengal,2020,19962,2488,7740,1128,446,522,52,Uttarakhand,True
+West Bengal,2021,19952,2485,7376,1123,424,454,50,Uttarakhand,True

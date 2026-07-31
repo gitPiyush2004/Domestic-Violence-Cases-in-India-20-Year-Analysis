@@ -1,0 +1,37 @@
+state_clean,state_code,entity_type,region,population_2011,sex_ratio_2011,literacy_rate_2011,notes
+Andhra Pradesh,AP,State,South,49386799,993,67.02,Residual AP after the 2014 bifurcation (13 districts)
+Arunachal Pradesh,AR,State,North East,1383727,938,65.38,
+Assam,AS,State,North East,31205576,958,72.19,
+Bihar,BR,State,East,104099452,918,61.80,
+Chhattisgarh,CG,State,Central,25545198,991,70.28,
+Goa,GA,State,West,1458545,973,88.70,
+Gujarat,GJ,State,West,60439692,919,78.03,
+Haryana,HR,State,North,25351462,879,75.55,
+Himachal Pradesh,HP,State,North,6864602,972,82.80,
+Jammu & Kashmir,JK,Union Territory,North,12267013,892,67.16,State until Oct-2019 then UT. Population excludes the Ladakh districts; pre-2020 case counts include them (~2% of the entity)
+Jharkhand,JH,State,East,32988134,948,66.41,
+Karnataka,KA,State,South,61095297,973,75.36,
+Kerala,KL,State,South,33406061,1084,94.00,
+Ladakh,LA,Union Territory,North,274289,750,77.20,Carved out of J&K on 31-Oct-2019. Reported separately by NCRB from 2020 only. Population = Leh + Kargil districts (Census 2011)
+Madhya Pradesh,MP,State,Central,72626809,931,69.32,
+Maharashtra,MH,State,West,112374333,929,82.34,
+Manipur,MN,State,North East,2855794,985,76.94,
+Meghalaya,ML,State,North East,2966889,989,74.43,
+Mizoram,MZ,State,North East,1097206,976,91.33,
+Nagaland,NL,State,North East,1978502,931,79.55,
+Odisha,OD,State,East,41974218,979,72.87,
+Punjab,PB,State,North,27743338,895,75.84,
+Rajasthan,RJ,State,North,68548437,928,66.11,
+Sikkim,SK,State,North East,610577,890,81.42,
+Tamil Nadu,TN,State,South,72147030,996,80.09,
+Telangana,TG,State,South,35193978,988,66.54,Formed 02-Jun-2014. Source rows for 2011-2013 exist with zero values and are flagged as structural zeros
+Tripura,TR,State,North East,3673917,960,87.22,
+Uttar Pradesh,UP,State,Central,199812341,912,67.68,
+Uttarakhand,UK,State,North,10086292,963,78.82,
+West Bengal,WB,State,East,91276115,950,76.26,
+A & N Islands,AN,Union Territory,Islands,380581,876,86.63,
+Chandigarh,CH,Union Territory,North,1055450,818,86.05,
+D & N Haveli and Daman & Diu,DN,Union Territory,West,586956,706,79.55,"Merged into one UT on 26-Jan-2020. The two predecessor UTs are summed for 2001-2019 so the series is comparable across the merger"
+Delhi UT,DL,Union Territory,North,16787941,868,86.21,NCT of Delhi. Absent from the source file for 2001-2010
+Lakshadweep,LD,Union Territory,Islands,64473,946,91.85,
+Puducherry,PY,Union Territory,South,1247953,1037,85.85,

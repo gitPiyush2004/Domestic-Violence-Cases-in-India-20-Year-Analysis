@@ -1,0 +1,2030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crimes Against Women in India (2001-2021) | Domestic Violence Analysis</title>
+<meta name="description" content="Interactive 20-year analysis of domestic violence and crimes against women across 36 Indian states and union territories, built on NCRB data.">
+<style>
+/* ===========================================================================
+   Design tokens. Light and dark are both SELECTED palettes stepped for their
+   own surface, not an automatic inversion. Charts are written against these
+   roles, never raw hex, so a theme swap touches one block.
+   =========================================================================== */
+:root {
+  color-scheme: light;
+  --surface-1: #fcfcfb;
+  --surface-2: #f9f9f7;
+  --surface-3: #f3f3f0;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --shadow: 0 1px 2px rgba(11,11,11,.04), 0 4px 12px rgba(11,11,11,.04);
+
+  /* categorical slots 1-7, fixed order, never cycled */
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+  --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+  --deemph: #c3c2b7;
+
+  /* status - reserved, never reused for a series */
+  --good: #0ca30c; --warning: #fab219; --serious: #ec835a; --critical: #d03b3b;
+  --success-text: #006300;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --surface-1: #1a1a19; --surface-2: #0d0d0d; --surface-3: #232322;
+    --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.3);
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+    --s5: #d55181; --s6: #008300; --s7: #9085e9;
+    --deemph: #52514e;
+    --success-text: #0ca30c;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-1: #1a1a19; --surface-2: #0d0d0d; --surface-3: #232322;
+  --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.3);
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+  --s5: #d55181; --s6: #008300; --s7: #9085e9;
+  --deemph: #52514e;
+  --success-text: #0ca30c;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* ---------- shell ---------- */
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 20px 64px; }
+header.top {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-1);
+  padding: 22px 0 18px;
+  margin-bottom: 0;
+}
+.top-inner { max-width: 1320px; margin: 0 auto; padding: 0 20px;
+  display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.title-block { flex: 1 1 420px; min-width: 260px; }
+h1 { font-size: 20px; font-weight: 650; margin: 0 0 4px; letter-spacing: -.01em; }
+.sub { color: var(--text-secondary); font-size: 13px; margin: 0; }
+.src { color: var(--text-muted); font-size: 11.5px; margin: 6px 0 0; }
+.theme-btn {
+  border: 1px solid var(--border); background: var(--surface-1);
+  color: var(--text-secondary); border-radius: 8px; padding: 7px 12px;
+  font: inherit; font-size: 12.5px; cursor: pointer; white-space: nowrap;
+}
+.theme-btn:hover { background: var(--surface-3); }
+
+/* ---------- tabs ---------- */
+nav.tabs {
+  display: flex; gap: 2px; overflow-x: auto; background: var(--surface-1);
+  border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 40;
+  scrollbar-width: thin;
+}
+.tabs-inner { display: flex; gap: 2px; max-width: 1320px; margin: 0 auto;
+  padding: 0 14px; width: 100%; }
+.tab {
+  border: 0; background: none; font: inherit; font-size: 13px;
+  color: var(--text-secondary); padding: 12px 14px; cursor: pointer;
+  border-bottom: 2px solid transparent; white-space: nowrap;
+}
+.tab:hover { color: var(--text-primary); }
+.tab[aria-selected="true"] { color: var(--text-primary); font-weight: 600;
+  border-bottom-color: var(--s1); }
+
+/* ---------- filter row: ONE row, above everything it scopes ---------- */
+.filters {
+  display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end;
+  padding: 14px 16px; background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 10px; margin: 18px 0 20px; box-shadow: var(--shadow);
+}
+.fgroup { display: flex; flex-direction: column; gap: 4px; }
+.fgroup label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--text-muted); font-weight: 600; }
+.fgroup select {
+  font: inherit; font-size: 13px; padding: 6px 8px; border-radius: 7px;
+  border: 1px solid var(--border); background: var(--surface-1);
+  color: var(--text-primary); min-width: 132px;
+}
+.fspacer { flex: 1 1 auto; }
+.reset {
+  border: 1px solid var(--border); background: var(--surface-1); color: var(--text-secondary);
+  border-radius: 7px; padding: 6px 12px; font: inherit; font-size: 12.5px; cursor: pointer;
+}
+.reset:hover { background: var(--surface-3); }
+.scope-note { font-size: 11.5px; color: var(--text-muted); flex-basis: 100%; margin: 0; }
+
+/* ---------- cards & grid ---------- */
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(12, 1fr); }
+.card {
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 18px 14px; box-shadow: var(--shadow); min-width: 0;
+}
+.col-12 { grid-column: span 12; } .col-8 { grid-column: span 8; }
+.col-6 { grid-column: span 6; } .col-4 { grid-column: span 4; }
+.col-5 { grid-column: span 5; } .col-7 { grid-column: span 7; }
+@media (max-width: 980px) {
+  .col-8, .col-6, .col-4, .col-5, .col-7 { grid-column: span 12; }
+}
+.card-head { display: flex; justify-content: space-between; align-items: baseline;
+  gap: 12px; margin-bottom: 2px; flex-wrap: wrap; }
+h2.card-title { font-size: 14px; font-weight: 620; margin: 0; letter-spacing: -.005em; }
+.card-sub { font-size: 12px; color: var(--text-secondary); margin: 2px 0 12px; }
+.tbtn {
+  border: 1px solid var(--border); background: none; color: var(--text-muted);
+  font: inherit; font-size: 11px; padding: 3px 8px; border-radius: 6px; cursor: pointer;
+}
+.tbtn:hover { color: var(--text-primary); background: var(--surface-3); }
+.tbtn[aria-pressed="true"] { color: var(--text-primary); background: var(--surface-3); }
+
+/* ---------- hero + stat tiles ---------- */
+.hero-card { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+.hero-fig { font-size: 52px; font-weight: 660; line-height: 1; letter-spacing: -.025em; }
+.hero-label { font-size: 13px; color: var(--text-secondary); margin-top: 8px; max-width: 320px; }
+.hero-side { flex: 1 1 300px; min-width: 240px; font-size: 13px;
+  color: var(--text-secondary); border-left: 1px solid var(--border); padding-left: 24px; }
+@media (max-width: 700px) { .hero-side { border-left: 0; padding-left: 0; } }
+
+.kpis { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); }
+.tile {
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+  padding: 13px 15px; box-shadow: var(--shadow);
+}
+.tile .lbl { font-size: 11.5px; color: var(--text-secondary); margin-bottom: 5px; }
+.tile .val { font-size: 25px; font-weight: 640; line-height: 1.1; letter-spacing: -.02em; }
+.tile .delta { font-size: 11.5px; margin-top: 4px; color: var(--text-muted); }
+.up { color: var(--critical); } .down { color: var(--success-text); }
+
+/* ---------- charts ---------- */
+.chart-host { position: relative; width: 100%; }
+svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+.gridline { stroke: var(--grid); stroke-width: 1; }
+.axisline { stroke: var(--axis); stroke-width: 1; }
+.tick { fill: var(--text-muted); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.tick-cat { fill: var(--text-secondary); font-size: 10.5px; }
+.dlabel { fill: var(--text-primary); font-size: 10.5px; font-weight: 600; }
+.dlabel-sec { fill: var(--text-secondary); font-size: 10px; }
+.annot { fill: var(--text-muted); font-size: 10px; }
+.hit { fill: transparent; cursor: crosshair; }
+
+/* legend: always present for 2+ series */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 15px; margin: 10px 0 0;
+  font-size: 11.5px; color: var(--text-secondary); }
+.legend .item { display: inline-flex; align-items: center; gap: 6px; }
+.legend .swatch { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+.legend .lkey { width: 14px; height: 2px; border-radius: 1px; flex: none; }
+
+/* tooltip */
+.tip {
+  position: absolute; pointer-events: none; opacity: 0; transition: opacity .1s;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.16); padding: 9px 11px; font-size: 12px;
+  min-width: 128px; z-index: 30; color: var(--text-primary);
+}
+.tip.on { opacity: 1; }
+.tip .t-head { font-weight: 640; font-size: 12px; margin-bottom: 6px;
+  padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+.tip .t-row { display: flex; align-items: center; gap: 7px; margin-top: 3px; }
+.tip .t-key { width: 13px; height: 2px; border-radius: 1px; flex: none; }
+.tip .t-val { font-weight: 640; font-variant-numeric: tabular-nums; margin-left: auto; }
+.tip .t-name { color: var(--text-secondary); }
+
+/* ---------- tables ---------- */
+.tbl-host { display: none; overflow-x: auto; margin-top: 4px; }
+.tbl-host.on { display: block; }
+table { border-collapse: collapse; width: 100%; font-size: 12px; }
+th, td { text-align: right; padding: 6px 9px; border-bottom: 1px solid var(--border);
+  white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--text-secondary); font-weight: 600; font-size: 11px;
+  text-transform: uppercase; letter-spacing: .04em; position: sticky; top: 0;
+  background: var(--surface-1); }
+td { font-variant-numeric: tabular-nums; }
+tbody tr:hover { background: var(--surface-3); }
+.scroll-y { max-height: 420px; overflow-y: auto; }
+
+/* ---------- pills ---------- */
+.pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px;
+  font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.p-critical { color: var(--critical); background: color-mix(in srgb, var(--critical) 12%, transparent); }
+.p-critical::before { background: var(--critical); }
+.p-high { color: var(--serious); background: color-mix(in srgb, var(--serious) 14%, transparent); }
+.p-high::before { background: var(--serious); }
+.p-moderate { color: var(--text-secondary); background: color-mix(in srgb, var(--warning) 18%, transparent); }
+.p-moderate::before { background: var(--warning); }
+.p-low { color: var(--success-text); background: color-mix(in srgb, var(--good) 12%, transparent); }
+.p-low::before { background: var(--good); }
+.p-a { color: var(--critical); background: color-mix(in srgb, var(--critical) 12%, transparent); }
+.p-a::before { background: var(--critical); }
+.p-b { color: var(--text-secondary); background: color-mix(in srgb, var(--warning) 18%, transparent); }
+.p-b::before { background: var(--warning); }
+.p-c { color: var(--success-text); background: color-mix(in srgb, var(--good) 12%, transparent); }
+.p-c::before { background: var(--good); }
+
+/* ---------- narrative ---------- */
+.page { display: none; } .page.on { display: block; }
+.prose { font-size: 13.5px; color: var(--text-secondary); max-width: 74ch; }
+.prose h3 { color: var(--text-primary); font-size: 14px; margin: 22px 0 6px; }
+.prose p { margin: 0 0 10px; }
+.prose strong { color: var(--text-primary); }
+.prose code { background: var(--surface-3); padding: 1px 5px; border-radius: 4px;
+  font-size: 12px; }
+.finding {
+  border-left: 2px solid var(--s1); padding: 2px 0 2px 15px; margin: 0 0 20px;
+}
+.finding h3 { margin: 0 0 5px; font-size: 14px; color: var(--text-primary); }
+.finding .num { font-size: 11px; color: var(--text-muted); font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase; }
+.callout {
+  background: var(--surface-3); border: 1px solid var(--border); border-radius: 9px;
+  padding: 13px 16px; font-size: 13px; color: var(--text-secondary); margin: 0 0 16px;
+}
+.callout strong { color: var(--text-primary); }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+.ok { color: var(--success-text); font-weight: 600; }
+.bad { color: var(--critical); font-weight: 600; }
+.footnote { font-size: 11.5px; color: var(--text-muted); margin: 8px 0 0; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="title-block">
+      <h1>Crimes Against Women in India &mdash; a 20-year analysis</h1>
+      <p class="sub">Domestic violence (IPC 498A) across 36 states and union territories, 2001&ndash;2021</p>
+      <p class="src">Source: NCRB <em>Crime in India</em> annual reports (Kaggle mirror) &middot; denominators from Census 2011 &middot; 2020&ndash;21 state attribution repaired &mdash; see the Data Quality tab</p>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button">Dark mode</button>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Dashboard pages">
+  <div class="tabs-inner">
+    <button class="tab" role="tab" aria-selected="true"  data-page="overview">Overview</button>
+    <button class="tab" role="tab" aria-selected="false" data-page="states">State analysis</button>
+    <button class="tab" role="tab" aria-selected="false" data-page="abc">ABC &amp; risk zones</button>
+    <button class="tab" role="tab" aria-selected="false" data-page="quality">Data quality</button>
+    <button class="tab" role="tab" aria-selected="false" data-page="insights">Insights</button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- ONE filter row, above everything it scopes -->
+  <div class="filters" id="filters">
+    <div class="fgroup">
+      <label for="fCrime">Crime head</label>
+      <select id="fCrime"></select>
+    </div>
+    <div class="fgroup">
+      <label for="fFrom">From year</label>
+      <select id="fFrom"></select>
+    </div>
+    <div class="fgroup">
+      <label for="fTo">To year</label>
+      <select id="fTo"></select>
+    </div>
+    <div class="fgroup">
+      <label for="fRegion">Region</label>
+      <select id="fRegion"></select>
+    </div>
+    <div class="fgroup">
+      <label for="fType">Entity type</label>
+      <select id="fType"></select>
+    </div>
+    <div class="fspacer"></div>
+    <button class="reset" id="fReset" type="button">Reset filters</button>
+    <p class="scope-note" id="scopeNote"></p>
+  </div>
+
+  <!-- ================= OVERVIEW ================= -->
+  <section class="page on" id="page-overview">
+    <div class="grid" style="margin-bottom:16px">
+      <div class="card col-12 hero-card">
+        <div>
+          <div class="hero-fig" id="heroVal">&mdash;</div>
+          <div class="hero-label" id="heroLbl"></div>
+        </div>
+        <div class="hero-side" id="heroSide"></div>
+      </div>
+    </div>
+
+    <div class="kpis" id="kpiRow" style="margin-bottom:16px"></div>
+
+    <div class="grid">
+      <div class="card col-8">
+        <div class="card-head">
+          <h2 class="card-title" id="trendTitle">Reported cases per year</h2>
+          <button class="tbtn" data-table="tblTrend" aria-pressed="false">Table view</button>
+        </div>
+        <p class="card-sub" id="trendSub"></p>
+        <div class="chart-host" id="chTrend"></div>
+        <div class="tbl-host" id="tblTrend"></div>
+      </div>
+
+      <div class="card col-4">
+        <div class="card-head">
+          <h2 class="card-title">Share of all crimes against women</h2>
+          <button class="tbtn" data-table="tblTypes" aria-pressed="false">Table view</button>
+        </div>
+        <p class="card-sub">Seven IPC heads, ranked by 21-year volume. Domestic violence is the largest single head.</p>
+        <div class="chart-host" id="chTypes"></div>
+        <div class="tbl-host" id="tblTypes"></div>
+      </div>
+
+      <div class="card col-7">
+        <div class="card-head">
+          <h2 class="card-title">Crime mix over time</h2>
+          <button class="tbtn" data-table="tblMix" aria-pressed="false">Table view</button>
+        </div>
+        <p class="card-sub">All seven heads stacked. The 2013 step change follows the Criminal Law (Amendment) Act; 2011 is blank for Assault on Women, which is missing from the source.</p>
+        <div class="chart-host" id="chMix"></div>
+        <div class="tbl-host" id="tblMix"></div>
+      </div>
+
+      <div class="card col-5">
+        <div class="card-head">
+          <h2 class="card-title" id="topTitle">Top 12 entities by volume</h2>
+          <button class="tbtn" data-table="tblTop" aria-pressed="false">Table view</button>
+        </div>
+        <p class="card-sub">Absolute counts. These rank largely by population &mdash; the State analysis tab normalises them.</p>
+        <div class="chart-host" id="chTop"></div>
+        <div class="tbl-host" id="tblTop"></div>
+      </div>
+
+      <div class="card col-12">
+        <div class="card-head">
+          <h2 class="card-title">Regional profile</h2>
+          <button class="tbtn" data-table="tblRegion" aria-pressed="false">Table view</button>
+        </div>
+        <p class="card-sub">Cases per lakh women per year, by region. The ranking inverts when you normalise: the North East carries the highest intensity on a small population base.</p>
+        <div class="chart-host" id="chRegion"></div>
+        <div class="tbl-host" id="tblRegion"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STATES ================= -->
+  <section class="page" id="page-states">
+    <div class="callout" id="statesCallout"></div>
+    <div class="grid">
+      <div class="card col-7">
+        <div class="card-head">
+          <h2 class="card-title">Volume against intensity</h2>
+          <button class="tbtn" data-table="tblScatter" aria-pressed="false">Table view</button>
+        </div>
+        <p class="card-sub">Each dot is one entity. Horizontal is total cases in the selected window; vertical is cases per lakh women per year. The two disagree, and the disagreement is the point.</p>
+        <div class="chart-host" id="chScatter"></div>
+        <div class="tbl-host" id="tblScatter"></div>
+      </div>
+
+      <div class="card col-5">
+        <div class="card-head">
+          <h2 class="card-title">Ranked by intensity</h2>
+          <button class="tbtn" data-table="tblRate" aria-pressed="false">Table view</button>
+        </div>
+        <p class="card-sub">Cases per lakh women per year. Population is out of the picture, so this is a comparison of exposure rather than of size.</p>
+        <div class="chart-host" id="chRate"></div>
+        <div class="tbl-host" id="tblRate"></div>
+      </div>
+
+      <div class="card col-12">
+        <div class="card-head">
+          <h2 class="card-title">Intensity by entity and year</h2>
+          <button class="tbtn" data-table="tblHeat" aria-pressed="false">Table view</button>
+        </div>
+        <p class="card-sub">Top 20 entities by volume. Colour is cases per lakh women in that year, so each row is comparable with every other row. Blank cells are years the entity did not exist.</p>
+        <div class="chart-host" id="chHeat"></div>
+        <div class="tbl-host" id="tblHeat"></div>
+      </div>
+
+      <div class="card col-12">
+        <div class="card-head">
+          <h2 class="card-title">Entity detail</h2>
+          <button class="tbtn" data-table="tblStates" aria-pressed="true">Table view</button>
+        </div>
+        <p class="card-sub">Every entity in the selected scope, with its segmentation. Sortable by clicking a column header.</p>
+        <div class="tbl-host on" id="tblStates"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ABC ================= -->
+  <section class="page" id="page-abc">
+    <div class="callout" id="abcCallout"></div>
+    <div class="grid">
+      <div class="card col-8">
+        <div class="card-head">
+          <h2 class="card-title">Pareto curve &mdash; concentration of the burden</h2>
+          <button class="tbtn" data-table="tblPareto" aria-pressed="false">Table view</button>
+        </div>
+        <p class="card-sub">Bars are each entity's share of the national total; the line is the running cumulative share. Both are percentages on one axis &mdash; no second scale.</p>
+        <div class="chart-host" id="chPareto"></div>
+        <div class="tbl-host" id="tblPareto"></div>
+      </div>
+
+      <div class="card col-4">
+        <div class="card-head">
+          <h2 class="card-title">Class summary</h2>
+        </div>
+        <p class="card-sub">Concentration ratio is share of burden divided by share of entities. Above 1 means the class carries more than its headcount would suggest.</p>
+        <div class="tbl-host on" id="tblAbcSummary"></div>
+        <p class="footnote">A = first 70% of cumulative volume &middot; B = next 20% &middot; C = tail 10%. The entity that crosses a boundary is pulled into the class it completes.</p>
+      </div>
+
+      <div class="card col-5">
+        <div class="card-head">
+          <h2 class="card-title">Risk zones, 2021</h2>
+          <button class="tbtn" data-table="tblZone" aria-pressed="false">Table view</button>
+        </div>
+        <p class="card-sub">Bands are quartiles of the 2021 intensity distribution, so they stay meaningful if the data is refreshed.</p>
+        <div class="chart-host" id="chZone"></div>
+        <div class="tbl-host" id="tblZone"></div>
+      </div>
+
+      <div class="card col-7">
+        <div class="card-head">
+          <h2 class="card-title">Priority matrix &mdash; level against direction</h2>
+        </div>
+        <p class="card-sub">Level alone cannot separate a bad-but-stable entity from a moderate-but-deteriorating one. Those need opposite responses, so both are on the table.</p>
+        <div class="tbl-host on scroll-y" id="tblPriority"></div>
+      </div>
+
+      <div class="card col-12">
+        <div class="card-head">
+          <h2 class="card-title">Volume class against intensity band</h2>
+        </div>
+        <p class="card-sub">Where the two segmentations disagree is where the interesting cases sit &mdash; especially class C entities in the Critical band, which any volume-only ranking buries.</p>
+        <div class="tbl-host on" id="tblCross"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DATA QUALITY ================= -->
+  <section class="page" id="page-quality">
+    <div class="grid">
+      <div class="card col-12">
+        <h2 class="card-title">What was wrong with the source, and what was done about it</h2>
+        <div class="prose" id="qualityProse"></div>
+      </div>
+
+      <div class="card col-12">
+        <div class="card-head">
+          <h2 class="card-title">The defect, and the repair</h2>
+          <button class="tbtn" data-table="tblRepair" aria-pressed="false">Table view</button>
+        </div>
+        <p class="card-sub">Domestic violence cases in 2020 as the source file reports them, against the repaired attribution, with each entity's own 2019 figure as the reference. Bars that stop near zero, or explode, are the defect.</p>
+        <div class="chart-host" id="chRepair"></div>
+        <div class="tbl-host" id="tblRepair"></div>
+      </div>
+
+      <div class="card col-6">
+        <div class="card-head"><h2 class="card-title">Cleaning decisions</h2></div>
+        <div class="tbl-host on" id="tblDecisions"></div>
+      </div>
+
+      <div class="card col-6">
+        <div class="card-head"><h2 class="card-title">Known limitations</h2></div>
+        <div class="prose" id="limitsProse"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= INSIGHTS ================= -->
+  <section class="page" id="page-insights">
+    <div class="grid">
+      <div class="card col-12">
+        <h2 class="card-title" style="margin-bottom:14px">Findings</h2>
+        <div id="findings"></div>
+      </div>
+      <div class="card col-12">
+        <h2 class="card-title" style="margin-bottom:10px">Recommendations</h2>
+        <div class="prose" id="recos"></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="data.js"></script>
+<script>
+/* ===========================================================================
+   Dashboard runtime. No libraries: every chart is SVG built from the data cube,
+   so there is nothing to audit but this file.
+   =========================================================================== */
+(function () {
+"use strict";
+
+const D = window.DATA;
+const CUBE = D.cube;
+const NF = new Intl.NumberFormat("en-IN");
+
+/* ---------- formatting ---------- */
+const fmt   = n => (n == null ? "–" : NF.format(Math.round(n)));
+const fmt1  = n => (n == null ? "–" : n.toFixed(1));
+const compact = n => {
+  if (n == null) return "–";
+  const a = Math.abs(n);
+  if (a >= 1e7) return (n / 1e7).toFixed(2) + " Cr";
+  if (a >= 1e5) return (n / 1e5).toFixed(2) + " L";
+  if (a >= 1e3) return (n / 1e3).toFixed(1) + "K";
+  return NF.format(n);
+};
+const pct = (n, d = 1) => (n == null ? "–" : n.toFixed(d) + "%");
+const signed = (n, d = 1) => (n == null ? "–" : (n > 0 ? "+" : "") + n.toFixed(d) + "%");
+
+/* ---------- lookups ---------- */
+const stateIdx = {}; CUBE.states.forEach((s, i) => stateIdx[s] = i);
+const crimeIdx = {}; CUBE.crimes.forEach((c, i) => crimeIdx[c] = i);
+const yearIdx  = {}; CUBE.years.forEach((y, i) => yearIdx[y] = i);
+const stateMeta = {}; D.states.forEach(s => stateMeta[s.state_clean] = s);
+const SERIES = ["--s1","--s2","--s3","--s4","--s5","--s6","--s7"];
+const cssv = name => getComputedStyle(document.documentElement)
+                       .getPropertyValue(name).trim();
+
+/* ---------- filter state ---------- */
+const F = { crime: "Domestic Violence", from: 2001, to: 2021, region: "All", type: "All" };
+
+function scopedStates() {
+  return CUBE.states.filter(s => {
+    const m = stateMeta[s];
+    if (F.region !== "All" && m.region !== F.region) return false;
+    if (F.type   !== "All" && m.entity_type !== F.type) return false;
+    return true;
+  });
+}
+
+/* Sum a crime head over a year window for one entity. Returns {total, years}
+   where `years` counts only cells that passed the data-quality filter, so an
+   average is never divided by a year that had no usable data. */
+function sumFor(state, crime, from, to) {
+  const ci = crimeIdx[crime], si = stateIdx[state];
+  let total = 0, years = 0;
+  for (let y = from; y <= to; y++) {
+    const v = CUBE.values[si][ci][yearIdx[y]];
+    if (v != null) { total += v; years++; }
+  }
+  return { total, years };
+}
+
+function nationalSeries(crime, states) {
+  return CUBE.years.map(y => {
+    let t = 0, any = false;
+    states.forEach(s => {
+      const v = CUBE.values[stateIdx[s]][crimeIdx[crime]][yearIdx[y]];
+      if (v != null) { t += v; any = true; }
+    });
+    return { year: y, value: any ? t : null };
+  });
+}
+
+/* ---------- tooltip ---------- */
+function mkTip(host) {
+  const t = document.createElement("div");
+  t.className = "tip";
+  host.appendChild(t);
+  return t;
+}
+/* Labels come from CSV headers and state names - inserted as text nodes only,
+   never via innerHTML. */
+function tipContent(tip, head, rows) {
+  tip.textContent = "";
+  const h = document.createElement("div");
+  h.className = "t-head";
+  h.textContent = head;
+  tip.appendChild(h);
+  rows.forEach(r => {
+    const row = document.createElement("div");
+    row.className = "t-row";
+    if (r.color) {
+      const k = document.createElement("span");
+      k.className = "t-key";
+      k.style.background = r.color;
+      row.appendChild(k);
+    }
+    const n = document.createElement("span");
+    n.className = "t-name";
+    n.textContent = r.name;
+    row.appendChild(n);
+    const v = document.createElement("span");
+    v.className = "t-val";
+    v.textContent = r.value;
+    row.appendChild(v);
+    tip.appendChild(row);
+  });
+}
+function placeTip(tip, host, px, py) {
+  const hw = host.clientWidth, tw = tip.offsetWidth, th = tip.offsetHeight;
+  let x = px + 14, y = py - th - 10;
+  if (x + tw > hw - 4) x = px - tw - 14;
+  if (x < 4) x = 4;
+  if (y < 4) y = py + 16;
+  tip.style.left = x + "px";
+  tip.style.top = y + "px";
+  tip.classList.add("on");
+}
+
+/* ---------- SVG helpers ---------- */
+const SVGNS = "http://www.w3.org/2000/svg";
+function el(tag, attrs) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function svgRoot(host, w, h) {
+  host.textContent = "";
+  const svg = el("svg", { class: "chart", viewBox: `0 0 ${w} ${h}`,
+                          preserveAspectRatio: "xMidYMid meet" });
+  host.appendChild(svg);
+  return svg;
+}
+function niceTicks(max, count) {
+  if (max <= 0) return [0];
+  const raw = max / count;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= raw) || 10 * mag;
+  const out = [];
+  for (let v = 0; v <= max + step * 0.001; v += step) out.push(v);
+  return out;
+}
+/* Rounded only at the data end, square at the baseline. */
+function barPathH(x0, y, len, th, r) {
+  const rr = Math.min(r, len, th / 2);
+  if (len <= 0.5) return `M${x0} ${y} h0`;
+  return `M${x0} ${y} h${len - rr} a${rr} ${rr} 0 0 1 ${rr} ${rr}` +
+         ` v${th - 2 * rr} a${rr} ${rr} 0 0 1 ${-rr} ${rr} H${x0} Z`;
+}
+function barPathV(x, yTop, h, w, r) {
+  const rr = Math.min(r, h, w / 2);
+  if (h <= 0.5) return `M${x} ${yTop} h0`;
+  return `M${x} ${yTop + rr} a${rr} ${rr} 0 0 1 ${rr} ${-rr} h${w - 2 * rr}` +
+         ` a${rr} ${rr} 0 0 1 ${rr} ${rr} V${yTop + h} H${x} Z`;
+}
+
+/* ---------- table builder ---------- */
+function buildTable(host, cols, rows, opts) {
+  opts = opts || {};
+  host.textContent = "";
+  const wrapDiv = document.createElement("div");
+  if (opts.scroll) wrapDiv.className = "scroll-y";
+  const t = document.createElement("table");
+  const thead = document.createElement("thead");
+  const htr = document.createElement("tr");
+  cols.forEach((c, ci) => {
+    const th = document.createElement("th");
+    th.textContent = c.label;
+    if (opts.sortable) {
+      th.style.cursor = "pointer";
+      th.title = "Click to sort";
+      th.addEventListener("click", () => {
+        const dir = (host.__sortCol === ci && host.__sortDir === 1) ? -1 : 1;
+        host.__sortCol = ci; host.__sortDir = dir;
+        const sorted = rows.slice().sort((a, b) => {
+          const av = a[c.key], bv = b[c.key];
+          if (av == null) return 1;
+          if (bv == null) return -1;
+          return (typeof av === "number" ? av - bv : String(av).localeCompare(String(bv))) * dir;
+        });
+        buildTable(host, cols, sorted, opts);
+      });
+    }
+    htr.appendChild(th);
+  });
+  thead.appendChild(htr);
+  t.appendChild(thead);
+  const tb = document.createElement("tbody");
+  rows.forEach(r => {
+    const tr = document.createElement("tr");
+    cols.forEach(c => {
+      const td = document.createElement("td");
+      if (c.pill) {
+        const sp = document.createElement("span");
+        sp.className = "pill p-" + String(r[c.key]).toLowerCase();
+        sp.textContent = r[c.key];
+        td.appendChild(sp);
+      } else {
+        td.textContent = c.render ? c.render(r[c.key], r) : (r[c.key] ?? "–");
+      }
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+  wrapDiv.appendChild(t);
+  host.appendChild(wrapDiv);
+}
+
+/* =========================================================================
+   CHART: line with crosshair
+   ========================================================================= */
+function lineChart(hostId, series, opts) {
+  opts = opts || {};
+  const host = document.getElementById(hostId);
+  host.textContent = "";
+  const W = 760, H = 300;
+  const P = { t: 16, r: 58, b: 34, l: 56 };
+  const svg = svgRoot(host, W, H);
+  const tip = mkTip(host);
+
+  const pts = series.filter(d => d.value != null);
+  if (!pts.length) return;
+  const maxV = Math.max(...pts.map(d => d.value));
+  const ticks = niceTicks(maxV * 1.08, 5);
+  const top = ticks[ticks.length - 1];
+  const xs = i => P.l + (W - P.l - P.r) * (i / (series.length - 1));
+  const ys = v => H - P.b - (H - P.t - P.b) * (v / top);
+
+  ticks.forEach(v => {
+    svg.appendChild(el("line", { class: "gridline", x1: P.l, x2: W - P.r,
+                                 y1: ys(v), y2: ys(v) }));
+    const tx = el("text", { class: "tick", x: P.l - 9, y: ys(v) + 3.5,
+                            "text-anchor": "end" });
+    tx.textContent = compact(v);
+    svg.appendChild(tx);
+  });
+  svg.appendChild(el("line", { class: "axisline", x1: P.l, x2: W - P.r,
+                               y1: H - P.b, y2: H - P.b }));
+
+  series.forEach((d, i) => {
+    if (series.length > 12 && i % 2 === 1 && i !== series.length - 1) return;
+    const tx = el("text", { class: "tick", x: xs(i), y: H - P.b + 16,
+                            "text-anchor": "middle" });
+    tx.textContent = d.year;
+    svg.appendChild(tx);
+  });
+
+  /* Break the line at null years rather than bridging them - a bridge would
+     draw a value that does not exist. */
+  let dpath = "", pen = false;
+  series.forEach((d, i) => {
+    if (d.value == null) { pen = false; return; }
+    dpath += (pen ? " L" : " M") + xs(i) + " " + ys(d.value);
+    pen = true;
+  });
+  const area = document.createElementNS(SVGNS, "path");
+  const firstI = series.findIndex(d => d.value != null);
+  const lastI = series.length - 1 - series.slice().reverse().findIndex(d => d.value != null);
+  area.setAttribute("d", dpath + ` L${xs(lastI)} ${H - P.b} L${xs(firstI)} ${H - P.b} Z`);
+  area.setAttribute("fill", cssv("--s1"));
+  area.setAttribute("opacity", "0.10");
+  svg.appendChild(area);
+  svg.appendChild(el("path", { d: dpath, fill: "none", stroke: cssv("--s1"),
+                               "stroke-width": 2, "stroke-linejoin": "round",
+                               "stroke-linecap": "round" }));
+
+  /* Annotate only the extremes and the endpoint - never every point. */
+  const marks = [];
+  const last = series[lastI];
+  marks.push({ i: lastI, d: last, label: compact(last.value), anchor: "start" });
+  const peak = pts.reduce((a, b) => (b.value > a.value ? b : a));
+  const peakI = series.indexOf(peak);
+  if (peakI !== lastI) marks.push({ i: peakI, d: peak, label: "peak " + compact(peak.value),
+                                    anchor: "middle" });
+  marks.forEach(m => {
+    svg.appendChild(el("circle", { cx: xs(m.i), cy: ys(m.d.value), r: 4.5,
+                                   fill: cssv("--s1"), stroke: cssv("--surface-1"),
+                                   "stroke-width": 2 }));
+    const tx = el("text", { class: "dlabel", x: xs(m.i) + (m.anchor === "start" ? 9 : 0),
+                            y: ys(m.d.value) - (m.anchor === "start" ? -4 : 11),
+                            "text-anchor": m.anchor });
+    tx.textContent = m.label;
+    svg.appendChild(tx);
+  });
+
+  /* crosshair layer */
+  const cross = el("line", { class: "gridline", y1: P.t, y2: H - P.b,
+                             opacity: 0, "stroke-width": 1 });
+  svg.appendChild(cross);
+  const focus = el("circle", { r: 5, fill: cssv("--s1"), stroke: cssv("--surface-1"),
+                               "stroke-width": 2, opacity: 0 });
+  svg.appendChild(focus);
+  const hit = el("rect", { class: "hit", x: P.l, y: P.t,
+                           width: W - P.l - P.r, height: H - P.t - P.b });
+  svg.appendChild(hit);
+
+  function show(evt) {
+    const r = svg.getBoundingClientRect();
+    const sx = (evt.clientX - r.left) * (W / r.width);
+    let bi = 0, bd = Infinity;
+    series.forEach((d, i) => {
+      if (d.value == null) return;
+      const dd = Math.abs(xs(i) - sx);
+      if (dd < bd) { bd = dd; bi = i; }
+    });
+    const d = series[bi];
+    if (d.value == null) return;
+    cross.setAttribute("x1", xs(bi)); cross.setAttribute("x2", xs(bi));
+    cross.setAttribute("opacity", 1);
+    focus.setAttribute("cx", xs(bi)); focus.setAttribute("cy", ys(d.value));
+    focus.setAttribute("opacity", 1);
+    const rows = [{ name: opts.seriesName || "Cases", value: fmt(d.value),
+                    color: cssv("--s1") }];
+    if (d.extra) d.extra.forEach(e => rows.push(e));
+    tipContent(tip, String(d.year), rows);
+    const hr = host.getBoundingClientRect();
+    placeTip(tip, host, evt.clientX - hr.left, evt.clientY - hr.top);
+  }
+  function hide() {
+    cross.setAttribute("opacity", 0);
+    focus.setAttribute("opacity", 0);
+    tip.classList.remove("on");
+  }
+  svg.addEventListener("pointermove", show);
+  svg.addEventListener("pointerleave", hide);
+}
+
+/* =========================================================================
+   CHART: horizontal bars (single series, emphasis)
+   ========================================================================= */
+function barsH(hostId, rows, opts) {
+  opts = opts || {};
+  const host = document.getElementById(hostId);
+  host.textContent = "";
+  const n = rows.length;
+  const rowH = opts.rowH || 26;
+  const W = 620, H = n * rowH + 34;
+  const P = { t: 6, r: 74, b: 26, l: opts.labelW || 128 };
+  const svg = svgRoot(host, W, H);
+  const tip = mkTip(host);
+
+  const maxV = Math.max(...rows.map(r => r.value), 0.0001);
+  const ticks = niceTicks(maxV * 1.04, 4);
+  const top = ticks[ticks.length - 1];
+  const xs = v => P.l + (W - P.l - P.r) * (v / top);
+  const th = Math.min(16, rowH - 10);
+
+  ticks.forEach(v => {
+    svg.appendChild(el("line", { class: "gridline", x1: xs(v), x2: xs(v),
+                                 y1: P.t, y2: H - P.b }));
+    const tx = el("text", { class: "tick", x: xs(v), y: H - P.b + 15,
+                            "text-anchor": "middle" });
+    tx.textContent = opts.rate ? fmt1(v) : compact(v);
+    svg.appendChild(tx);
+  });
+  svg.appendChild(el("line", { class: "axisline", x1: P.l, x2: P.l,
+                               y1: P.t, y2: H - P.b }));
+
+  rows.forEach((r, i) => {
+    const y = P.t + i * rowH + (rowH - th) / 2;
+    const color = r.color || (opts.emphasis && !r.emph ? cssv("--deemph") : cssv("--s1"));
+    const g = el("g", {});
+    g.appendChild(el("path", { d: barPathH(P.l, y, xs(r.value) - P.l, th, 4),
+                               fill: color }));
+    /* hit target spans the whole row, well past the 24px minimum */
+    const hit = el("rect", { class: "hit", x: 0, y: P.t + i * rowH,
+                             width: W, height: rowH });
+    g.appendChild(hit);
+    svg.appendChild(g);
+
+    const lb = el("text", { class: "tick-cat", x: P.l - 8, y: y + th / 2 + 3.5,
+                            "text-anchor": "end" });
+    lb.textContent = r.label;
+    svg.appendChild(lb);
+
+    const vl = el("text", { class: "dlabel", x: xs(r.value) + 7,
+                            y: y + th / 2 + 3.5 });
+    vl.textContent = opts.rate ? fmt1(r.value) : compact(r.value);
+    svg.appendChild(vl);
+
+    hit.addEventListener("pointermove", ev => {
+      const hr = host.getBoundingClientRect();
+      tipContent(tip, r.label, (r.tip || [{ name: opts.valueName || "Value",
+                                            value: opts.rate ? fmt1(r.value) : fmt(r.value),
+                                            color }]));
+      placeTip(tip, host, ev.clientX - hr.left, ev.clientY - hr.top);
+    });
+    hit.addEventListener("pointerleave", () => tip.classList.remove("on"));
+  });
+}
+
+/* =========================================================================
+   CHART: stacked columns (7 series, legend + per-segment tooltip)
+   ========================================================================= */
+function stackedColumns(hostId, legendId, years, seriesNames, matrix) {
+  const host = document.getElementById(hostId);
+  host.textContent = "";
+  const W = 660, H = 320;
+  const P = { t: 14, r: 12, b: 32, l: 54 };
+  const svg = svgRoot(host, W, H);
+  const tip = mkTip(host);
+
+  const totals = years.map((_, i) =>
+    seriesNames.reduce((a, s, si) => a + (matrix[si][i] || 0), 0));
+  const ticks = niceTicks(Math.max(...totals) * 1.05, 5);
+  const top = ticks[ticks.length - 1];
+  const band = (W - P.l - P.r) / years.length;
+  const bw = Math.min(24, band - 6);
+  const ys = v => H - P.b - (H - P.t - P.b) * (v / top);
+
+  ticks.forEach(v => {
+    svg.appendChild(el("line", { class: "gridline", x1: P.l, x2: W - P.r,
+                                 y1: ys(v), y2: ys(v) }));
+    const tx = el("text", { class: "tick", x: P.l - 9, y: ys(v) + 3.5,
+                            "text-anchor": "end" });
+    tx.textContent = compact(v);
+    svg.appendChild(tx);
+  });
+  svg.appendChild(el("line", { class: "axisline", x1: P.l, x2: W - P.r,
+                               y1: H - P.b, y2: H - P.b }));
+
+  years.forEach((y, i) => {
+    if (i % 2 === 1 && i !== years.length - 1) return;
+    const tx = el("text", { class: "tick", x: P.l + band * i + band / 2,
+                            y: H - P.b + 15, "text-anchor": "middle" });
+    tx.textContent = String(y).slice(2);
+    svg.appendChild(tx);
+  });
+
+  years.forEach((y, i) => {
+    const x = P.l + band * i + (band - bw) / 2;
+    let acc = 0;
+    const rows = [];
+    seriesNames.forEach((s, si) => {
+      const v = matrix[si][i];
+      if (v == null || v === 0) return;
+      rows.push({ name: s, value: fmt(v), color: cssv(SERIES[si]) });
+      const y0 = ys(acc + v), y1 = ys(acc);
+      /* 2px surface gap between segments - white does the separating, never a
+         stroke around the mark. */
+      const h = Math.max(0, y1 - y0 - 2);
+      const isTop = si === seriesNames.length - 1 ||
+        seriesNames.slice(si + 1).every((_, k) => !matrix[si + 1 + k][i]);
+      svg.appendChild(el("path", {
+        d: isTop ? barPathV(x, y0, h, bw, 4) : `M${x} ${y0} h${bw} v${h} h${-bw} Z`,
+        fill: cssv(SERIES[si])
+      }));
+      acc += v;
+    });
+    const hit = el("rect", { class: "hit", x: P.l + band * i, y: P.t,
+                             width: band, height: H - P.t - P.b });
+    svg.appendChild(hit);
+    hit.addEventListener("pointermove", ev => {
+      const hr = host.getBoundingClientRect();
+      rows.push({ name: "Total", value: fmt(acc) });
+      tipContent(tip, String(y), rows.slice());
+      rows.pop();
+      placeTip(tip, host, ev.clientX - hr.left, ev.clientY - hr.top);
+    });
+    hit.addEventListener("pointerleave", () => tip.classList.remove("on"));
+  });
+
+  const lg = document.getElementById(legendId);
+  if (lg) {
+    lg.textContent = "";
+    seriesNames.forEach((s, si) => {
+      const it = document.createElement("span");
+      it.className = "item";
+      const sw = document.createElement("span");
+      sw.className = "swatch";
+      sw.style.background = cssv(SERIES[si]);
+      it.appendChild(sw);
+      const tx = document.createElement("span");
+      tx.textContent = s;
+      it.appendChild(tx);
+      lg.appendChild(it);
+    });
+  }
+}
+
+/* =========================================================================
+   CHART: scatter with nearest-point hover
+   ========================================================================= */
+function scatter(hostId, pts) {
+  const host = document.getElementById(hostId);
+  host.textContent = "";
+  const W = 640, H = 380;
+  const P = { t: 18, r: 20, b: 46, l: 56 };
+  const svg = svgRoot(host, W, H);
+  const tip = mkTip(host);
+  if (!pts.length) return;
+
+  const maxX = Math.max(...pts.map(p => p.x)) * 1.06 || 1;
+  const maxY = Math.max(...pts.map(p => p.y)) * 1.10 || 1;
+  const tx = niceTicks(maxX, 4), ty = niceTicks(maxY, 4);
+  const topX = tx[tx.length - 1], topY = ty[ty.length - 1];
+  const X = v => P.l + (W - P.l - P.r) * (v / topX);
+  const Y = v => H - P.b - (H - P.t - P.b) * (v / topY);
+
+  ty.forEach(v => {
+    svg.appendChild(el("line", { class: "gridline", x1: P.l, x2: W - P.r,
+                                 y1: Y(v), y2: Y(v) }));
+    const t = el("text", { class: "tick", x: P.l - 9, y: Y(v) + 3.5,
+                           "text-anchor": "end" });
+    t.textContent = fmt1(v);
+    svg.appendChild(t);
+  });
+  tx.forEach(v => {
+    const t = el("text", { class: "tick", x: X(v), y: H - P.b + 16,
+                           "text-anchor": "middle" });
+    t.textContent = compact(v);
+    svg.appendChild(t);
+  });
+  svg.appendChild(el("line", { class: "axisline", x1: P.l, x2: W - P.r,
+                               y1: H - P.b, y2: H - P.b }));
+  svg.appendChild(el("line", { class: "axisline", x1: P.l, x2: P.l,
+                               y1: P.t, y2: H - P.b }));
+
+  const ax = el("text", { class: "annot", x: (P.l + W - P.r) / 2, y: H - 6,
+                          "text-anchor": "middle" });
+  ax.textContent = "Total cases in window →";
+  svg.appendChild(ax);
+  const ay = el("text", { class: "annot", x: 12, y: P.t - 4 });
+  ay.textContent = "Cases per lakh women / yr ↑";
+  svg.appendChild(ay);
+
+  /* Colour marks class A / not-A: emphasis, one hue plus the de-emphasis gray.
+     Risk is already the y-axis, so colouring by risk would double-encode it. */
+  pts.forEach(p => {
+    svg.appendChild(el("circle", {
+      cx: X(p.x), cy: Y(p.y), r: p.emph ? 5.5 : 4.5,
+      fill: p.emph ? cssv("--s1") : cssv("--deemph"),
+      stroke: cssv("--surface-1"), "stroke-width": 2
+    }));
+  });
+  /* Label only the extremes, so the plot stays readable. */
+  const labelled = pts.slice().sort((a, b) => b.y - a.y).slice(0, 4)
+    .concat(pts.slice().sort((a, b) => b.x - a.x).slice(0, 3));
+  new Set(labelled).forEach(p => {
+    const t = el("text", { class: "dlabel-sec", x: X(p.x) + 8, y: Y(p.y) - 7 });
+    t.textContent = p.label;
+    svg.appendChild(t);
+  });
+
+  /* Nearest-point layer: the pointer only has to be closest, not dead-centre. */
+  const hit = el("rect", { class: "hit", x: 0, y: 0, width: W, height: H });
+  svg.appendChild(hit);
+  const ring = el("circle", { r: 9, fill: "none", stroke: cssv("--s1"),
+                              "stroke-width": 1.5, opacity: 0 });
+  svg.appendChild(ring);
+  hit.addEventListener("pointermove", ev => {
+    const r = svg.getBoundingClientRect();
+    const mx = (ev.clientX - r.left) * (W / r.width);
+    const my = (ev.clientY - r.top) * (H / r.height);
+    let best = null, bd = Infinity;
+    pts.forEach(p => {
+      const d = (X(p.x) - mx) ** 2 + (Y(p.y) - my) ** 2;
+      if (d < bd) { bd = d; best = p; }
+    });
+    if (!best || bd > 60 ** 2) { ring.setAttribute("opacity", 0);
+                                 tip.classList.remove("on"); return; }
+    ring.setAttribute("cx", X(best.x)); ring.setAttribute("cy", Y(best.y));
+    ring.setAttribute("opacity", 1);
+    tipContent(tip, best.label, best.tip);
+    const hr = host.getBoundingClientRect();
+    placeTip(tip, host, ev.clientX - hr.left, ev.clientY - hr.top);
+  });
+  hit.addEventListener("pointerleave", () => {
+    ring.setAttribute("opacity", 0); tip.classList.remove("on");
+  });
+}
+
+/* =========================================================================
+   CHART: Pareto. Bars = share %, line = cumulative %.
+   Both are percentages, so they share ONE axis - never a dual scale.
+   ========================================================================= */
+function pareto(hostId, legendId, rows) {
+  const host = document.getElementById(hostId);
+  host.textContent = "";
+  const W = 780, H = 340;
+  const P = { t: 16, r: 16, b: 74, l: 46 };
+  const svg = svgRoot(host, W, H);
+  const tip = mkTip(host);
+  const band = (W - P.l - P.r) / rows.length;
+  const bw = Math.min(24, band - 5);
+  const Y = v => H - P.b - (H - P.t - P.b) * (v / 100);
+
+  [0, 25, 50, 70, 75, 90, 100].forEach(v => {
+    const ref = (v === 70 || v === 90);
+    svg.appendChild(el("line", {
+      class: ref ? "axisline" : "gridline", x1: P.l, x2: W - P.r,
+      y1: Y(v), y2: Y(v), opacity: ref ? 0.9 : 1
+    }));
+    const t = el("text", { class: "tick", x: P.l - 8, y: Y(v) + 3.5,
+                           "text-anchor": "end" });
+    t.textContent = v + "%";
+    svg.appendChild(t);
+  });
+  ["70% → end of class A", "90% → end of class B"].forEach((lbl, i) => {
+    const t = el("text", { class: "annot", x: W - P.r - 2,
+                           y: Y(i === 0 ? 70 : 90) - 5, "text-anchor": "end" });
+    t.textContent = lbl;
+    svg.appendChild(t);
+  });
+  svg.appendChild(el("line", { class: "axisline", x1: P.l, x2: W - P.r,
+                               y1: H - P.b, y2: H - P.b }));
+
+  rows.forEach((r, i) => {
+    const x = P.l + band * i + (band - bw) / 2;
+    const h = (H - P.b) - Y(r.share);
+    svg.appendChild(el("path", { d: barPathV(x, Y(r.share), h, bw, 3),
+                                 fill: cssv("--s1") }));
+    const t = el("text", {
+      class: "tick-cat", transform:
+        `translate(${P.l + band * i + band / 2},${H - P.b + 8}) rotate(-52)`,
+      "text-anchor": "end"
+    });
+    t.textContent = r.label.length > 15 ? r.label.slice(0, 14) + "…" : r.label;
+    svg.appendChild(t);
+  });
+
+  let dp = "";
+  rows.forEach((r, i) => {
+    dp += (i ? " L" : "M") + (P.l + band * i + band / 2) + " " + Y(r.cum);
+  });
+  svg.appendChild(el("path", { d: dp, fill: "none", stroke: cssv("--s2"),
+                               "stroke-width": 2, "stroke-linejoin": "round" }));
+
+  rows.forEach((r, i) => {
+    const cx = P.l + band * i + band / 2;
+    if (r.abc === "A") {
+      svg.appendChild(el("circle", { cx, cy: Y(r.cum), r: 4,
+                                     fill: cssv("--s2"), stroke: cssv("--surface-1"),
+                                     "stroke-width": 2 }));
+    }
+    const hit = el("rect", { class: "hit", x: P.l + band * i, y: P.t,
+                             width: band, height: H - P.t - P.b });
+    svg.appendChild(hit);
+    hit.addEventListener("pointermove", ev => {
+      const hr = host.getBoundingClientRect();
+      tipContent(tip, r.label, [
+        { name: "Class", value: r.abc },
+        { name: "Cases", value: fmt(r.cases) },
+        { name: "Share", value: pct(r.share, 2), color: cssv("--s1") },
+        { name: "Cumulative", value: pct(r.cum, 2), color: cssv("--s2") }
+      ]);
+      placeTip(tip, host, ev.clientX - hr.left, ev.clientY - hr.top);
+    });
+    hit.addEventListener("pointerleave", () => tip.classList.remove("on"));
+  });
+
+  const lg = document.getElementById(legendId);
+  if (lg) {
+    lg.textContent = "";
+    [["swatch", "--s1", "Share of national total"],
+     ["lkey", "--s2", "Cumulative share"]].forEach(([cls, v, name]) => {
+      const it = document.createElement("span");
+      it.className = "item";
+      const k = document.createElement("span");
+      k.className = cls;
+      k.style.background = cssv(v);
+      it.appendChild(k);
+      const t = document.createElement("span");
+      t.textContent = name;
+      it.appendChild(t);
+      lg.appendChild(it);
+    });
+  }
+}
+
+/* =========================================================================
+   CHART: heatmap. Sequential single hue, light -> dark on light surface and
+   dark -> light on dark, so "near zero" always recedes toward the surface.
+   ========================================================================= */
+const RAMP = ["#cde2fb","#b7d3f6","#9ec5f4","#86b6ef","#6da7ec","#5598e7",
+              "#3987e5","#2a78d6","#256abf","#1c5cab","#184f95","#104281","#0d366b"];
+function isDark() {
+  const t = document.documentElement.getAttribute("data-theme");
+  if (t) return t === "dark";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+function heatColor(t) {
+  const ramp = isDark() ? RAMP.slice().reverse() : RAMP;
+  const i = Math.max(0, Math.min(ramp.length - 1, Math.round(t * (ramp.length - 1))));
+  return ramp[i];
+}
+function heatmap(hostId, rows, years) {
+  const host = document.getElementById(hostId);
+  host.textContent = "";
+  const cw = 34, ch = 20, gap = 2;
+  const P = { t: 22, r: 12, b: 8, l: 150 };
+  const W = P.l + years.length * cw + P.r;
+  const H = P.t + rows.length * ch + P.b;
+  const svg = svgRoot(host, W, H);
+  const tip = mkTip(host);
+
+  const all = rows.flatMap(r => r.values.filter(v => v != null).map(v => v.rate));
+  const maxR = Math.max(...all, 0.0001);
+
+  years.forEach((y, i) => {
+    if (i % 2 === 1 && i !== years.length - 1) return;
+    const t = el("text", { class: "tick", x: P.l + i * cw + cw / 2, y: P.t - 7,
+                           "text-anchor": "middle" });
+    t.textContent = String(y).slice(2);
+    svg.appendChild(t);
+  });
+
+  rows.forEach((r, ri) => {
+    const lb = el("text", { class: "tick-cat", x: P.l - 8,
+                            y: P.t + ri * ch + ch / 2 + 3.5, "text-anchor": "end" });
+    lb.textContent = r.state;
+    svg.appendChild(lb);
+
+    r.values.forEach((cell, ci) => {
+      const x = P.l + ci * cw, y = P.t + ri * ch;
+      if (cell == null) {
+        svg.appendChild(el("rect", { x: x + gap / 2, y: y + gap / 2,
+                                     width: cw - gap, height: ch - gap,
+                                     fill: cssv("--surface-3"), rx: 2 }));
+        return;
+      }
+      const t = Math.pow(cell.rate / maxR, 0.6);
+      const rect = el("rect", { x: x + gap / 2, y: y + gap / 2, width: cw - gap,
+                                height: ch - gap, fill: heatColor(t), rx: 2 });
+      svg.appendChild(rect);
+      const hit = el("rect", { class: "hit", x, y, width: cw, height: ch });
+      svg.appendChild(hit);
+      hit.addEventListener("pointermove", ev => {
+        const hr = host.getBoundingClientRect();
+        tipContent(tip, r.state + " · " + years[ci], [
+          { name: "Cases", value: fmt(cell.cases) },
+          { name: "Per lakh women", value: fmt1(cell.rate) }
+        ]);
+        placeTip(tip, host, ev.clientX - hr.left, ev.clientY - hr.top);
+      });
+      hit.addEventListener("pointerleave", () => tip.classList.remove("on"));
+    });
+  });
+
+  /* scale legend - a continuous colour scale always ships one */
+  const lg = document.createElement("div");
+  lg.className = "legend";
+  lg.style.alignItems = "center";
+  const lab0 = document.createElement("span");
+  lab0.textContent = "Lower intensity";
+  lg.appendChild(lab0);
+  const strip = document.createElement("span");
+  strip.style.cssText = "display:inline-flex;height:10px;border-radius:3px;overflow:hidden";
+  for (let i = 0; i < 13; i++) {
+    const s = document.createElement("span");
+    s.style.cssText = "width:15px;height:10px;background:" + heatColor(i / 12);
+    strip.appendChild(s);
+  }
+  lg.appendChild(strip);
+  const lab1 = document.createElement("span");
+  lab1.textContent = "Higher · max " + fmt1(maxR) + " per lakh women";
+  lg.appendChild(lab1);
+  host.appendChild(lg);
+}
+
+/* =========================================================================
+   CHART: grouped bars for the repair evidence (2 series)
+   ========================================================================= */
+function groupedRepair(hostId, legendId, rows) {
+  const host = document.getElementById(hostId);
+  host.textContent = "";
+  const rowH = 34;
+  const W = 760, H = rows.length * rowH + 40;
+  const P = { t: 8, r: 78, b: 28, l: 128 };
+  const svg = svgRoot(host, W, H);
+  const tip = mkTip(host);
+
+  const maxV = Math.max(...rows.flatMap(r => [r.raw, r.fixed, r.ref]));
+  const ticks = niceTicks(maxV * 1.04, 4);
+  const top = ticks[ticks.length - 1];
+  const X = v => P.l + (W - P.l - P.r) * (v / top);
+
+  ticks.forEach(v => {
+    svg.appendChild(el("line", { class: "gridline", x1: X(v), x2: X(v),
+                                 y1: P.t, y2: H - P.b }));
+    const t = el("text", { class: "tick", x: X(v), y: H - P.b + 15,
+                           "text-anchor": "middle" });
+    t.textContent = compact(v);
+    svg.appendChild(t);
+  });
+  svg.appendChild(el("line", { class: "axisline", x1: P.l, x2: P.l,
+                               y1: P.t, y2: H - P.b }));
+
+  rows.forEach((r, i) => {
+    const y0 = P.t + i * rowH + 3;
+    const th = 10;
+    /* two adjacent bars, separated by a 2px surface gap */
+    svg.appendChild(el("path", { d: barPathH(P.l, y0, X(r.raw) - P.l, th, 4),
+                                 fill: cssv("--s2") }));
+    svg.appendChild(el("path", { d: barPathH(P.l, y0 + th + 2, X(r.fixed) - P.l, th, 4),
+                                 fill: cssv("--s1") }));
+    /* 2019 reference as a thin rule - the value each year should sit near */
+    svg.appendChild(el("line", { x1: X(r.ref), x2: X(r.ref), y1: y0 - 2,
+                                 y2: y0 + 2 * th + 4, stroke: cssv("--text-muted"),
+                                 "stroke-width": 1.5 }));
+
+    const lb = el("text", { class: "tick-cat", x: P.l - 8, y: y0 + th + 4,
+                            "text-anchor": "end" });
+    lb.textContent = r.state;
+    svg.appendChild(lb);
+
+    const vl = el("text", { class: "dlabel", x: X(Math.max(r.raw, r.fixed)) + 7,
+                            y: y0 + th + 4 });
+    vl.textContent = compact(r.fixed);
+    svg.appendChild(vl);
+
+    const hit = el("rect", { class: "hit", x: 0, y: P.t + i * rowH,
+                             width: W, height: rowH });
+    svg.appendChild(hit);
+    hit.addEventListener("pointermove", ev => {
+      const hr = host.getBoundingClientRect();
+      tipContent(tip, r.state, [
+        { name: "2019 (reference)", value: fmt(r.ref) },
+        { name: "2020 as published", value: fmt(r.raw), color: cssv("--s2") },
+        { name: "2020 repaired", value: fmt(r.fixed), color: cssv("--s1") }
+      ]);
+      placeTip(tip, host, ev.clientX - hr.left, ev.clientY - hr.top);
+    });
+    hit.addEventListener("pointerleave", () => tip.classList.remove("on"));
+  });
+
+  const lg = document.getElementById(legendId);
+  if (lg) {
+    lg.textContent = "";
+    [["--s2", "As published in the source"], ["--s1", "After repair"]]
+      .forEach(([v, name]) => {
+        const it = document.createElement("span");
+        it.className = "item";
+        const sw = document.createElement("span");
+        sw.className = "swatch";
+        sw.style.background = cssv(v);
+        it.appendChild(sw);
+        const t = document.createElement("span");
+        t.textContent = name;
+        it.appendChild(t);
+        lg.appendChild(it);
+      });
+    const it = document.createElement("span");
+    it.className = "item";
+    const k = document.createElement("span");
+    k.className = "lkey";
+    k.style.background = cssv("--text-muted");
+    it.appendChild(k);
+    const t = document.createElement("span");
+    t.textContent = "2019 reference";
+    it.appendChild(t);
+    lg.appendChild(it);
+  }
+}
+
+/* =========================================================================
+   RENDER
+   ========================================================================= */
+function legendHost(cardId) {
+  /* Legends live under the chart, inside the same card. */
+  const host = document.getElementById(cardId);
+  let lg = host.parentElement.querySelector(".legend[data-for='" + cardId + "']");
+  if (!lg) {
+    lg = document.createElement("div");
+    lg.className = "legend";
+    lg.setAttribute("data-for", cardId);
+    host.insertAdjacentElement("afterend", lg);
+  }
+  return lg.id || (lg.id = cardId + "Legend");
+}
+
+function renderOverview() {
+  const states = scopedStates();
+  const k = D.kpi;
+
+  /* hero */
+  document.getElementById("heroVal").textContent = compact(k.dv_total);
+  document.getElementById("heroLbl").textContent =
+    "reported domestic violence cases (IPC 498A) across India, 2001–2021 — " +
+    k.dv_share + "% of all recorded crimes against women";
+  const side = document.getElementById("heroSide");
+  side.textContent = "";
+  [["Cruelty by a husband or his relatives is the single largest category of recorded crime against women in India, larger than rape, kidnapping and dowry deaths combined.", true],
+   ["Reported cases grew from " + fmt(k.dv_2001) + " in 2001 to " + fmt(k.dv_2021) +
+    " in 2021 — a compound annual rate of " + k.cagr_pct + "%.", false],
+   ["That is roughly " + fmt(k.cases_per_day_2021) + " cases reported every day in 2021.", false]
+  ].forEach(([t, strong]) => {
+    const p = document.createElement("p");
+    p.style.margin = "0 0 9px";
+    if (strong) p.style.color = "var(--text-primary)";
+    p.textContent = t;
+    side.appendChild(p);
+  });
+
+  /* KPI tiles, recomputed against the current scope */
+  const scoped = states.reduce((a, s) => a + sumFor(s, F.crime, F.from, F.to).total, 0);
+  const ser = nationalSeries(F.crime, states).filter(d => d.year >= F.from && d.year <= F.to);
+  const firstV = ser.find(d => d.value != null), lastV = [...ser].reverse().find(d => d.value != null);
+  const span = lastV && firstV ? lastV.year - firstV.year : 0;
+  const cagr = (span > 0 && firstV.value > 0)
+    ? (Math.pow(lastV.value / firstV.value, 1 / span) - 1) * 100 : null;
+  const femPop = states.reduce((a, s) => a + stateMeta[s].female_population_2011, 0);
+  const nYears = F.to - F.from + 1;
+
+  const tiles = [
+    { lbl: F.crime + " cases", val: compact(scoped),
+      delta: fmt(scoped) + " over " + nYears + " year" + (nYears > 1 ? "s" : "") },
+    { lbl: "Per lakh women / year", val: fmt1(scoped / femPop * 1e5 / nYears),
+      delta: "Census 2011 denominator" },
+    { lbl: F.from + " → " + F.to,
+      val: firstV && lastV ? signed((lastV.value / firstV.value - 1) * 100, 0) : "–",
+      delta: fmt(firstV && firstV.value) + " → " + fmt(lastV && lastV.value),
+      cls: firstV && lastV && lastV.value > firstV.value ? "up" : "down" },
+    { lbl: "Compound annual growth", val: cagr == null ? "–" : cagr.toFixed(2) + "%",
+      delta: "over " + span + " compounding years" },
+    { lbl: "Entities in scope", val: String(states.length),
+      delta: F.region === "All" ? "all regions" : F.region },
+    { lbl: "Class A concentration", val: k.class_a_share + "%",
+      delta: k.class_a_count + " entities carry this share" }
+  ];
+  const row = document.getElementById("kpiRow");
+  row.textContent = "";
+  tiles.forEach(t => {
+    const d = document.createElement("div");
+    d.className = "tile";
+    const l = document.createElement("div"); l.className = "lbl"; l.textContent = t.lbl;
+    const v = document.createElement("div"); v.className = "val"; v.textContent = t.val;
+    if (t.cls) v.classList.add(t.cls);
+    const s = document.createElement("div"); s.className = "delta"; s.textContent = t.delta;
+    d.append(l, v, s);
+    row.appendChild(d);
+  });
+
+  /* trend */
+  document.getElementById("trendTitle").textContent = F.crime + " reported per year";
+  document.getElementById("trendSub").textContent =
+    "Single series, so no legend is needed — the title names it. Only the endpoint and the peak carry labels; hover for any year.";
+  const tser = nationalSeries(F.crime, states)
+    .filter(d => d.year >= F.from && d.year <= F.to);
+  lineChart("chTrend", tser, { seriesName: F.crime });
+  buildTable(document.getElementById("tblTrend"),
+    [{ key: "year", label: "Year" }, { key: "value", label: "Cases", render: fmt },
+     { key: "yoy", label: "YoY", render: v => v == null ? "–" : signed(v) }],
+    tser.map((d, i) => ({
+      year: d.year, value: d.value,
+      yoy: i > 0 && tser[i - 1].value && d.value
+        ? (d.value / tser[i - 1].value - 1) * 100 : null
+    })), { scroll: true });
+
+  /* crime types - horizontal bars, emphasis on DV */
+  const types = D.crime_types.slice().sort((a, b) =>
+    b.total_cases_2001_2021 - a.total_cases_2001_2021);
+  barsH("chTypes", types.map(t => ({
+    label: t.crime_type, value: t.total_cases_2001_2021,
+    emph: t.crime_type === F.crime,
+    tip: [{ name: "Cases", value: fmt(t.total_cases_2001_2021) },
+          { name: "Share", value: pct(t.share_of_all_crime_pct, 1) },
+          { name: "CAGR", value: t.cagr_pct == null ? "–" : t.cagr_pct + "%" },
+          { name: "Section", value: t.ipc_section.replace(/^.*\(/, "(") }]
+  })), { emphasis: true, labelW: 132, rowH: 30 });
+  buildTable(document.getElementById("tblTypes"),
+    [{ key: "crime_type", label: "Crime head" },
+     { key: "ipc_section", label: "IPC section" },
+     { key: "total_cases_2001_2021", label: "Cases", render: fmt },
+     { key: "share_of_all_crime_pct", label: "Share", render: v => pct(v, 1) },
+     { key: "cagr_pct", label: "CAGR", render: v => v == null ? "–" : v + "%" }],
+    types);
+
+  /* crime mix stacked */
+  const mixYears = CUBE.years.filter(y => y >= F.from && y <= F.to);
+  const matrix = CUBE.crimes.map(c =>
+    mixYears.map(y => {
+      let t = 0, any = false;
+      states.forEach(s => {
+        const v = CUBE.values[stateIdx[s]][crimeIdx[c]][yearIdx[y]];
+        if (v != null) { t += v; any = true; }
+      });
+      return any ? t : null;
+    }));
+  stackedColumns("chMix", legendHost("chMix"), mixYears, CUBE.crimes, matrix);
+  buildTable(document.getElementById("tblMix"),
+    [{ key: "year", label: "Year" }].concat(CUBE.crimes.map(c =>
+      ({ key: c, label: c, render: fmt }))),
+    mixYears.map((y, i) => {
+      const o = { year: y };
+      CUBE.crimes.forEach((c, ci) => o[c] = matrix[ci][i]);
+      return o;
+    }), { scroll: true });
+
+  /* top entities */
+  const totals = states.map(s => ({
+    label: s, value: sumFor(s, F.crime, F.from, F.to).total,
+    emph: true, meta: stateMeta[s]
+  })).sort((a, b) => b.value - a.value);
+  document.getElementById("topTitle").textContent =
+    "Top 12 entities by " + F.crime.toLowerCase() + " volume";
+  barsH("chTop", totals.slice(0, 12).map(r => ({
+    label: r.label, value: r.value,
+    tip: [{ name: "Cases", value: fmt(r.value) },
+          { name: "Region", value: r.meta.region },
+          { name: "Class", value: r.meta.abc_class },
+          { name: "Risk zone", value: r.meta.risk_zone }]
+  })), { labelW: 122, rowH: 25 });
+  buildTable(document.getElementById("tblTop"),
+    [{ key: "label", label: "Entity" }, { key: "value", label: "Cases", render: fmt },
+     { key: "share", label: "Share", render: v => pct(v, 2) }],
+    (() => { const tot = totals.reduce((a, r) => a + r.value, 0);
+             return totals.map(r => ({ label: r.label, value: r.value,
+                                       share: tot ? r.value / tot * 100 : 0 })); })(),
+    { scroll: true });
+
+  /* regions */
+  const regAgg = {};
+  states.forEach(s => {
+    const m = stateMeta[s], r = m.region;
+    regAgg[r] = regAgg[r] || { cases: 0, pop: 0, n: 0 };
+    regAgg[r].cases += sumFor(s, F.crime, F.from, F.to).total;
+    regAgg[r].pop += m.female_population_2011;
+    regAgg[r].n++;
+  });
+  const regRows = Object.entries(regAgg).map(([r, v]) => ({
+    label: r, value: v.cases / v.pop * 1e5 / nYears, cases: v.cases, n: v.n,
+    tip: [{ name: "Per lakh women / yr", value: fmt1(v.cases / v.pop * 1e5 / nYears) },
+          { name: "Total cases", value: fmt(v.cases) },
+          { name: "Entities", value: String(v.n) }]
+  })).sort((a, b) => b.value - a.value);
+  barsH("chRegion", regRows, { rate: true, labelW: 96, rowH: 28,
+                               valueName: "Per lakh women / yr" });
+  buildTable(document.getElementById("tblRegion"),
+    [{ key: "label", label: "Region" }, { key: "n", label: "Entities" },
+     { key: "cases", label: "Cases", render: fmt },
+     { key: "value", label: "Per lakh women / yr", render: fmt1 }], regRows);
+}
+
+function renderStates() {
+  const states = scopedStates();
+  const nYears = F.to - F.from + 1;
+  const rows = states.map(s => {
+    const m = stateMeta[s];
+    const { total } = sumFor(s, F.crime, F.from, F.to);
+    const rate = total / m.female_population_2011 * 1e5 / nYears;
+    return { state: s, meta: m, total, rate };
+  }).filter(r => r.total > 0);
+
+  document.getElementById("statesCallout").textContent =
+    "Uttar Pradesh leads most crime tables in India because 200 million people live there. " +
+    "Dividing by female population turns “where are the most cases” into " +
+    "“where is a woman most exposed”, and the answer changes: on the current filter the " +
+    "largest entity by volume is " +
+    (rows.slice().sort((a, b) => b.total - a.total)[0] || {}).state +
+    ", while the highest intensity is in " +
+    (rows.slice().sort((a, b) => b.rate - a.rate)[0] || {}).state + ".";
+
+  scatter("chScatter", rows.map(r => ({
+    x: r.total, y: r.rate, label: r.state, emph: r.meta.abc_class === "A",
+    tip: [{ name: "Cases", value: fmt(r.total) },
+          { name: "Per lakh women / yr", value: fmt1(r.rate) },
+          { name: "Volume class", value: r.meta.abc_class },
+          { name: "Risk zone", value: r.meta.risk_zone },
+          { name: "Region", value: r.meta.region }]
+  })));
+  const lg = document.getElementById(legendHost("chScatter"));
+  lg.textContent = "";
+  [["--s1", "Class A (top 70% of volume)"], ["--deemph", "Class B and C"]]
+    .forEach(([v, name]) => {
+      const it = document.createElement("span");
+      it.className = "item";
+      const sw = document.createElement("span");
+      sw.className = "swatch";
+      sw.style.cssText = "border-radius:50%;background:" + cssv(v);
+      it.appendChild(sw);
+      const t = document.createElement("span");
+      t.textContent = name;
+      it.appendChild(t);
+      lg.appendChild(it);
+    });
+  buildTable(document.getElementById("tblScatter"),
+    [{ key: "state", label: "Entity" }, { key: "total", label: "Cases", render: fmt },
+     { key: "rate", label: "Per lakh women / yr", render: fmt1 }],
+    rows.slice().sort((a, b) => b.rate - a.rate), { scroll: true });
+
+  const byRate = rows.slice().sort((a, b) => b.rate - a.rate).slice(0, 15);
+  barsH("chRate", byRate.map(r => ({
+    label: r.state, value: r.rate,
+    tip: [{ name: "Per lakh women / yr", value: fmt1(r.rate) },
+          { name: "Cases", value: fmt(r.total) },
+          { name: "Risk zone", value: r.meta.risk_zone }]
+  })), { rate: true, labelW: 124, rowH: 24, valueName: "Per lakh women / yr" });
+  buildTable(document.getElementById("tblRate"),
+    [{ key: "state", label: "Entity" },
+     { key: "rate", label: "Per lakh women / yr", render: fmt1 }],
+    rows.slice().sort((a, b) => b.rate - a.rate), { scroll: true });
+
+  /* heatmap on intensity so rows are comparable */
+  const heatYears = CUBE.years.filter(y => y >= F.from && y <= F.to);
+  const hRows = rows.slice().sort((a, b) => b.total - a.total).slice(0, 20).map(r => ({
+    state: r.state,
+    values: heatYears.map(y => {
+      const v = CUBE.values[stateIdx[r.state]][crimeIdx[F.crime]][yearIdx[y]];
+      if (v == null) return null;
+      return { cases: v, rate: v / r.meta.female_population_2011 * 1e5 };
+    })
+  }));
+  heatmap("chHeat", hRows, heatYears);
+  buildTable(document.getElementById("tblHeat"),
+    [{ key: "state", label: "Entity" }].concat(heatYears.map(y =>
+      ({ key: "y" + y, label: String(y), render: fmt }))),
+    hRows.map(r => {
+      const o = { state: r.state };
+      heatYears.forEach((y, i) => o["y" + y] = r.values[i] && r.values[i].cases);
+      return o;
+    }), { scroll: true });
+
+  buildTable(document.getElementById("tblStates"),
+    [{ key: "state", label: "Entity" },
+     { key: "region", label: "Region" },
+     { key: "type", label: "Type" },
+     { key: "total", label: "Cases", render: fmt },
+     { key: "rate", label: "Per lakh / yr", render: fmt1 },
+     { key: "cagr", label: "CAGR", render: v => v == null ? "–" : v + "%" },
+     { key: "trend", label: "Direction" },
+     { key: "abc", label: "Class", pill: true },
+     { key: "risk", label: "Risk zone", pill: true }],
+    rows.slice().sort((a, b) => b.total - a.total).map(r => ({
+      state: r.state, region: r.meta.region, type: r.meta.entity_type,
+      total: r.total, rate: r.rate, cagr: r.meta.dv_cagr_pct,
+      trend: r.meta.trend_direction, abc: r.meta.abc_class, risk: r.meta.risk_zone
+    })), { scroll: true, sortable: true });
+}
+
+function renderAbc() {
+  const abc = D.abc;
+  const total = abc.reduce((a, r) => a + r.dv_total_cases, 0);
+  const aRows = abc.filter(r => r.abc_class === "A");
+  document.getElementById("abcCallout").textContent =
+    "ABC classification is borrowed from inventory management, where it splits stock by " +
+    "contribution to value. Applied to entities by contribution to national case volume it " +
+    "answers the question a budget owner actually has: " + aRows.length +
+    " of " + abc.length + " entities carry " +
+    (aRows.reduce((a, r) => a + r.dv_total_cases, 0) / total * 100).toFixed(1) +
+    "% of all recorded domestic violence, so that is where the first rupee goes. " +
+    "Note this page is fixed to domestic violence over the full 2001–2021 window — " +
+    "the classification is a published segmentation, not a filtered view.";
+
+  pareto("chPareto", legendHost("chPareto"), abc.map(r => ({
+    label: r.state_clean, cases: r.dv_total_cases, share: r.share_pct,
+    cum: r.cumulative_pct, abc: r.abc_class
+  })));
+  buildTable(document.getElementById("tblPareto"),
+    [{ key: "rank", label: "Rank" }, { key: "state_clean", label: "Entity" },
+     { key: "dv_total_cases", label: "Cases", render: fmt },
+     { key: "share_pct", label: "Share", render: v => pct(v, 2) },
+     { key: "cumulative_pct", label: "Cumulative", render: v => pct(v, 2) },
+     { key: "abc_class", label: "Class", pill: true }], abc, { scroll: true });
+
+  /* class summary */
+  const cls = {};
+  abc.forEach(r => {
+    cls[r.abc_class] = cls[r.abc_class] || { n: 0, cases: 0 };
+    cls[r.abc_class].n++;
+    cls[r.abc_class].cases += r.dv_total_cases;
+  });
+  buildTable(document.getElementById("tblAbcSummary"),
+    [{ key: "c", label: "Class", pill: true }, { key: "n", label: "Entities" },
+     { key: "cases", label: "Cases", render: compact },
+     { key: "pc", label: "% cases", render: v => pct(v, 1) },
+     { key: "cr", label: "Conc. ratio", render: v => v.toFixed(2) }],
+    ["A", "B", "C"].filter(c => cls[c]).map(c => {
+      const pc = cls[c].cases / total * 100;
+      const pe = cls[c].n / abc.length * 100;
+      return { c, n: cls[c].n, cases: cls[c].cases, pc, cr: pc / pe };
+    }));
+
+  /* risk zones */
+  const zoneOrder = ["Critical", "High", "Moderate", "Low"];
+  const zoneCol = { Critical: "--critical", High: "--serious",
+                    Moderate: "--warning", Low: "--good" };
+  const zAgg = {};
+  D.states.filter(s => s.dv_cases_2021 > 0).forEach(s => {
+    zAgg[s.risk_zone] = zAgg[s.risk_zone] || { n: 0, cases: 0, pop: 0 };
+    zAgg[s.risk_zone].n++;
+    zAgg[s.risk_zone].cases += s.dv_cases_2021;
+    zAgg[s.risk_zone].pop += s.female_population_2011;
+  });
+  const zRows = zoneOrder.filter(z => zAgg[z]).map(z => ({
+    label: z + " (" + zAgg[z].n + ")", value: zAgg[z].cases / zAgg[z].pop * 1e5,
+    color: cssv(zoneCol[z]),
+    tip: [{ name: "Entities", value: String(zAgg[z].n) },
+          { name: "2021 cases", value: fmt(zAgg[z].cases) },
+          { name: "Per lakh women", value: fmt1(zAgg[z].cases / zAgg[z].pop * 1e5) }]
+  }));
+  barsH("chZone", zRows, { rate: true, labelW: 108, rowH: 32 });
+  const t = D.meta.risk_thresholds;
+  buildTable(document.getElementById("tblZone"),
+    [{ key: "z", label: "Zone", pill: true }, { key: "n", label: "Entities" },
+     { key: "cases", label: "2021 cases", render: fmt },
+     { key: "rate", label: "Per lakh women", render: fmt1 },
+     { key: "band", label: "Band" }],
+    zoneOrder.filter(z => zAgg[z]).map(z => ({
+      z, n: zAgg[z].n, cases: zAgg[z].cases,
+      rate: zAgg[z].cases / zAgg[z].pop * 1e5,
+      band: z === "Critical" ? "≥ " + t.critical_min
+          : z === "High" ? t.high_min + " – " + t.critical_min
+          : z === "Moderate" ? t.moderate_min + " – " + t.high_min
+          : "< " + t.moderate_min
+    })));
+
+  /* priority matrix */
+  const prio = s => {
+    const hi = s.risk_zone === "Critical" || s.risk_zone === "High";
+    if (hi && s.dv_cagr_pct > 2) return "P1 – Escalate: high level, still rising";
+    if (hi) return "P2 – Sustain: high level, contained";
+    if (s.dv_cagr_pct > 5) return "P3 – Watch: low level, fast deterioration";
+    return "P4 – Maintain";
+  };
+  buildTable(document.getElementById("tblPriority"),
+    [{ key: "p", label: "Priority" }, { key: "state", label: "Entity" },
+     { key: "rate", label: "Rate 2021", render: fmt1 },
+     { key: "cagr", label: "CAGR", render: v => v == null ? "–" : v + "%" },
+     { key: "risk", label: "Zone", pill: true }, { key: "abc", label: "Class", pill: true }],
+    D.states.filter(s => s.dv_cases_2021 > 0)
+      .map(s => ({ p: prio(s), state: s.state_clean, rate: s.dv_rate_2021,
+                   cagr: s.dv_cagr_pct, risk: s.risk_zone, abc: s.abc_class }))
+      .sort((a, b) => a.p.localeCompare(b.p) || b.rate - a.rate),
+    { sortable: true });
+
+  /* cross-tab */
+  const cross = {};
+  D.states.filter(s => s.dv_total_cases > 0).forEach(s => {
+    const key = s.abc_class + "|" + s.risk_zone;
+    cross[key] = cross[key] || [];
+    cross[key].push(s.state_clean);
+  });
+  const crossRows = [];
+  ["A", "B", "C"].forEach(c => zoneOrder.forEach(z => {
+    const k = c + "|" + z;
+    if (cross[k]) crossRows.push({
+      abc: c, risk: z, n: cross[k].length, list: cross[k].join(", "),
+      note: c === "A" && (z === "Critical" || z === "High") ? "First priority — big and intense"
+          : c === "A" ? "Large only because the entity is large"
+          : c === "C" && z === "Critical" ? "Buried by volume ranking — small but intense"
+          : ""
+    });
+  }));
+  buildTable(document.getElementById("tblCross"),
+    [{ key: "abc", label: "Class", pill: true }, { key: "risk", label: "Zone", pill: true },
+     { key: "n", label: "n" }, { key: "list", label: "Entities" },
+     { key: "note", label: "Reading" }], crossRows);
+}
+
+function renderQuality() {
+  const p = document.getElementById("qualityProse");
+  p.textContent = "";
+  const blocks = [
+    ["h3", "1. Seventy spellings for thirty-six places"],
+    ["p", "The file is two exports stitched together. 2001–2010 uses ALL CAPS with spaced ampersands (“D & N HAVELI”); 2011–2021 uses Title Case with tight ones (“D&N Haveli”). Read as-is, 36 real entities become 70 dimension members and every state total splits in half at the 2010/2011 boundary. Normalising whitespace, ampersand spacing and case collapses them back to 36."],
+    ["h3", "2. The 2020–21 rows were attached to the wrong states"],
+    ["p", "This is the defect that matters. On 31 October 2019 Jammu & Kashmir became a union territory and Ladakh was carved out of it; on 26 January 2020 Dadra & Nagar Haveli merged with Daman & Diu. NCRB’s 2020 and 2021 tables therefore list 28 states followed by 8 UTs, with J&K moved down into the UT block and Ladakh added. Whoever assembled this CSV pasted that value block against a label column still generated from the pre-2019 list, where J&K sits alphabetically among the states at position 9. Every measure row from position 9 down is attached to the wrong name."],
+    ["p", "The result is nonsense that a chart will render without complaint: Delhi’s domestic violence count drops from 3,792 in 2019 to 3 in 2020, while Dadra & Nagar Haveli — population 344,000 — jumps from 3 to 2,557. The row labelled “Delhi UT” in 2020 actually holds Ladakh, a UT that did not exist when the label column was made."],
+    ["h3", "3. Assault on Women is missing for the whole of 2011"],
+    ["p", "The column reads zero for all 35 entities in 2011, against 40,012 in 2010 and 45,344 in 2012. That is a dropped column, not a year without assaults. Those cells are flagged and excluded, and 2011 is marked as having a non-comparable all-crime total — which is why the domestic-violence share is left blank for 2011 rather than printing a false 55.5% spike."]
+  ];
+  blocks.forEach(([tag, text]) => {
+    const e = document.createElement(tag);
+    e.textContent = text;
+    p.appendChild(e);
+  });
+
+  const rows = D.repair.map(r => ({
+    state: r.state, ref: r.dv_2019, raw: r.raw_2020, fixed: r.fixed_2020
+  })).sort((a, b) => b.fixed - a.fixed);
+  groupedRepair("chRepair", legendHost("chRepair"), rows);
+  buildTable(document.getElementById("tblRepair"),
+    [{ key: "state", label: "Entity" },
+     { key: "dv_2019", label: "2019", render: fmt },
+     { key: "raw_2020", label: "2020 published", render: fmt },
+     { key: "fixed_2020", label: "2020 repaired", render: fmt },
+     { key: "raw_2021", label: "2021 published", render: fmt },
+     { key: "fixed_2021", label: "2021 repaired", render: fmt }],
+    D.repair, { scroll: true });
+
+  buildTable(document.getElementById("tblDecisions"),
+    [{ key: "issue", label: "Issue" }, { key: "action", label: "Decision" }],
+    [{ issue: "70 state spellings", action: "Normalised to 36 canonical names" },
+     { issue: "2020–21 row misalignment", action: "Re-attached using NCRB’s published 2020 entity order; totals unchanged" },
+     { issue: "Assault on Women, 2011", action: "Flagged as a source gap and excluded; 2011 all-crime total marked non-comparable" },
+     { issue: "Telangana 2011–2013 zeros", action: "Flagged as entity-not-formed, not averaged as zeros (state formed 2014)" },
+     { issue: "Ladakh, 2020–21 only", action: "Added as a new entity; earlier years flagged entity-not-formed" },
+     { issue: "D&N Haveli + Daman & Diu", action: "Summed for 2001–2019 so the series survives the 2020 merger" },
+     { issue: "Delhi absent 2001–2010", action: "Left as a documented gap; CAGR computed on each entity’s own observed window" },
+     { issue: "Population denominators", action: "Census 2011, female population derived from published sex ratio" },
+     { issue: "Unnamed index column", action: "Dropped — an export artefact, not a key" }]);
+
+  const lim = document.getElementById("limitsProse");
+  lim.textContent = "";
+  [["p", "These are the honest limits of what this data can support:"],
+   ["p", "• NCRB counts cases REPORTED to police, not incidents that occurred. A rise can mean more violence, better reporting, or both, and this data cannot separate them. India’s NFHS-5 survey suggests roughly 1 in 3 ever-married women experience spousal violence, which is orders of magnitude above anything recorded here."],
+   ["p", "• Rates use a fixed Census 2011 denominator, the only census-grade figure inside the window. Populations grew unevenly over 21 years, so these are a comparable index rather than a live incidence rate."],
+   ["p", "• Three series carry documented breaks: Assault on Women (2011 gap, 2013 statutory widening), Insult to Modesty (unexplained 2014 and 2017 steps), and Women Trafficking (2011 reporting change). Do not trend across those years."],
+   ["p", "• Jammu & Kashmir case counts before 2020 include the Ladakh districts, while its population denominator excludes them — roughly a 2% effect on that one entity."],
+   ["p", "• Charge-sheeting and conviction rates are not in this dataset, so nothing here speaks to case outcomes."]
+  ].forEach(([tag, text]) => {
+    const e = document.createElement(tag);
+    e.textContent = text;
+    lim.appendChild(e);
+  });
+}
+
+function renderInsights() {
+  const k = D.kpi;
+  const host = document.getElementById("findings");
+  host.textContent = "";
+  const assam = stateMeta["Assam"], wb = stateMeta["West Bengal"];
+  const findings = [
+    ["Finding 01", "Domestic violence is the largest single category, and it is not close",
+     "Cruelty by a husband or his relatives accounts for " + k.dv_share + "% of all " +
+     compact(k.all_crimes) + " recorded crimes against women over 21 years — " +
+     compact(k.dv_total) + " cases. That is more than rape, dowry deaths and insult to modesty " +
+     "combined. Any strategy on violence against women that starts outside the home is " +
+     "starting in the wrong place."],
+    ["Finding 02", "The burden is concentrated enough to be addressable",
+     k.class_a_count + " of 36 entities carry " + k.class_a_share + "% of all recorded cases. " +
+     "That is the single most actionable number here: a national intervention does not need 36 " +
+     "state programmes, it needs " + k.class_a_count + " well-funded ones. West Bengal alone " +
+     "accounts for " + (wb ? (wb.dv_total_cases / k.dv_total * 100).toFixed(1) : "–") +
+     "% of the national total."],
+    ["Finding 03", "Volume and intensity name different states",
+     "West Bengal leads on absolute volume with " + compact(wb && wb.dv_total_cases) +
+     " cases, but Assam has the highest intensity at " + fmt1(assam && assam.dv_rate_2021) +
+     " cases per lakh women in 2021 — roughly " +
+     (assam && wb ? (assam.dv_rate_2021 / wb.dv_rate_2021).toFixed(1) : "–") +
+     "x West Bengal's rate. Ranking states by raw counts is mostly ranking them by population; " +
+     "the two views must be read together."],
+    ["Finding 04", "Reporting grew steadily, then broke pattern in 2020",
+     "Cases compounded at " + k.cagr_pct + "% a year from " + fmt(k.dv_2001) + " in 2001 to " +
+     fmt(k.dv_2021) + " in 2021. The exception is 2020: " + signed(k.covid_dip) +
+     " during the lockdown year, followed by " + signed(k.rebound) + " in 2021. Lockdown almost " +
+     "certainly increased household violence while closing the routes to report it — " +
+     "so the 2020 dip is best read as suppressed reporting, and the 2021 rebound as the backlog " +
+     "arriving."],
+    ["Finding 05", "Dowry deaths are the one category that has not moved",
+     "Dowry deaths sit at 6,753 in 2021 against 6,738 in 2001 — essentially flat over two " +
+     "decades, a CAGR of 0.01%, while every other head grew. Because this is the hardest " +
+     "category to under-report (a death is recorded), that flatness is closer to a real " +
+     "incidence signal than the other series, and it argues that the growth elsewhere is " +
+     "substantially a reporting-propensity story."],
+    ["Finding 06", "Trafficking and kidnapping grew fastest",
+     "Kidnapping and abduction compounded at 8.9% a year and women trafficking at 11.9% " +
+     "— both far above domestic violence's " + k.cagr_pct + "%. The trafficking series has " +
+     "a documented 2011 reporting break, so treat its level with care, but kidnapping's growth " +
+     "is clean and under-discussed relative to the attention it receives."]
+  ];
+  findings.forEach(([num, title, body]) => {
+    const d = document.createElement("div");
+    d.className = "finding";
+    const n = document.createElement("div"); n.className = "num"; n.textContent = num;
+    const h = document.createElement("h3"); h.textContent = title;
+    const p = document.createElement("p");
+    p.className = "prose"; p.style.margin = "0"; p.textContent = body;
+    d.append(n, h, p);
+    host.appendChild(d);
+  });
+
+  const r = document.getElementById("recos");
+  r.textContent = "";
+  [["p", "1. Fund by concentration, not by headcount. " + k.class_a_count +
+        " entities carry " + k.class_a_share + "% of cases. Weight budget and staffing to the " +
+        "class A list rather than distributing evenly across 36 administrations."],
+   ["p", "2. Manage on the rate, report on the count. Absolute counts are what the press quotes, " +
+        "but per-lakh intensity is what tells an administrator whether their own state is " +
+        "getting better. Publish both, and hold states to the rate."],
+   ["p", "3. Separate the P1 list from the P2 list. Entities that are both high-intensity and " +
+        "still rising — Assam, Delhi, Rajasthan, Haryana, West Bengal — need escalation. " +
+        "Andhra Pradesh is high but flat, which is a containment problem, not a crisis. Same " +
+        "level, opposite response."],
+   ["p", "4. Do not read the 2020 dip as progress. Every high-volume state fell in 2020 and " +
+        "rebounded past 2019 in 2021. Treat 2020 as a reporting-access failure and invest in " +
+        "channels that survive a lockdown: helplines, one-stop centres, digital FIR."],
+   ["p", "5. Instrument the reporting gap. Recorded cases are a fraction of survey-measured " +
+        "prevalence. Pair NCRB counts with NFHS prevalence at state level so a rise in reports " +
+        "can be read as improved access rather than worsening safety."],
+   ["p", "6. Fix the pipeline, not just the analysis. The 2020–21 misalignment in this " +
+        "public dataset would have silently corrupted every state-level conclusion. Any " +
+        "recurring report on this source needs the continuity assertions in " +
+        "sql/06_data_quality_audit.sql running on every refresh."]
+  ].forEach(([tag, text]) => {
+    const e = document.createElement(tag);
+    e.textContent = text;
+    r.appendChild(e);
+  });
+}
+
+/* ---------- orchestration ---------- */
+let currentPage = "overview";
+function renderAll() {
+  document.getElementById("scopeNote").textContent =
+    "Filters scope the Overview and State analysis pages. In scope: " +
+    scopedStates().length + " entities · " + F.crime + " · " +
+    F.from + "–" + F.to +
+    ". ABC and risk-zone segmentation are published on the full 2001–2021 " +
+    "domestic-violence series and do not re-derive on filter.";
+  if (currentPage === "overview") renderOverview();
+  if (currentPage === "states") renderStates();
+  if (currentPage === "abc") renderAbc();
+  if (currentPage === "quality") renderQuality();
+  if (currentPage === "insights") renderInsights();
+}
+
+function initFilters() {
+  const sel = (id, opts, val) => {
+    const s = document.getElementById(id);
+    s.textContent = "";
+    opts.forEach(o => {
+      const op = document.createElement("option");
+      op.value = String(o);
+      op.textContent = String(o);
+      s.appendChild(op);
+    });
+    s.value = String(val);
+  };
+  sel("fCrime", CUBE.crimes, F.crime);
+  sel("fFrom", CUBE.years, F.from);
+  sel("fTo", CUBE.years, F.to);
+  sel("fRegion", ["All"].concat([...new Set(D.states.map(s => s.region))].sort()), F.region);
+  sel("fType", ["All", "State", "Union Territory"], F.type);
+
+  document.getElementById("fCrime").addEventListener("change", e => {
+    F.crime = e.target.value; renderAll();
+  });
+  document.getElementById("fFrom").addEventListener("change", e => {
+    F.from = +e.target.value;
+    if (F.from > F.to) { F.to = F.from; document.getElementById("fTo").value = F.to; }
+    renderAll();
+  });
+  document.getElementById("fTo").addEventListener("change", e => {
+    F.to = +e.target.value;
+    if (F.to < F.from) { F.from = F.to; document.getElementById("fFrom").value = F.from; }
+    renderAll();
+  });
+  document.getElementById("fRegion").addEventListener("change", e => {
+    F.region = e.target.value; renderAll();
+  });
+  document.getElementById("fType").addEventListener("change", e => {
+    F.type = e.target.value; renderAll();
+  });
+  document.getElementById("fReset").addEventListener("click", () => {
+    F.crime = "Domestic Violence"; F.from = 2001; F.to = 2021;
+    F.region = "All"; F.type = "All";
+    initFilters(); renderAll();
+  });
+}
+
+/* tabs */
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(b =>
+      b.setAttribute("aria-selected", String(b === btn)));
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("on"));
+    currentPage = btn.dataset.page;
+    document.getElementById("page-" + currentPage).classList.add("on");
+    /* the filter row only scopes the two data pages; hide it elsewhere so it
+       never implies it is filtering something it isn't */
+    document.getElementById("filters").style.display =
+      (currentPage === "overview" || currentPage === "states") ? "flex" : "none";
+    renderAll();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+});
+
+/* table-view toggles */
+document.querySelectorAll("[data-table]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const host = document.getElementById(btn.dataset.table);
+    const on = host.classList.toggle("on");
+    btn.setAttribute("aria-pressed", String(on));
+    btn.textContent = on ? "Hide table" : "Table view";
+  });
+});
+
+/* theme toggle - re-render because SVG fills are resolved at build time */
+const themeBtn = document.getElementById("themeBtn");
+function syncThemeBtn() {
+  themeBtn.textContent = isDark() ? "Light mode" : "Dark mode";
+}
+themeBtn.addEventListener("click", () => {
+  document.documentElement.setAttribute("data-theme", isDark() ? "light" : "dark");
+  syncThemeBtn();
+  renderAll();
+});
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  if (!document.documentElement.getAttribute("data-theme")) { syncThemeBtn(); renderAll(); }
+});
+
+/* re-render on resize so label density tracks the new width */
+let rt;
+window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(renderAll, 180); });
+
+syncThemeBtn();
+initFilters();
+renderAll();
+})();
+</script>
+</body>
+</html>
