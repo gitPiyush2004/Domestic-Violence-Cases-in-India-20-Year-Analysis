@@ -1,17 +1,11 @@
-/// Classic star. Single-direction filtering from dimension to fact: with three
-/// independent dimensions over one fact there is no many-to-many to resolve, so
-/// bidirectional filtering would add ambiguity and cost without buying anything.
 relationship DimState_FactCrimes
 	fromColumn: FactCrimes.state_clean
 	toColumn: DimState.State
 
-/// Year is an integer key, not a date. See DimYear for why there is no calendar table.
 relationship DimYear_FactCrimes
 	fromColumn: FactCrimes.year
 	toColumn: DimYear.Year
 
-/// The relationship that makes "which crime head grew fastest" a chartable axis
-/// instead of seven near-duplicate measures.
 relationship DimCrimeType_FactCrimes
 	fromColumn: FactCrimes.crime_code
 	toColumn: DimCrimeType.'Crime Code'
