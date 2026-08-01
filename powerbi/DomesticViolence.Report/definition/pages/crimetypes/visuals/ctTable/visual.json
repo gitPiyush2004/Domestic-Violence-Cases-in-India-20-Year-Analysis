@@ -1,0 +1,130 @@
+{
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+    "name":  "ctTable",
+    "position":  {
+                     "x":  32,
+                     "y":  384,
+                     "z":  0,
+                     "width":  744,
+                     "height":  240,
+                     "tabOrder":  0
+                 },
+    "visual":  {
+                   "visualType":  "tableEx",
+                   "query":  {
+                                 "queryState":  {
+                                                    "Values":  {
+                                                                   "projections":  [
+                                                                                       {
+                                                                                           "field":  {
+                                                                                                         "Column":  {
+                                                                                                                        "Expression":  {
+                                                                                                                                           "SourceRef":  {
+                                                                                                                                                             "Entity":  "DimCrimeType"
+                                                                                                                                                         }
+                                                                                                                                       },
+                                                                                                                        "Property":  "Crime Type"
+                                                                                                                    }
+                                                                                                     },
+                                                                                           "nativeQueryRef":  "Crime Type",
+                                                                                           "queryRef":  "DimCrimeType.Crime Type"
+                                                                                       },
+                                                                                       {
+                                                                                           "field":  {
+                                                                                                         "Column":  {
+                                                                                                                        "Expression":  {
+                                                                                                                                           "SourceRef":  {
+                                                                                                                                                             "Entity":  "DimCrimeType"
+                                                                                                                                                         }
+                                                                                                                                       },
+                                                                                                                        "Property":  "IPC Section"
+                                                                                                                    }
+                                                                                                     },
+                                                                                           "nativeQueryRef":  "IPC Section",
+                                                                                           "queryRef":  "DimCrimeType.IPC Section"
+                                                                                       },
+                                                                                       {
+                                                                                           "field":  {
+                                                                                                         "Column":  {
+                                                                                                                        "Expression":  {
+                                                                                                                                           "SourceRef":  {
+                                                                                                                                                             "Entity":  "DimCrimeType"
+                                                                                                                                                         }
+                                                                                                                                       },
+                                                                                                                        "Property":  "Total Cases 2001-2021"
+                                                                                                                    }
+                                                                                                     },
+                                                                                           "nativeQueryRef":  "Total Cases 2001-2021",
+                                                                                           "queryRef":  "DimCrimeType.Total Cases 2001-2021"
+                                                                                       },
+                                                                                       {
+                                                                                           "field":  {
+                                                                                                         "Column":  {
+                                                                                                                        "Expression":  {
+                                                                                                                                           "SourceRef":  {
+                                                                                                                                                             "Entity":  "DimCrimeType"
+                                                                                                                                                         }
+                                                                                                                                       },
+                                                                                                                        "Property":  "Share of All Crime %"
+                                                                                                                    }
+                                                                                                     },
+                                                                                           "nativeQueryRef":  "Share of All Crime %",
+                                                                                           "queryRef":  "DimCrimeType.Share of All Crime %"
+                                                                                       },
+                                                                                       {
+                                                                                           "field":  {
+                                                                                                         "Column":  {
+                                                                                                                        "Expression":  {
+                                                                                                                                           "SourceRef":  {
+                                                                                                                                                             "Entity":  "DimCrimeType"
+                                                                                                                                                         }
+                                                                                                                                       },
+                                                                                                                        "Property":  "Is Comparable Series"
+                                                                                                                    }
+                                                                                                     },
+                                                                                           "nativeQueryRef":  "Is Comparable Series",
+                                                                                           "queryRef":  "DimCrimeType.Is Comparable Series"
+                                                                                       }
+                                                                                   ]
+                                                               }
+                                                }
+                             },
+                   "visualContainerObjects":  {
+                                                  "title":  [
+                                                                {
+                                                                    "properties":  {
+                                                                                       "bold":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "true"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                },
+                                                                                       "fontSize":  {
+                                                                                                        "expr":  {
+                                                                                                                     "Literal":  {
+                                                                                                                                     "Value":  "11D"
+                                                                                                                                 }
+                                                                                                                 }
+                                                                                                    },
+                                                                                       "text":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "'The seven heads, with statutory basis'"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                },
+                                                                                       "show":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "true"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                }
+                                                                                   }
+                                                                }
+                                                            ]
+                                              },
+                   "drillFilterOtherVisuals":  true
+               }
+}

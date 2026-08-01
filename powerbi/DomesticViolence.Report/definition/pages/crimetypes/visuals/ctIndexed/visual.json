@@ -1,0 +1,110 @@
+{
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+    "name":  "ctIndexed",
+    "position":  {
+                     "x":  32,
+                     "y":  72,
+                     "z":  0,
+                     "width":  744,
+                     "height":  300,
+                     "tabOrder":  0
+                 },
+    "visual":  {
+                   "visualType":  "lineChart",
+                   "query":  {
+                                 "queryState":  {
+                                                    "Category":  {
+                                                                     "projections":  [
+                                                                                         {
+                                                                                             "field":  {
+                                                                                                           "Column":  {
+                                                                                                                          "Expression":  {
+                                                                                                                                             "SourceRef":  {
+                                                                                                                                                               "Entity":  "DimYear"
+                                                                                                                                                           }
+                                                                                                                                         },
+                                                                                                                          "Property":  "Year"
+                                                                                                                      }
+                                                                                                       },
+                                                                                             "nativeQueryRef":  "Year",
+                                                                                             "queryRef":  "DimYear.Year"
+                                                                                         }
+                                                                                     ]
+                                                                 },
+                                                    "Y":  {
+                                                              "projections":  [
+                                                                                  {
+                                                                                      "field":  {
+                                                                                                    "Measure":  {
+                                                                                                                    "Expression":  {
+                                                                                                                                       "SourceRef":  {
+                                                                                                                                                         "Entity":  "FactCrimes"
+                                                                                                                                                     }
+                                                                                                                                   },
+                                                                                                                    "Property":  "DV Index (Base = 100)"
+                                                                                                                }
+                                                                                                },
+                                                                                      "nativeQueryRef":  "DV Index (Base = 100)",
+                                                                                      "queryRef":  "FactCrimes.DV Index (Base = 100)"
+                                                                                  }
+                                                                              ]
+                                                          },
+                                                    "Series":  {
+                                                                   "projections":  [
+                                                                                       {
+                                                                                           "field":  {
+                                                                                                         "Column":  {
+                                                                                                                        "Expression":  {
+                                                                                                                                           "SourceRef":  {
+                                                                                                                                                             "Entity":  "DimCrimeType"
+                                                                                                                                                         }
+                                                                                                                                       },
+                                                                                                                        "Property":  "Crime Type"
+                                                                                                                    }
+                                                                                                     },
+                                                                                           "nativeQueryRef":  "Crime Type",
+                                                                                           "queryRef":  "DimCrimeType.Crime Type"
+                                                                                       }
+                                                                                   ]
+                                                               }
+                                                }
+                             },
+                   "visualContainerObjects":  {
+                                                  "title":  [
+                                                                {
+                                                                    "properties":  {
+                                                                                       "bold":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "true"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                },
+                                                                                       "fontSize":  {
+                                                                                                        "expr":  {
+                                                                                                                     "Literal":  {
+                                                                                                                                     "Value":  "11D"
+                                                                                                                                 }
+                                                                                                                 }
+                                                                                                    },
+                                                                                       "text":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "'Indexed to 100 in the first visible year'"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                },
+                                                                                       "show":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "true"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                }
+                                                                                   }
+                                                                }
+                                                            ]
+                                              },
+                   "drillFilterOtherVisuals":  true
+               }
+}

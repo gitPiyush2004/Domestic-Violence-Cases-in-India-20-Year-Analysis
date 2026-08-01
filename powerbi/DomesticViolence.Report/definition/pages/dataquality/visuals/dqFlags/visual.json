@@ -1,0 +1,110 @@
+{
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+    "name":  "dqFlags",
+    "position":  {
+                     "x":  648,
+                     "y":  256,
+                     "z":  0,
+                     "width":  600,
+                     "height":  224,
+                     "tabOrder":  0
+                 },
+    "visual":  {
+                   "visualType":  "pivotTable",
+                   "query":  {
+                                 "queryState":  {
+                                                    "Values":  {
+                                                                   "projections":  [
+                                                                                       {
+                                                                                           "field":  {
+                                                                                                         "Measure":  {
+                                                                                                                         "Expression":  {
+                                                                                                                                            "SourceRef":  {
+                                                                                                                                                              "Entity":  "FactCrimes"
+                                                                                                                                                          }
+                                                                                                                                        },
+                                                                                                                         "Property":  "Fact Rows"
+                                                                                                                     }
+                                                                                                     },
+                                                                                           "nativeQueryRef":  "Fact Rows",
+                                                                                           "queryRef":  "FactCrimes.Fact Rows"
+                                                                                       }
+                                                                                   ]
+                                                               },
+                                                    "Columns":  {
+                                                                    "projections":  [
+                                                                                        {
+                                                                                            "field":  {
+                                                                                                          "Column":  {
+                                                                                                                         "Expression":  {
+                                                                                                                                            "SourceRef":  {
+                                                                                                                                                              "Entity":  "DimYear"
+                                                                                                                                                          }
+                                                                                                                                        },
+                                                                                                                         "Property":  "Decade"
+                                                                                                                     }
+                                                                                                      },
+                                                                                            "nativeQueryRef":  "Decade",
+                                                                                            "queryRef":  "DimYear.Decade"
+                                                                                        }
+                                                                                    ]
+                                                                },
+                                                    "Rows":  {
+                                                                 "projections":  [
+                                                                                     {
+                                                                                         "field":  {
+                                                                                                       "Column":  {
+                                                                                                                      "Expression":  {
+                                                                                                                                         "SourceRef":  {
+                                                                                                                                                           "Entity":  "FactCrimes"
+                                                                                                                                                       }
+                                                                                                                                     },
+                                                                                                                      "Property":  "data_quality_flag"
+                                                                                                                  }
+                                                                                                   },
+                                                                                         "nativeQueryRef":  "data_quality_flag",
+                                                                                         "queryRef":  "FactCrimes.data_quality_flag"
+                                                                                     }
+                                                                                 ]
+                                                             }
+                                                }
+                             },
+                   "visualContainerObjects":  {
+                                                  "title":  [
+                                                                {
+                                                                    "properties":  {
+                                                                                       "bold":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "true"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                },
+                                                                                       "fontSize":  {
+                                                                                                        "expr":  {
+                                                                                                                     "Literal":  {
+                                                                                                                                     "Value":  "11D"
+                                                                                                                                 }
+                                                                                                                 }
+                                                                                                    },
+                                                                                       "text":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "'Three kinds of zero, separated'"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                },
+                                                                                       "show":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "true"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                }
+                                                                                   }
+                                                                }
+                                                            ]
+                                              },
+                   "drillFilterOtherVisuals":  true
+               }
+}

@@ -1,0 +1,42 @@
+{
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+    "name":  "dqCause",
+    "position":  {
+                     "x":  648,
+                     "y":  72,
+                     "z":  0,
+                     "width":  600,
+                     "height":  168,
+                     "tabOrder":  0
+                 },
+    "visual":  {
+                   "visualType":  "textbox",
+                   "objects":  {
+                                   "general":  [
+                                                   {
+                                                       "properties":  {
+                                                                          "paragraphs":  [
+                                                                                             {
+                                                                                                 "textRuns":  [
+                                                                                                                  {
+                                                                                                                      "textStyle":  {
+                                                                                                                                        "fontSize":  "12pt",
+                                                                                                                                        "fontWeight":  "bold"
+                                                                                                                                    },
+                                                                                                                      "value":  "Root cause:"
+                                                                                                                  },
+                                                                                                                  {
+                                                                                                                      "textStyle":  {
+                                                                                                                                        "fontSize":  "10pt"
+                                                                                                                                    },
+                                                                                                                      "value":  "\n\nOn 31 Oct 2019 J&K became a UT and Ladakh was carved out; on 26 Jan 2020 D&N Haveli merged with Daman & Diu. NCRB's 2020 table lists 28 states then 8 UTs. The CSV pasted that value block against a label column still generated from the pre-2019 36-entity list, where J&K sits at position 9 among the states. Every measure row from position 9 down is attached to the wrong state."
+                                                                                                                  }
+                                                                                                              ]
+                                                                                             }
+                                                                                         ]
+                                                                      }
+                                                   }
+                                               ]
+                               }
+               }
+}

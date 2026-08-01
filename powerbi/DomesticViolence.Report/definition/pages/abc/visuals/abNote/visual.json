@@ -1,0 +1,35 @@
+{
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+    "name":  "abNote",
+    "position":  {
+                     "x":  32,
+                     "y":  636,
+                     "z":  0,
+                     "width":  1216,
+                     "height":  68,
+                     "tabOrder":  0
+                 },
+    "visual":  {
+                   "visualType":  "textbox",
+                   "objects":  {
+                                   "general":  [
+                                                   {
+                                                       "properties":  {
+                                                                          "paragraphs":  [
+                                                                                             {
+                                                                                                 "textRuns":  [
+                                                                                                                  {
+                                                                                                                      "textStyle":  {
+                                                                                                                                        "fontSize":  "10pt"
+                                                                                                                                    },
+                                                                                                                      "value":  "ABC bands by volume; risk zones band by intensity. They are meant to disagree - a Class C entity in the Critical zone is small, badly affected, and invisible to every volume-ranked league table. Thresholds are the quartiles of the 2021 rate distribution (2.5 / 9.1 / 22.9 per lakh women), not round numbers, so they survive a refresh without quietly changing meaning."
+                                                                                                                  }
+                                                                                                              ]
+                                                                                             }
+                                                                                         ]
+                                                                      }
+                                                   }
+                                               ]
+                               }
+               }
+}

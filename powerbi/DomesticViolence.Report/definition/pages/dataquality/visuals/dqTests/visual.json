@@ -1,0 +1,42 @@
+{
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+    "name":  "dqTests",
+    "position":  {
+                     "x":  32,
+                     "y":  496,
+                     "z":  0,
+                     "width":  1216,
+                     "height":  208,
+                     "tabOrder":  0
+                 },
+    "visual":  {
+                   "visualType":  "textbox",
+                   "objects":  {
+                                   "general":  [
+                                                   {
+                                                       "properties":  {
+                                                                          "paragraphs":  [
+                                                                                             {
+                                                                                                 "textRuns":  [
+                                                                                                                  {
+                                                                                                                      "textStyle":  {
+                                                                                                                                        "fontSize":  "12pt",
+                                                                                                                                        "fontWeight":  "bold"
+                                                                                                                                    },
+                                                                                                                      "value":  "Four independent tests defend the repair"
+                                                                                                                  },
+                                                                                                                  {
+                                                                                                                      "textStyle":  {
+                                                                                                                                        "fontSize":  "10pt"
+                                                                                                                                    },
+                                                                                                                      "value":  "\n\n1.  Anomaly bands - 16 of 32 entities fall outside a 0.25x-4x band against their 2017-19 mean.\n2.  Crime-mix profile matching in log space - a 2019 control has 34/36 entities matching their own labels; 2020 has only 10/36, but 28/34 match NCRB's published order.\n3.  Year-over-year continuity - median absolute swing falls from 71.2% to 13.9%; implausible jumps above 60% fall from 15 to 0.\n4.  Invariance - all seven measure totals are unchanged. The repair re-labels; it never invents.\n\nThe 2019 control is the one that matters: running the same test on a year believed correct and getting 34/36 proves the method detects misalignment rather than manufacturing it. Because the repair only moves attribution, every national figure in this report is identical with or without it - only state-level 2020-21 attribution was ever at risk."
+                                                                                                                  }
+                                                                                                              ]
+                                                                                             }
+                                                                                         ]
+                                                                      }
+                                                   }
+                                               ]
+                               }
+               }
+}

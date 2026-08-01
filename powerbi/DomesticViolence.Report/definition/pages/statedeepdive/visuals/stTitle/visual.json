@@ -1,0 +1,36 @@
+{
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+    "name":  "stTitle",
+    "position":  {
+                     "x":  32,
+                     "y":  16,
+                     "z":  0,
+                     "width":  744,
+                     "height":  44,
+                     "tabOrder":  0
+                 },
+    "visual":  {
+                   "visualType":  "textbox",
+                   "objects":  {
+                                   "general":  [
+                                                   {
+                                                       "properties":  {
+                                                                          "paragraphs":  [
+                                                                                             {
+                                                                                                 "textRuns":  [
+                                                                                                                  {
+                                                                                                                      "textStyle":  {
+                                                                                                                                        "fontSize":  "18pt",
+                                                                                                                                        "fontWeight":  "bold"
+                                                                                                                                    },
+                                                                                                                      "value":  "Volume and intensity disagree"
+                                                                                                                  }
+                                                                                                              ]
+                                                                                             }
+                                                                                         ]
+                                                                      }
+                                                   }
+                                               ]
+                               }
+               }
+}

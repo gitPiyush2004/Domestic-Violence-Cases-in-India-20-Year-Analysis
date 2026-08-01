@@ -1,0 +1,42 @@
+{
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+    "name":  "ctNote",
+    "position":  {
+                     "x":  792,
+                     "y":  384,
+                     "z":  0,
+                     "width":  456,
+                     "height":  240,
+                     "tabOrder":  0
+                 },
+    "visual":  {
+                   "visualType":  "textbox",
+                   "objects":  {
+                                   "general":  [
+                                                   {
+                                                       "properties":  {
+                                                                          "paragraphs":  [
+                                                                                             {
+                                                                                                 "textRuns":  [
+                                                                                                                  {
+                                                                                                                      "textStyle":  {
+                                                                                                                                        "fontSize":  "12pt",
+                                                                                                                                        "fontWeight":  "bold"
+                                                                                                                                    },
+                                                                                                                      "value":  "Dowry deaths are the control."
+                                                                                                                  },
+                                                                                                                  {
+                                                                                                                      "textStyle":  {
+                                                                                                                                        "fontSize":  "10pt"
+                                                                                                                                    },
+                                                                                                                      "value":  "\n\nEvery head grew except dowry deaths: 6,738 in 2001, 6,753 in 2021. Deaths are the hardest category to under-report, so flat deaths against a 178% rise in cruelty complaints argues that much of the growth is rising reporting propensity rather than rising incidence.\n\nThat is an argument, not a proof. This data cannot separate the two."
+                                                                                                                  }
+                                                                                                              ]
+                                                                                             }
+                                                                                         ]
+                                                                      }
+                                                   }
+                                               ]
+                               }
+               }
+}
