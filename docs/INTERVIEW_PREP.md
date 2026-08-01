@@ -5,43 +5,6 @@ else you can reason out live, but you cannot reason out a figure you never learn
 
 ---
 
-## First: fix the résumé bullets
-
-Your current bullets claim **"7,500+"** and **"10K+ records"**. The source file is
-**736 rows**. Unpivoted to the analytical grain it is **5,019 rows**. An interviewer who
-opens the repo will see 736 in the first line of the CSV, and the gap between that and
-"10K+" costs you more than the bigger number ever bought.
-
-The honest version is also the stronger one, because scale was never what made this
-project good:
-
-> **20-Year Analysis of Domestic Violence in India (2001–2021)**
->
-> - Built an end-to-end analytics pipeline over NCRB crime data — Python ETL → star
->   schema (5,019 fact rows) → SQL analytical layer → Power BI — and **found and
->   repaired a systematic label-misalignment defect in the published 2020–21 data**
->   that attributed Delhi's caseload to a union territory 50× smaller.
-> - Defended the repair with **four independent statistical tests** (anomaly bands,
->   crime-mix profile matching in log space, year-over-year continuity, and total
->   invariance) — median absolute YoY swing fell from 71.2% to 13.9% with **zero change
->   to any national total**.
-> - Engineered the SQL layer with window functions, multi-table joins, CASE-based risk
->   banding and **ABC classification**, establishing that **8 of 36 entities carry 72.9%**
->   of recorded domestic violence.
-> - Delivered a **five-page Power BI dashboard (40 visuals, phone layouts)** with **40 DAX
->   measures** including dynamic Pareto segmentation, and a guard that **returns blank
->   rather than a plausible-looking false spike** for a year with a known source gap.
-
-"I found a bug in the public data and proved the fix" beats "I processed 10,000 rows"
-in every interview you will ever sit.
-
-One more: the bullets say **"data scraped from government portals"**. This is a Kaggle
-mirror of NCRB annual reports. Say "sourced from a Kaggle mirror of NCRB *Crime in
-India* reports, cross-checked against the published PDFs." Nobody minds Kaggle. People
-mind being told something was scraped when it was downloaded.
-
----
-
 ## The 60-second pitch
 
 > Domestic violence — IPC 498A — is the single largest category of recorded crime

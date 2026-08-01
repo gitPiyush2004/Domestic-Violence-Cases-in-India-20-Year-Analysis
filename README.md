@@ -11,7 +11,7 @@ against women in India: **1,909,978 cases, 39.2% of all 4.87M recorded cases** o
 
 | | |
 |---|---|
-| **Source** | NCRB *Crime in India* annual reports 2001–2021 (Kaggle mirror), 736 × 9 |
+| **Source** | NCRB *Crime in India* annual reports 2001–2021 (Kaggle mirror), 736 × 9, cross-checked against the published PDF |
 | **Model** | Star schema — 5,019 fact rows at `state × year × crime head` |
 | **Coverage** | 36 states and union territories · 21 years · 7 crime heads |
 | **Stack** | Python (pandas) · SQL (SQLite) · Power BI (PBIP/TMDL + DAX + M) · Excel VBA · HTML/CSS/JS |
@@ -19,29 +19,20 @@ against women in India: **1,909,978 cases, 39.2% of all 4.87M recorded cases** o
 ![Power BI — Executive Overview](Power.png)
 
 <sub>Executive Overview — the full 1280×720 report page. Red is reserved for the two
-focus-crime figures so the eye lands on them; every other series is warm neutral.
-Page-by-page walkthrough in [`docs/DASHBOARD_GUIDE.md`](docs/DASHBOARD_GUIDE.md), and an
-interactive version of the whole report in
-[`powerbi-showcase/`](powerbi-showcase/index.html).</sub>
+focus-crime figures so the eye lands on them; every other series is warm neutral.</sub>
 
-**Two static sites ship from this repo**, both zero-build and dependency-free:
+### Two live sites, both zero-build and dependency-free
 
-| Site | Live | Folder | What it is |
-|---|---|---|---|
-| Interactive dashboard | [domestic-violence-dashboard.netlify.app](https://domestic-violence-dashboard.netlify.app) | [`dashboard/`](dashboard/index.html) | Five pages, charts rendered from `data.js`, filters and table views |
-| Power BI replica | [domestic-violence-powerbi-showcase.netlify.app](https://domestic-violence-powerbi-showcase.netlify.app) | [`powerbi-showcase/`](powerbi-showcase/index.html) | The Power BI report rebuilt for the browser — same five pages, same canvas, working slicers and cross-filtering |
+| Site | Live | Folder |
+|---|---|---|
+| Interactive dashboard | [domestic-violence-dashboard.netlify.app](https://domestic-violence-dashboard.netlify.app) | [`dashboard/`](dashboard/index.html) |
+| Power BI replica | [domestic-violence-powerbi-showcase.netlify.app](https://domestic-violence-powerbi-showcase.netlify.app) | [`powerbi-showcase/`](powerbi-showcase/index.html) |
 
-The replica is not a screenshot gallery. Each page is a **1280×720 report canvas** holding the
-same tiles at the same coordinates as the Power BI layout, scaled to fit the window — so the
-composition reads as a Power BI page rather than a scrolling web page. Dark chrome frames a
-light canvas, matching the report theme.
-
-It reads the same `data.js` cube the web dashboard uses and recomputes every measure in the
-browser, so slicing by year or region, or clicking a bar, slice or table row, cross-filters
-the page the way Power BI does. Figures are reconciled against the model: **39.2% DV share ·
-302,143 for West Bengal · 136K for 2021 alone · "8 of 36 entities carry 72.9%"** — and the ABC
-classification recomputes inside the slicer exactly as the DAX does (2001–2010 alone gives
-"7 of 33 carry 71.2%").
+The replica is not a screenshot gallery. Each page is a 1280×720 canvas holding the same
+tiles at the same coordinates as the Power BI layout, recomputing every measure in the
+browser — slicers filter and clicking a bar, slice or row cross-filters, the way Power BI
+does. Its figures reconcile against the model exactly, down to
+*"8 of 36 entities carry 72.9%"*.
 
 ---
 
@@ -79,75 +70,27 @@ record. It is defended by four independent tests in
 | Invariance (all 7 measure totals) | "you invented data" | **all deltas zero** — the repair re-labels, it never invents |
 
 The 2019 control is the test that matters: running the same profile-match on a year I
-believed was *correct* and getting 34/36 is what proves the method detects
-misalignment rather than manufacturing it.
-
-Because the repair only moves attribution, **every national figure is identical with or
-without it**. Only state-level 2020–21 attribution was ever at risk.
+believed was *correct* and getting 34/36 is what proves the method detects misalignment
+rather than manufacturing it. And because the repair only moves attribution, **every
+national figure is identical with or without it** — only state-level 2020–21 attribution
+was ever at risk.
 
 **A second defect:** Assault on Women reads **0 for all 35 entities in 2011**, against
 40,012 in 2010 and 45,344 in 2012 — a dropped column. Those cells are flagged and
-excluded, and 2011 is marked non-comparable for all-crime totals, which is why the
-DV-share series is left **blank** for 2011 rather than printing a false 55.5% spike.
-
----
-
-## Repository layout
-
-```
-data/
-  raw/                        untouched Kaggle extract (736 x 9) + source PDF
-  reference/state_master.csv  36 entities: region, Census 2011 population,
-                              sex ratio, literacy, boundary-change notes
-  processed/                  the star schema (built, not hand-edited)
-etl/
-  01_clean_and_wrangle.py     the 10-step pipeline, documented step by step
-  02_validate_repair.py       the four-test proof of the 2020-21 repair
-  etl_run_log.txt             committed run log
-sql/
-  00_schema.sql               star schema DDL with grain + integrity constraints
-  01_kpi_headline.sql         the six KPI tiles
-  02_trend_window_functions.sql  LAG, moving average, rank momentum, CAGR
-  03_abc_classification.sql      Pareto / ABC segmentation
-  04_risk_zones_case.sql         CASE-based risk banding + priority matrix
-  05_joins_deepdive.sql          multi-table joins, self-joins, correlated subqueries
-  06_data_quality_audit.sql      12 assertions, each returns 0 rows when healthy
-  QUERY_RESULTS.md            committed real outputs of all 21 queries
-powerbi/
-  DomesticViolence.pbip       Power BI project (PBIP - plain text, diffable)
-  .SemanticModel/definition/  5 tables, 4 relationships, 42 measures as TMDL
-  generate_report.ps1         declarative layout -> report.json (5 pages, 40 visuals)
-  lib_report.ps1              the report.json emitter + layout validator
-  m/                          the Power Query M for each query, annotated
-  dax/                        the measures grouped by purpose, annotated
-excel/
-  CleanCrimeData.bas          VBA cleaning macro - the Excel-side implementation
-                              of the same normalise / unpivot / flag contract
-dashboard/
-  index.html                  5-page interactive web dashboard, zero dependencies
-  build_data.py               serialises processed/ into data.js
-docs/
-  DASHBOARD_GUIDE.md          page-by-page spec, palette, mobile layouts, checks
-  INTERVIEW_PREP.md           walkthrough, the numbers, and the hard questions
-```
+excluded, and 2011 is marked non-comparable, which is why the DV-share series is left
+**blank** for 2011 rather than printing a false 55.5% spike.
 
 ---
 
 ## The data model
 
 A star schema, not one wide sheet. The source arrives with one column per crime
-(`Rape`, `K&A`, `DD`, `AoW`, `AoM`, `DV`, `WT`), which cannot answer "which crime type
+(`Rape`, `K&A`, `DD`, `AoW`, `AoM`, `DV`, `WT`), which cannot answer "which crime head
 grew fastest" without seven near-duplicate measures. Unpivoting makes crime type a real
 dimension: one measure and one slicer instead of seven columns.
 
 - **`fact_crimes`** — 5,019 rows at `state × year × crime_type`
 - **`dim_state`** (36) · **`dim_year`** (21) · **`dim_crime_type`** (7)
-
-The Power BI model adds one more table, **`FactQuality`** — the same 5,152 source cells
-*without* the `include_in_analysis` filter. `FactCrimes` is filtered at load, which is
-right for every analytical visual but makes the exclusions invisible, and a data-quality
-page that can only ever render "ok" is worse than no page at all. `FactQuality` carries
-no cases column, so nothing on it can be summed by accident.
 
 **Three kinds of zero** are separated by `data_quality_flag`, because conflating them is
 how a dashboard becomes confidently wrong:
@@ -165,8 +108,8 @@ one place instead of being re-derived in SQL, DAX and Python separately.
 
 ## The Power BI layer
 
-The model is committed as **PBIP/TMDL**, not a binary `.pbix` — every table, measure and
-relationship is a plain-text file that reviews in a pull request.
+Committed as **PBIP/TMDL**, not a binary `.pbix` — every table, measure and relationship
+is a plain-text file that reviews in a pull request.
 
 **5 pages · 40 visuals · 30 phone placements · 42 DAX measures.**
 
@@ -178,56 +121,38 @@ relationship is a plain-text file that reviews in a pull request.
 | ABC & Priority | If you could only fund eight programmes, which eight? |
 | Data Quality | Why you can trust these numbers, and where I refused to publish one |
 
-### Running it
-
-```bash
-python3 etl/01_clean_and_wrangle.py    # clean, repair, reshape -> data/processed/
-python3 etl/02_validate_repair.py      # prove the repair
-python3 sql/build_and_run.py           # build SQLite, run 21 queries, run 12 checks
-python3 dashboard/build_data.py        # regenerate dashboard/data.js
-powershell -File powerbi/generate_report.ps1   # regenerate the report layout
-```
-
-Then open `powerbi/DomesticViolence.pbip`, point the **`RepoRoot`** parameter at your
-clone (*Transform data → Manage Parameters*), and **Refresh**. A PBIP stores definition
-only, so the first open always needs one refresh to populate the model.
-
-Expected after refresh: **FactCrimes 5,019 · DimState 36 · DimYear 21 · DimCrimeType 7**.
-
-### Four decisions worth defending
+### Decisions worth defending
 
 - **Power Query reads `processed/`, not `raw/`.** The 2020–21 repair lives in the ETL and
   nowhere else. Re-implementing it in M would put one business rule in two languages and
-  guarantee they drift the first time either is edited.
+  guarantee they drift.
 - **No date table.** The grain is annual. A marked calendar would allow
   `SAMEPERIODLASTYEAR` against 21 synthetic timestamps — correct answers, implied
   precision the source does not have. Year-over-year is an explicit integer offset.
 - **`[DV Share %]` returns blank when every visible year is non-comparable.** Select 2011
-  on its own and the card goes empty rather than printing ~55% off a denominator that is
-  40,000 cases short. **A dashboard should be silent where the data is unsound rather
-  than plausible.**
-- **The report layout is generated, not hand-drawn.** `generate_report.ps1` holds a
-  compact declaration and emits `report.json`; a build-time validator refuses to write a
-  report containing overlapping or off-canvas visuals. The JSON is a build artefact —
-  edit the declaration and re-run.
+  alone and the card goes empty rather than printing ~55% off a denominator 40,000 cases
+  short. **A dashboard should be silent where the data is unsound rather than plausible.**
+- **The report layout is generated, not hand-drawn.** `generate_report.ps1` holds a compact
+  declaration and emits `report.json`; a build-time validator refuses to write a report
+  containing overlapping or off-canvas visuals.
 
 ---
 
 ## Two segmentations that disagree — on purpose
 
-**ABC classification** (volume): **8 of 36 entities carry 72.9%** of all recorded
-domestic violence. That is the most actionable number in the project — a national
-intervention needs 8 well-funded programmes, not 36 thin ones.
+**ABC classification** (volume): **8 of 36 entities carry 72.9%** of all recorded domestic
+violence. That is the most actionable number in the project — a national intervention
+needs 8 well-funded programmes, not 36 thin ones.
 
-**Risk zones** (intensity): cases per lakh women, banded at the **quartiles** of the
-2021 distribution — 2.5 / 9.1 / 22.9. Quartiles rather than round numbers on purpose:
-round thresholds encode an opinion about what counts as "high", and they quietly change
-meaning on the next refresh.
+**Risk zones** (intensity): cases per lakh women, banded at the **quartiles** of the 2021
+distribution — 2.5 / 9.1 / 22.9. Quartiles rather than round numbers on purpose: round
+thresholds encode an opinion about what counts as "high" and quietly change meaning on
+the next refresh.
 
 The two name different states, and the gap is the insight:
 
 - **West Bengal** leads on volume (302,143 cases) — but ranks **6th** on intensity.
-- **Assam** has the highest 2021 intensity (**84.8 per lakh women**, ~1.9× West Bengal).
+- **Telangana** and **Assam** top the intensity ranking despite far smaller caseloads.
 - Class **C + Critical** entities are small but intense — buried entirely by any
   volume-only ranking.
 
@@ -237,19 +162,19 @@ A dashboard that ranks only by volume is a population map with extra steps.
 
 ## Selected findings
 
-1. Domestic violence is **39.2%** of all recorded crimes against women — more than
-   rape, dowry deaths and insult to modesty combined.
+1. Domestic violence is **39.2%** of all recorded crimes against women — more than rape,
+   dowry deaths and insult to modesty combined.
 2. Reported cases compounded at **5.24%/yr**, 49,032 (2001) → 136,234 (2021), **+178%**.
-3. **2020 fell 11.0%**, then **2021 rebounded +22.1%** — best read as lockdown
-   suppressing *reporting access*, not violence, with the backlog arriving in 2021.
-4. **Dowry deaths are flat** — 6,738 (2001) → 6,753 (2021), CAGR 0.01% — while every
-   other head grew. Deaths are the hardest category to under-report, so that flatness
-   argues the growth elsewhere is substantially a *reporting-propensity* story.
-5. Fastest-growing heads are **kidnapping (8.9%/yr)** and **trafficking (11.9%/yr)**,
-   both well above domestic violence.
+3. **2020 fell 11.0%**, then **2021 rebounded +22.1%** — best read as lockdown suppressing
+   *reporting access*, not violence, with the backlog arriving in 2021.
+4. **Dowry deaths are flat** — 6,738 (2001) → 6,753 (2021), CAGR 0.01% — while every other
+   head grew. Deaths are the hardest category to under-report, so that flatness argues the
+   growth elsewhere is substantially a *reporting-propensity* story.
+5. Fastest-growing heads are **kidnapping (8.9%/yr)** and **trafficking (11.9%/yr)**, both
+   well above domestic violence.
 
-Finding 4 is the one I would lead with in a review. It is an argument, not a proof —
-this data cannot separate incidence from reporting — and saying so is the point.
+Finding 4 is the one I would lead with in a review. It is an argument, not a proof — this
+data cannot separate incidence from reporting — and saying so is the point.
 
 ---
 
@@ -258,32 +183,41 @@ this data cannot separate incidence from reporting — and saying so is the poin
 - NCRB counts cases **reported to police**, not incidents. NFHS-5 puts spousal violence
   prevalence near 1 in 3 ever-married women — orders of magnitude above anything here.
   Every number in this project is a *reporting* measure.
-- Rates use a **fixed Census 2011** denominator (the only census-grade figure in the
-  window — the 2021 census was postponed), so they are a comparable index, not a live
-  incidence rate.
+- Rates use a **fixed Census 2011** denominator (the 2021 census was postponed), so they
+  are a comparable index, not a live incidence rate.
 - Three series carry documented breaks — **AoW** (2011 gap, 2013 statutory widening),
-  **AoM** (unexplained 2014/2017 steps), **WT** (2011 reporting change). Do not trend
-  across those years; the model flags them as `Is Comparable Series = FALSE`.
-- J&K case counts before 2020 include the Ladakh districts while its denominator
-  excludes them (~2% effect on that one entity).
-- Undivided Andhra Pradesh includes Telangana before 2014, so cross-2014 AP comparisons
-  need care.
+  **AoM** (unexplained 2014/2017 steps), **WT** (2011 reporting change). The model flags
+  them as `Is Comparable Series = FALSE`; do not trend across those years.
+- Undivided Andhra Pradesh includes Telangana before 2014, and J&K counts before 2020
+  include Ladakh while its denominator excludes it — both need care in cross-year
+  comparisons.
 
 ---
 
-## Source
+## Repository layout
 
-NCRB *Crime in India* annual reports, 2001–2021, via a Kaggle mirror
-(`data/raw/CrimesOnWomenData.csv`, 736 rows × 9 columns), cross-checked against the
-published PDF in `data/raw/`. Denominators from Census 2011.
+```
+data/       raw Kaggle extract + source PDF · state reference · processed star schema
+etl/        01_clean_and_wrangle.py (10-step pipeline) · 02_validate_repair.py (the four tests)
+sql/        schema DDL · KPIs · window functions · ABC · CASE-based risk zones · joins
+            · 12-assertion data-quality audit · QUERY_RESULTS.md with real outputs
+powerbi/    DomesticViolence.pbip · TMDL model (5 tables, 4 relationships, 42 measures)
+            · generate_report.ps1 (layout -> report.json) · annotated m/ and dax/
+excel/      CleanCrimeData.bas — the Excel-side normalise / unpivot / flag macro
+dashboard/  5-page web dashboard + build_data.py
+docs/       DASHBOARD_GUIDE.md · INTERVIEW_PREP.md
+```
 
-The source file is 736 rows; unpivoted to the analytical grain it is **5,019 fact rows**.
-Scale was never the point of this project — the repair was.
+### Reproducing it
 
----
+```bash
+python3 etl/01_clean_and_wrangle.py    # clean, repair, reshape -> data/processed/
+python3 etl/02_validate_repair.py      # prove the repair
+python3 sql/build_and_run.py           # build SQLite, run 21 queries, run 12 checks
+python3 dashboard/build_data.py        # regenerate data.js for both sites
+powershell -File powerbi/generate_report.ps1   # regenerate the report layout
+```
 
-### Status
-
-Complete. ETL, the four-test repair proof, the SQL layer (21 queries, 12 passing
-assertions), the Power BI model and five-page report with phone layouts, the Excel
-cleaning macro, the web dashboard and the `docs/` write-ups are all in and verified.
+Then open `powerbi/DomesticViolence.pbip`, point the **`RepoRoot`** parameter at your
+clone (*Transform data → Manage Parameters*), and **Refresh** — a PBIP stores definition
+only, so the first open always needs one refresh to populate the model.
