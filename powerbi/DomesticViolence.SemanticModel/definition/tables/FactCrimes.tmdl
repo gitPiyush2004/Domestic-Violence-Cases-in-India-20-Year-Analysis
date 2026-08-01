@@ -32,6 +32,12 @@ table FactCrimes
 		formatString: #,0
 		lineageTag: 2c1f0a10-0007-4a00-9000-000000000007
 
+	/// Row count at the current grain. Used on the data-quality page to show how many
+	/// cells each quality flag accounts for.
+	measure 'Fact Rows' = COUNTROWS ( FactCrimes )
+		formatString: #,0
+		lineageTag: 2c1f0a10-0025-4a00-9000-000000000025
+
 	measure 'DV Cases PY' =
 			VAR Y = SELECTEDVALUE ( DimYear[Year] )
 			RETURN
@@ -198,6 +204,52 @@ table FactCrimes
 					"P5 - Maintain"
 				)
 		lineageTag: 2c1f0a10-001e-4a00-9000-00000000001e
+
+	/// Writes the full recommendation sentence for whichever single state is selected,
+	/// so the deep-dive page narrates itself during a demo instead of needing one
+	/// hand-written annotation per state.
+	measure 'State Verdict' =
+			VAR St = SELECTEDVALUE ( DimState[State] )
+			VAR Cases = [DV Cases]
+			VAR Rate = [DV Rate per Lakh Women (Annual Avg)]
+			VAR RankVol = [DV Rank]
+			VAR RankInt = [DV Rate Rank]
+			VAR Cagr = [DV CAGR %]
+			RETURN
+				IF ( NOT ISBLANK ( St ) && NOT ISBLANK ( Cases ),
+					St & ": " & FORMAT ( Cases, "#,0" ) & " cases (rank " & FORMAT ( RankVol, "0" )
+						& " by volume, rank " & FORMAT ( RankInt, "0" ) & " by intensity at "
+						& FORMAT ( Rate, "0.0" ) & " per lakh women), "
+						& IF ( Cagr >= 0, "growing ", "declining " )
+						& FORMAT ( ABS ( Cagr ), "0.0%" ) & " a year. " & [Priority Segment] )
+		lineageTag: 2c1f0a10-0026-4a00-9000-000000000026
+
+	measure 'ABC Class Label' =
+			SWITCH ( [ABC Class],
+				"A", "A - Critical (top 70% of volume)",
+				"B", "B - Moderate (next 20%)",
+				"C", "C - Low (tail 10%)",
+				BLANK () )
+		lineageTag: 2c1f0a10-0027-4a00-9000-000000000027
+
+	measure 'DV YoY Cases' = [DV Cases] - [DV Cases PY]
+		formatString: +#,0;-#,0;0
+		lineageTag: 2c1f0a10-0028-4a00-9000-000000000028
+
+	/// Constant lines for the cumulative axis of the Pareto combo chart.
+	measure 'Pareto 70% Line' = 0.70
+		formatString: 0%
+		lineageTag: 2c1f0a10-0029-4a00-9000-000000000029
+
+	measure 'Pareto 90% Line' = 0.90
+		formatString: 0%
+		lineageTag: 2c1f0a10-002a-4a00-9000-00000000002a
+
+	/// Numeric companion to [Risk Zone] for conditional formatting and severity sorting.
+	measure 'Risk Zone Rank' =
+			SWITCH ( [Risk Zone], "Critical", 1, "High", 2, "Moderate", 3, "Low", 4, 9 )
+		formatString: 0
+		lineageTag: 2c1f0a10-002b-4a00-9000-00000000002b
 
 	measure 'Filter Context Label' =
 			VAR YearMin = MIN ( DimYear[Year] )
