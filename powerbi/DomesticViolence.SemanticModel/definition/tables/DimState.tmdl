@@ -6,9 +6,9 @@ table DimState
 		dataType: string
 		isKey
 		lineageTag: 2c1f0a10-0101-4a00-9000-000000000101
+		dataCategory: StateOrProvince
 		summarizeBy: none
 		sourceColumn: State
-		dataCategory: StateOrProvince
 
 		annotation SummarizationSetBy = Automatic
 
@@ -76,8 +76,8 @@ table DimState
 	/// these are what those are validated against.
 	column 'DV Total Cases (static)'
 		dataType: int64
-		formatString: #,0
 		isHidden
+		formatString: #,0
 		lineageTag: 2c1f0a10-0109-4a00-9000-000000000109
 		summarizeBy: none
 		sourceColumn: DV Total Cases (static)
@@ -86,8 +86,8 @@ table DimState
 
 	column 'DV CAGR % (static)'
 		dataType: double
-		formatString: #,0.00
 		isHidden
+		formatString: #,0.00
 		lineageTag: 2c1f0a10-010a-4a00-9000-00000000010a
 		summarizeBy: none
 		sourceColumn: DV CAGR % (static)
@@ -121,8 +121,8 @@ table DimState
 
 	column 'DV Rank (static)'
 		dataType: int64
-		formatString: #,0
 		isHidden
+		formatString: #,0
 		lineageTag: 2c1f0a10-010e-4a00-9000-00000000010e
 		summarizeBy: none
 		sourceColumn: DV Rank (static)
@@ -140,8 +140,8 @@ table DimState
 
 	column 'Risk Zone Sort'
 		dataType: int64
-		formatString: 0
 		isHidden
+		formatString: 0
 		lineageTag: 2c1f0a10-0110-4a00-9000-000000000110
 		summarizeBy: none
 		sourceColumn: Risk Zone Sort
@@ -162,3 +162,4 @@ table DimState
 					WithRiskSort
 
 	annotation PBI_ResultType = Table
+

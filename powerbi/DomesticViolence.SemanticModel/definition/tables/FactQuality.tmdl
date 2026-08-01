@@ -1,0 +1,65 @@
+/// Audit table: the SAME source rows as FactCrimes but WITHOUT the
+/// include_in_analysis filter, so the data-quality page can count the cells that
+/// were excluded and say why.
+///
+/// FactCrimes is filtered at load, which is correct for every analytical visual -
+/// it means no measure can accidentally sum a structural zero. But it also makes
+/// the exclusions invisible, and a data-quality page that can only ever render
+/// "ok" is worse than no page at all. Hence a second, deliberately unfiltered
+/// table used by exactly one visual.
+///
+/// It carries no measure of "cases" on purpose. Nothing here should ever be
+/// summed - the only question this table answers is "how many cells, of which
+/// kind". Keeping the measure column out makes that impossible to get wrong.
+table FactQuality
+	lineageTag: 2c1f0a10-0500-4a00-9000-000000000500
+
+	column year
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: 2c1f0a10-0501-4a00-9000-000000000501
+		summarizeBy: none
+		sourceColumn: year
+
+		annotation SummarizationSetBy = User
+
+	column crime_code
+		dataType: string
+		lineageTag: 2c1f0a10-0502-4a00-9000-000000000502
+		summarizeBy: none
+		sourceColumn: crime_code
+
+		annotation SummarizationSetBy = Automatic
+
+	/// ok | source_gap | entity_not_formed
+	column 'Quality Flag'
+		dataType: string
+		lineageTag: 2c1f0a10-0503-4a00-9000-000000000503
+		summarizeBy: none
+		sourceColumn: Quality Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	measure 'Quality Cells' = COUNTROWS ( FactQuality )
+		formatString: #,0
+		lineageTag: 2c1f0a10-0504-4a00-9000-000000000504
+
+	measure 'Excluded Cells' =
+			CALCULATE ( COUNTROWS ( FactQuality ), FactQuality[Quality Flag] <> "ok" )
+		formatString: #,0
+		lineageTag: 2c1f0a10-0505-4a00-9000-000000000505
+
+	partition FactQuality = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(RepoRoot & "\data\processed\fact_crimes_long.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+					Trimmed = Table.SelectColumns(Promoted, {"year", "crime_code", "data_quality_flag"}),
+					Typed = Table.TransformColumnTypes(Trimmed, {{"year", Int64.Type}, {"crime_code", type text}, {"data_quality_flag", type text}}),
+					Renamed = Table.RenameColumns(Typed, {{"data_quality_flag", "Quality Flag"}})
+				in
+					Renamed
+
+	annotation PBI_ResultType = Table

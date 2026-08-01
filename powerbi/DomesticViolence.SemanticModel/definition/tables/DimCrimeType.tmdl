@@ -89,8 +89,8 @@ table DimCrimeType
 
 	column 'Crime Sort'
 		dataType: int64
-		formatString: 0
 		isHidden
+		formatString: 0
 		lineageTag: 2c1f0a10-030a-4a00-9000-00000000030a
 		summarizeBy: none
 		sourceColumn: Crime Sort
@@ -113,3 +113,4 @@ table DimCrimeType
 					WithIndex
 
 	annotation PBI_ResultType = Table
+

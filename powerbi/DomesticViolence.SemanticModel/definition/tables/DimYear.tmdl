@@ -5,8 +5,8 @@ table DimYear
 
 	column Year
 		dataType: int64
-		formatString: 0
 		isKey
+		formatString: 0
 		lineageTag: 2c1f0a10-0201-4a00-9000-000000000201
 		summarizeBy: none
 		sourceColumn: Year
@@ -88,3 +88,4 @@ table DimYear
 					Renamed
 
 	annotation PBI_ResultType = Table
+

@@ -1,238 +1,164 @@
 # Dashboard guide
 
-The dashboard is **built**: five pages, 40 visuals, 24 of them also placed on the
-phone canvas. Open `powerbi/DomesticViolence.pbip`, approve the data source, refresh.
+The Power BI report is **built**: 5 pages, 40 visuals, 30 of them also placed on the
+phone canvas. Open `powerbi/DomesticViolence.pbip`, point `RepoRoot` at your clone,
+refresh.
 
-The layout is not hand-drawn. PBIR stores every visual as its own JSON file, so five
-pages is roughly 1,500 lines of near-duplicate boilerplate in which a single stray
-brace prevents the whole report from opening — and Power BI Desktop reports *nothing*
-when a project fails to load, so a typo is indistinguishable from a crash. Instead
-`powerbi/generate_report.ps1` declares the layout compactly and emits the JSON:
+The layout is **generated, not drawn**. PBIP stores a report as one `report.json` in
+which every visual is a JSON document serialised into a string — thousands of lines of
+JSON nested inside JSON, where one bad escape stops the whole report rendering and
+Power BI Desktop reports nothing useful when it does. So the layout is declared
+compactly in `powerbi/generate_report.ps1` and emitted by `powerbi/lib_report.ps1`:
 
 ```bash
-pwsh -File powerbi/generate_report.ps1
+powershell -File powerbi/generate_report.ps1
 ```
 
-The declaration at the bottom of that script is what you review; the JSON under
-`DomesticViolence.Report/definition/pages/` is a build artefact. To move a visual,
-edit the declaration and re-run — never edit the generated JSON.
-
-This document explains what is on each page and why, and gives the figures to verify
-a refresh against.
+The declaration at the top of that script is what you review. `report.json` is a build
+artefact — **hand-edits are overwritten on the next run.** To move a visual, change the
+declaration.
 
 ---
 
-## 0. First open
+## First open
 
-1. Open `powerbi/DomesticViolence.pbip` in Power BI Desktop.
-2. Power BI will ask to authorise the file data source — **Organizational / Anonymous**
-   is fine for a local CSV. Set privacy level to **Public** if prompted; nothing here
-   is confidential and a Private level blocks folds across queries.
-3. If the repo is not at `C:\Users\hp\Desktop\Domestic Violance Cases\repo`:
-   **Transform data → Manage Parameters → RepoRoot** and point it at your clone.
-   That is the only path in the model.
-4. **File → Options → Data Load → Time intelligence → uncheck Auto date/time.**
-   The grain is annual; an auto date hierarchy on `Year` is noise.
-5. Refresh.
+1. Open `powerbi/DomesticViolence.pbip`.
+2. Authorise the file data source if prompted (a local CSV — Anonymous / Public is fine).
+3. If the repo is not at the recorded path: **Transform data → Manage Parameters →
+   RepoRoot**. That is the only path in the model.
+4. **Refresh.** A PBIP stores definition only, so the first open always needs one
+   refresh to populate the model. Any later model edit shows a "relationships have been
+   modified" banner until you refresh again — that is normal, not a fault.
+5. **File → Options → Data Load → uncheck Auto date/time.** The grain is annual.
 
-Expected after refresh: **FactCrimes 5,019 rows · DimState 36 · DimYear 21 ·
-DimCrimeType 7**. If FactCrimes shows more than 5,019, the `include_in_analysis`
-filter did not apply and every rate in the report will be wrong.
+Expected after refresh: **FactCrimes 5,019 · FactQuality 5,152 · DimState 36 ·
+DimYear 21 · DimCrimeType 7**.
 
 ---
 
-## Theme
+## Design system
 
-Save as `theme.json` and apply via **View → Themes → Browse for themes**. Muted, and
-deliberately not a red-alert palette — this is a policy dashboard, not a threat board.
+Everything derives from a grid. Nothing is eyeballed, and a build-time validator
+(`Assert-NoOverlap`) refuses to write a report containing overlapping or off-canvas
+visuals — cheaper to catch there than in a screenshot.
+
+**Desktop 1280 × 720** — outer margin 24, gutter 16, content 1232.
+Two columns: left 800, right 416. Six KPI cards of 192 at 16 apart. Every page bottoms
+out at 696, leaving a 24 margin.
+
+**Phone 320 wide, scrolls vertically** — margin 8, content 304, half-tiles of 148.
+
+### Palette
+
+Deep red carries the focus crime; everything else is warm neutral. A dashboard where
+every element is red says nothing.
 
 | Role | Hex |
 |---|---|
-| Focus (domestic violence) | `#7B2D26` |
-| Other crime heads | `#B08968` `#8A9A8B` `#6C7B8B` `#A38560` `#7D8CA3` `#9C8AA5` |
-| Class A / Critical | `#7B2D26` |
-| Class B / High | `#C4703E` |
-| Class C / Moderate | `#D9B48F` |
-| Low | `#B7C4B5` |
-| Canvas | `#F7F5F2` |
-| Text | `#2B2B2B` |
+| Focus / brand red | `#C1121F` |
+| Deep red (secondary) | `#9D0208` |
+| Ink (text) | `#1F2933` |
+| Muted (labels, axes) | `#6B7280` |
+| Canvas | `#FAF7F5` |
+| Tile | `#FFFFFF` |
+| Border | `#E7DEDA` |
+| Teal (non-crime metric) | `#31708E` |
 
-Canvas 1280×720, "Fit to page", 8-px grid, snap-to-grid on.
+Red is reserved for the two focus-crime KPIs (DV cases, DV share) and the domestic
+violence series. The entity-count chart on the data-quality page is teal precisely
+because it is *not* a crime count — colour carries meaning or it carries nothing.
 
----
-
-## Page 1 — Executive Overview
-
-**Question it answers:** how big is this, and is it getting worse?
-
-**KPI row** (six cards, 200×110, across the top):
-
-| Card | Measure | Expected (unfiltered) |
-|---|---|---|
-| All crimes against women | `[All Crime Cases]` | 4,867,722 |
-| Domestic violence | `[DV Cases]` | 1,909,978 |
-| DV share | `[DV Share %]` | 39.2% |
-| Annual growth | `[DV CAGR %]` | 5.24% |
-| Entities | `[States Reporting]` | 36 |
-| Years | `[Years Covered]` | 21 |
-
-**Line + column combo** — *DV cases by year*
-Axis `DimYear[Year]`, columns `[DV Cases]`, line `[DV 3Y Moving Avg]`.
-Annotate 2020 and 2021. The smoothed line carries the narrative; the raw columns
-show the COVID dip and rebound.
-
-**Bar** — *Top 10 states by DV cases*
-Axis `DimState[State]`, value `[DV Cases]`, Top-N filter 10 by `[DV Cases]`,
-data colour conditional on `[ABC Class]`.
-
-**Donut** — *Crime mix*
-Legend `DimCrimeType[Crime Type]`, value `[Total Cases]`. Detail labels: category +
-percent. Domestic violence should read 39.2%.
-
-**Card (large text)** — `[ABC Headline]`
-Renders "8 of 36 entities carry 72.9% of recorded domestic violence" and rewrites
-itself as the year slicer moves.
-
-**Slicers** (left rail, 200 px): `DimYear[Year]` as a between-slider,
-`DimState[Region]` as a dropdown, `DimState[Entity Type]` as tiles.
+Every visual sits on a white tile with a 6px-radius border on the warm canvas; text
+panels are `-Plain` (no tile) so prose reads as prose.
 
 ---
 
-## Page 2 — Crime type trends
+## The five pages
 
-**Question:** is domestic violence growing faster than everything else? (No.)
+### 1 · Executive Overview — *how big is this, and is it getting worse?*
+Six KPI cards (all crimes, DV, DV share, CAGR, entities, years) · DV by year as columns
+with the 3-year trailing mean overlaid · crime-mix donut · DV by state · a
+`[ABC Headline]` card that rewrites itself as the year slicer moves · year and region
+slicers.
 
-- **Line, indexed** — axis `Year`, legend `Crime Type`, value `[DV Index (Base = 100)]`
-  applied per crime head. Rebasing to 100 is what makes seven series of wildly
-  different magnitude legible on one axis.
-- **Bar** — CAGR by crime head, `DimCrimeType[CAGR % (static)]`. Trafficking 11.9%
-  and kidnapping 8.9% both beat domestic violence at 5.2%; dowry deaths are flat at
-  0.01%.
-- **Table** — `Crime Type`, `IPC Section`, `Total Cases 2001-2021`,
-  `Share of All Crime %`, `Is Comparable Series`, `Series Break Note`.
-  Conditional-format the row background where `Is Comparable Series` is FALSE.
-  Three of seven heads carry documented breaks; the table is where you say so.
-- **Text box** — the dowry-deaths argument, verbatim from the README finding 4. It is
-  the strongest inference in the project and it deserves prose, not a chart.
+### 2 · Crime Type Trends — *is DV growing faster than everything else?*
+All seven heads indexed to 100 in the first visible year — rebasing is what makes seven
+series of wildly different magnitude legible on one axis · CAGR by head · the statutory
+table with IPC sections and `Is Comparable Series` · the dowry-deaths argument in prose.
 
----
+### 3 · State Deep Dive — *where is it worst, and does that depend on how you ask?*
+The volume-vs-intensity scatter is the page's whole argument · ranked intensity bars ·
+a table sorted by `[Volume vs Intensity Gap]` so the most-missed states surface first ·
+a `[State Verdict]` card that narrates whichever state is selected.
 
-## Page 3 — State deep dive
+**Deliberately not a filled map.** Map visuals are disabled by the Global → Security
+setting on the build machine and render as an error tile. Even enabled, ranked bars beat
+a choropleth here: a map of India lets the large low-intensity states dominate visually
+and routinely mis-geocodes the small union territories — exactly the entities this page
+exists to surface.
 
-**Question:** where is it worst — and does that depend on how you ask?
+### 4 · ABC & Priority — *if you could only fund eight programmes, which eight?*
+Pareto combo (bars = volume, line = cumulative share) · the ABC × Risk Zone matrix where
+the two segmentations disagree · priority segments P1–P5.
 
-- **Filled map** — `DimState[State]` (already tagged `StateOrProvince`), colour
-  `[DV Rate per Lakh Women (Annual Avg)]`, diverging scale centred on the national
-  rate. Use the map for texture, not for reading values.
-- **Scatter — the centrepiece.**
-  X `[DV Cases]` (log scale), Y `[DV Rate per Lakh Women (Annual Avg)]`,
-  size `DimState[Female Population 2011]`, legend `[ABC Class]`,
-  play axis `DimYear[Year]`.
-  Add constant lines at `[Risk Threshold High]` and `[Risk Threshold Critical]`.
-  **This one visual is the project's argument:** volume and intensity disagree, and
-  the top-left quadrant — small entities, high intensity — is what every
-  volume-ranked league table misses.
-- **Table** — State · `[DV Cases]` · `[DV Rank]` · `[DV Rate per Lakh Women (Annual Avg)]` ·
-  `[DV Rate Rank]` · `[Volume vs Intensity Gap]` · `[ABC Class]` · `[Risk Zone]`.
-  Sort by the gap descending to surface the most-missed states first.
-- **Card** — `[State Verdict]`. Writes a full sentence for whichever state is
-  selected, so the page narrates itself during a demo.
+**ABC boundary convention.** A state is class A if the cumulative share reached *before*
+it is under 70%. That puts Madhya Pradesh — whose running total lands on 72.9% — inside
+class A and gives **8 of 36 carrying 72.9%**. Banding on the inclusive cumulative
+instead would drop MP into B and report "7 of 36 carry 68.0%", which would contradict
+the ETL, the SQL layer and this README. Same data, same intent, one boundary rule apart
+— so the DAX follows the ETL.
 
----
+### 5 · Data Quality — *why you can trust these numbers*
+Most portfolio dashboards hide this page. This one leads with it: the two absurd
+published numbers, the root cause, entity coverage by year, the three kinds of zero, and
+the four validation tests.
 
-## Page 4 — ABC classification and priority
-
-**Question:** if you could only fund eight programmes, which eight?
-
-- **Pareto combo** — axis `DimState[State]` sorted by `[DV Cases]` descending,
-  columns `[DV Cases]`, line `[DV Cumulative Share %]` on a secondary axis 0–100%.
-  Constant lines at `[Pareto 70% Line]` and `[Pareto 90% Line]`.
-- **Matrix** — rows `[ABC Class]`, columns `[Risk Zone]`, values `[States Reporting]`
-  and `[DV Cases]`. The off-diagonal cells are the finding: Class C ∩ Critical is
-  small, intense, and invisible to volume ranking.
-- **Table** — `[Priority Segment]` grouped, with states listed under each.
-  P1 → P5 is the recommendation the dashboard exists to make.
-- **Text box** — state plainly that ABC bands by volume and risk zones band by
-  intensity, and that they are *supposed* to disagree.
+The flag matrix reads from **`FactQuality`** — the same source rows *without* the
+`include_in_analysis` filter. `FactCrimes` is filtered at load, which is right for every
+analytical visual but makes the exclusions invisible; a data-quality page that can only
+ever render "ok" is worse than no page. `FactQuality` carries no cases column at all, so
+nothing on it can be summed by accident.
 
 ---
 
-## Page 5 — Data quality and the repair
+## Mobile
 
-Most portfolio dashboards hide this page. Yours should lead with it — it is the
-strongest thing in the project.
+30 of the 40 visuals carry a phone placement. In this format a visual appears on the
+phone canvas **only if it has a `layouts[]` entry with `id: 1`**, so omitting one is the
+mechanism for dropping a visual rather than shrinking it.
 
-- **Two cards** — Delhi 2020 as published (**3**) vs Dadra & Nagar Haveli 2020 as
-  published (**2,557**). The absurdity is the hook.
-- **Table** — the four validation tests and their results, from the README.
-- **Column chart** — `DimYear[Reporting Entities]` by year. The 34 → 36 step in 2011
-  is visible, which is where Delhi and Telangana enter.
-- **Matrix** — `FactCrimes[data_quality_flag]` by year. Shows exactly which cells are
-  excluded and why: `entity_not_formed`, `source_gap`, `ok`.
-- **Text box** — the invariance result: all seven measure totals are unchanged by the
-  repair. It re-labels; it never invents. That sentence is what makes the repair
-  defensible rather than a fudge.
+Deliberately absent from mobile:
 
----
-
-## Mobile layouts
-
-Already generated — 24 of the 40 visuals carry a `mobile.json`. In PBIR a visual
-appears on the phone canvas **only if it has one**, so omitting the file is how a
-visual gets dropped from mobile. What is deliberately absent:
-
-| Dropped on mobile | Why |
+| Dropped | Why |
 |---|---|
-| State scatter | Carries the page's whole argument at desktop size, communicates nothing at 320 px |
-| Filled map | Worse than the scatter at phone width |
-| ABC × Risk matrix | A cross-tab needs horizontal room it will never have |
-| Data-quality flag matrix | Same |
-| Two of the six KPI cards | Two per row is the most that stays legible; the rest are dropped, not shrunk |
+| State scatter | Carries the page's argument at desktop size, communicates nothing at 320px |
+| Two of six KPI cards | Two per row is the most that stays legible; the rest are dropped, not shrunk |
+| Secondary slicers | One filter per page on a phone |
 
-The State page substitutes the `[State Verdict]` card for the scatter — a sentence is
-the right mobile replacement for a quadrant chart.
+The State page substitutes the `[State Verdict]` card for the scatter — a sentence is the
+right mobile replacement for a quadrant chart.
 
-To review or adjust, open **View → Mobile layout** in Desktop, or edit the `Mobile`
-hashtable on the relevant page in `generate_report.ps1` and re-run.
-
-The rules the layout follows:
-
-1. **One column.** Cards full width, stacked, in priority order.
-2. **Drop the scatter and the map.** Neither survives at 320 px. Replace with the
-   top-10 bar on pages 1 and 3.
-3. **Slicers to the top**, collapsed to dropdowns. Never tiles on mobile.
-4. **Tables to three columns maximum** — State, Cases, Rate. Everything else is a
-   horizontal scroll nobody performs.
-5. **Raise every font two steps.** Desktop 9 pt is unreadable on a phone.
-
-Per-page mobile priority order:
-
-| Page | Mobile stack |
-|---|---|
-| Overview | KPI cards → trend line → top-10 bar → ABC headline |
-| Crime types | CAGR bar → indexed line → break-note table |
-| State deep dive | Top-10 bar by rate → verdict card → 3-column table |
-| ABC | Headline card → Pareto → priority table |
-| Data quality | The two absurd cards → flag matrix |
+Review with **View → Mobile layout**, or edit the `mobile` tuple on the relevant visual
+in `generate_report.ps1` and re-run.
 
 ---
 
-## Verification before you call it done
+## Verification
 
-Cross-check the dashboard against `sql/QUERY_RESULTS.md` — the SQL layer and the DAX
-layer are independent implementations of the same definitions, so they should agree
-exactly.
+Cross-check against `sql/QUERY_RESULTS.md` — the SQL and DAX layers are independent
+implementations of the same definitions, so they must agree.
 
 | Check | Expected |
 |---|---|
-| Total DV cases, all years | 1,909,978 |
+| All crimes against women | 4,867,722 |
+| Total DV cases | 1,909,978 |
 | DV share of all crime | 39.2% |
 | DV CAGR 2001→2021 | 5.24% |
-| Class A entity count | 8 |
-| Class A share | 72.9% |
+| Class A entity count / share | 8 · 72.9% |
 | West Bengal DV total | 302,143 |
-| 2011 `[DV Share %]` | **blank** — this is the important one |
 | FactCrimes row count | 5,019 |
+| `[DV Share %]` with only 2011 selected | **blank** |
 
-If 2011 renders a value instead of a gap, the `All Crimes Comparable` flag did not
-convert to boolean in Power Query and `[DV Share %]` is silently lying.
+That last row is the important one. If 2011 alone renders a value instead of an empty
+card, the `All Crimes Comparable` flag did not convert to boolean in Power Query and the
+measure is silently lying.

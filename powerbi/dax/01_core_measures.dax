@@ -41,15 +41,21 @@ CALCULATE ( [Total Cases], REMOVEFILTERS ( DimCrimeType ) )
 //
 // This is the single most defensible decision in the model: the dashboard is
 // designed to be silent where the data is unsound rather than plausible.
+//
+// Note the guard counts COMPARABLE years and blanks when there are none - not
+// the reverse. The first version counted non-comparable years and blanked if
+// any were present, which also blanked the 21-year total, because 2011 sits
+// inside it. The KPI card read "(Blank)" instead of 39.2%. The rule wanted is
+// "refuse when every visible year is unsound", not "refuse when any is".
 DV Share % =
-VAR NonComparableYears =
+VAR ComparableYears =
     CALCULATE (
         COUNTROWS ( DimYear ),
-        DimYear[All Crimes Comparable] = FALSE ()
+        DimYear[All Crimes Comparable] = TRUE ()
     )
 RETURN
     IF (
-        COALESCE ( NonComparableYears, 0 ) = 0,
+        COALESCE ( ComparableYears, 0 ) > 0,
         DIVIDE ( [DV Cases], [All Crime Cases] )
     )
 

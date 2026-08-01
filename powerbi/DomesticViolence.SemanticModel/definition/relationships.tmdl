@@ -9,3 +9,8 @@ relationship DimYear_FactCrimes
 relationship DimCrimeType_FactCrimes
 	fromColumn: FactCrimes.crime_code
 	toColumn: DimCrimeType.'Crime Code'
+
+
+relationship DimYear_FactQuality
+	fromColumn: FactQuality.year
+	toColumn: DimYear.Year

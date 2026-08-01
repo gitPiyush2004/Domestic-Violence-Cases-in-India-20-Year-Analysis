@@ -1,554 +1,245 @@
 <#
 ================================================================================
- generate_report.ps1 - emits the PBIR report definition for DomesticViolence
+ generate_report.ps1 - builds DomesticViolence.Report/report.json
 ================================================================================
- Power BI's PBIR format stores every visual as its own JSON file. Written by
- hand that is ~1,500 lines of near-duplicate boilerplate where a single stray
- brace silently prevents the whole report from opening - and Power BI Desktop
- reports nothing at all when a project fails to load.
+ The layout is declared here and the JSON is generated. Five pages of legacy
+ report.json is thousands of lines of JSON-nested-inside-JSON in which one bad
+ escape stops the report rendering, and Desktop reports nothing useful when that
+ happens. This declaration is what you review; report.json is a build artefact
+ and hand-edits are overwritten on the next run.
 
- So the layout is declared compactly at the bottom of this file and the JSON is
- generated. The declaration is what you review; the JSON is a build artefact.
-
- Run:  pwsh -File powerbi/generate_report.ps1
+ Run:  powershell -File powerbi/generate_report.ps1
  Then: open powerbi/DomesticViolence.pbip and refresh.
+
+ LAYOUT GRID - 1280 x 720, everything derives from it, nothing is eyeballed:
+   outer margin 24 | gutter 16 | content width 1232
+   two columns    : left 800, right 416  (24 + 800 + 16 + 416 + 24 = 1280)
+   six KPI cards  : 192 wide, 16 apart   (6*192 + 5*16 = 1232)
+   bottom of every page lands on 696, leaving a 24 margin
+
+ PHONE GRID - 320 wide, scrolls vertically:
+   margin 8 | content 304 | two half-tiles of 148 with a 16 gutter
 ================================================================================
 #>
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'lib_report.ps1')
 
-$ReportRoot = Join-Path $PSScriptRoot 'DomesticViolence.Report'
-$DefRoot    = Join-Path $ReportRoot 'definition'
-$PagesRoot  = Join-Path $DefRoot 'pages'
+$ReportDir = Join-Path $PSScriptRoot 'DomesticViolence.Report'
+$P = $script:PAL
 
-$SchemaBase = 'https://developer.microsoft.com/json-schemas/fabric/item/report/definition'
+# grid constants
+$M = 24; $LW = 800; $RX = 840; $RW = 416; $FW = 1232
 
-# ------------------------------------------------------------------ helpers --
-
-# PBIR encodes literals as strings with a type marker: text is single-quoted,
-# numbers carry a D/L suffix, booleans are bare.
-function Lit-Text ($v) { @{ expr = @{ Literal = @{ Value = "'$v'" } } } }
-function Lit-Num  ($v) { @{ expr = @{ Literal = @{ Value = "$($v)D" } } } }
-function Lit-Bool ($v) { @{ expr = @{ Literal = @{ Value = $(if ($v) { 'true' } else { 'false' }) } } } }
-
-function Field-Measure ($Entity, $Property) {
-    @{
-        field = @{ Measure = @{ Expression = @{ SourceRef = @{ Entity = $Entity } }; Property = $Property } }
-        queryRef       = "$Entity.$Property"
-        nativeQueryRef = $Property
-    }
+function V {
+    param([string]$n, [string]$type, [int]$x, [int]$y, [int]$w, [int]$h,
+          $roles, [string]$title, $mobile, $sort, [string]$color, [int]$z = 0, [int]$cardSize = 26, [switch]$hideLegend)
+    New-Container -Name $n -Type $type -X $x -Y $y -W $w -H $h -Roles $roles `
+                  -Title $title -Mobile $mobile -SortBy $sort -Color $color -Z $z -CardSize $cardSize -HideLegend:$hideLegend
+}
+function T {
+    param([string]$n, [int]$x, [int]$y, [int]$w, [int]$h, $runs, $mobile, [int]$z = 0, [switch]$Plain)
+    New-Container -Name $n -Type 'textbox' -X $x -Y $y -W $w -H $h -TextRuns $runs -Mobile $mobile -Z $z -Plain:$Plain
 }
 
-function Field-Column ($Entity, $Property) {
-    @{
-        field = @{ Column = @{ Expression = @{ SourceRef = @{ Entity = $Entity } }; Property = $Property } }
-        queryRef       = "$Entity.$Property"
-        nativeQueryRef = $Property
-    }
-}
-
-# Shorthand: "M:FactCrimes.DV Cases" or "C:DimYear.Year"
-function Field ($Spec) {
-    $kind = $Spec.Substring(0, 1)
-    $rest = $Spec.Substring(2)
-    $dot  = $rest.IndexOf('.')
-    $ent  = $rest.Substring(0, $dot)
-    $prop = $rest.Substring($dot + 1)
-    if ($kind -eq 'M') { Field-Measure $ent $prop } else { Field-Column $ent $prop }
-}
-
-function Projections ($Specs) {
-    ,@($Specs | ForEach-Object { Field $_ })
-}
-
-function Title-Object ($Text, $Size = 11) {
-    @{
-        title = ,@{
-            properties = @{
-                show     = (Lit-Bool $true)
-                text     = (Lit-Text $Text)
-                fontSize = (Lit-Num $Size)
-                bold     = (Lit-Bool $true)
-            }
-        }
-    }
-}
-
-<#
- .SYNOPSIS  Build one visual container.
- .PARAMETER Roles  Ordered hashtable of query-role name -> array of field specs.
-#>
-function New-Visual {
-    param(
-        [string]$Name,
-        [string]$Type,
-        [int]$X, [int]$Y, [int]$W, [int]$H,
-        [hashtable]$Roles = @{},
-        [string]$Title,
-        [int]$TitleSize = 11,
-        [hashtable]$Objects,
-        [array]$SortBy,
-        [int]$Z = 0
-    )
-
-    $visual = [ordered]@{ visualType = $Type }
-
-    if ($Roles.Count -gt 0) {
-        $queryState = [ordered]@{}
-        foreach ($role in $Roles.Keys) {
-            $queryState[$role] = @{ projections = (Projections $Roles[$role]) }
-        }
-        $query = [ordered]@{ queryState = $queryState }
-
-        if ($SortBy) {
-            $query['sortDefinition'] = @{
-                sort = ,@{
-                    field     = (Field $SortBy[0]).field
-                    direction = $SortBy[1]
-                }
-            }
-        }
-        $visual['query'] = $query
-    }
-
-    if ($Objects) { $visual['objects'] = $Objects }
-
-    if ($Title) {
-        $visual['visualContainerObjects'] = (Title-Object $Title $TitleSize)
-    }
-
-    $visual['drillFilterOtherVisuals'] = $true
-
-    [ordered]@{
-        '$schema' = "$SchemaBase/visualContainer/1.0.0/schema.json"
-        name      = $Name
-        position  = [ordered]@{ x = $X; y = $Y; z = $Z; width = $W; height = $H; tabOrder = $Z }
-        visual    = $visual
-    }
-}
-
-# A textbox carries prose rather than a query - used for the narrative panels
-# that make each page self-explanatory in a screenshot.
-function New-TextBox {
-    param(
-        [string]$Name,
-        [int]$X, [int]$Y, [int]$W, [int]$H,
-        [array]$Runs,
-        [int]$Z = 0
-    )
-
-    $textRuns = @($Runs | ForEach-Object {
-        $run = @{ value = $_.Text }
-        $style = @{}
-        if ($_.Size)  { $style['fontSize']   = "$($_.Size)pt" }
-        if ($_.Bold)  { $style['fontWeight'] = 'bold' }
-        if ($_.Color) { $style['color']      = $_.Color }
-        if ($style.Count -gt 0) { $run['textStyle'] = $style }
-        $run
-    })
-
-    [ordered]@{
-        '$schema' = "$SchemaBase/visualContainer/1.0.0/schema.json"
-        name      = $Name
-        position  = [ordered]@{ x = $X; y = $Y; z = $Z; width = $W; height = $H; tabOrder = $Z }
-        visual    = [ordered]@{
-            visualType = 'textbox'
-            objects    = @{
-                general = ,@{
-                    properties = @{
-                        paragraphs = ,@{ textRuns = $textRuns }
-                    }
-                }
-            }
-        }
-    }
-}
-
-function Write-Json ($Object, $Path) {
-    $dir = Split-Path $Path -Parent
-    if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
-    $json = $Object | ConvertTo-Json -Depth 40
-    # Windows PowerShell 5.1 over-escapes a handful of ASCII punctuation as \uXXXX.
-    # PBIR literals are single-quoted ("'text'"), so the apostrophe escape in
-    # particular has to come back or every title renders as 'text'.
-    #
-    # Targeted replacements only - Regex::Unescape would also convert the \n
-    # inside textbox strings into real newlines, which is invalid JSON. Power
-    # BI's parser rejects that outright while PowerShell's silently accepts it,
-    # so the mistake is invisible until Desktop refuses to open the project.
-    $bs = [char]0x5C   # backslash, built from a code point so this file has none
-    foreach ($pair in @(
-        @("${bs}u0027", "'"),
-        @("${bs}u003c", '<'),
-        @("${bs}u003e", '>'),
-        @("${bs}u0026", '&')
-    )) {
-        $json = $json.Replace($pair[0], $pair[1])
-    }
-    [System.IO.File]::WriteAllText($Path, $json, (New-Object System.Text.UTF8Encoding($false)))
-}
-
-function Write-Page {
-    param(
-        [string]$Id, [string]$DisplayName, [array]$Visuals, [int]$Ordinal,
-        [hashtable]$Mobile = @{}
-    )
-
-    $pageDir = Join-Path $PagesRoot $Id
-    if (Test-Path $pageDir) { Remove-Item $pageDir -Recurse -Force }
-    New-Item -ItemType Directory -Force -Path $pageDir | Out-Null
-
-    Write-Json ([ordered]@{
-        '$schema'     = "$SchemaBase/page/1.0.0/schema.json"
-        name          = $Id
-        displayName   = $DisplayName
-        displayOption = 'FitToPage'
-        height        = 720
-        width         = 1280
-    }) (Join-Path $pageDir 'page.json')
-
-    $sep = [System.IO.Path]::DirectorySeparatorChar
-    foreach ($v in $Visuals) {
-        $vdir = Join-Path $pageDir "visuals$sep$($v.name)"
-        Write-Json $v (Join-Path $vdir 'visual.json')
-
-        # A visual appears on the phone canvas only if it has a mobile.json.
-        # Omitting one is therefore how the scatter and the filled map get
-        # dropped on mobile - neither survives at 320px, and a shrunken version
-        # is worse than an absent one.
-        if ($Mobile.ContainsKey($v.name)) {
-            $m = $Mobile[$v.name]
-            Write-Json ([ordered]@{
-                '$schema' = "$SchemaBase/visualContainerMobileState/1.0.0/schema.json"
-                position  = [ordered]@{
-                    x = $m[0]; y = $m[1]; z = 0
-                    width = $m[2]; height = $m[3]; tabOrder = 0
-                }
-            }) (Join-Path $vdir 'mobile.json')
-        }
-    }
-
-    Write-Host ("  {0,-14} {1,-26} {2,2} visuals, {3,2} on mobile" -f `
-        $Id, $DisplayName, $Visuals.Count, $Mobile.Count)
-}
-
-# ------------------------------------------------------------------- layout --
-# Canvas 1280x720. Everything below is on an 8px grid.
-
-$PAGES = [ordered]@{}
+$sections = @()
 
 # ============================================================ 1. OVERVIEW ====
-# Question: how big is this, and is it getting worse?
+$c = @(); $z = 0
+$c += T 'ovTitle' $M 20 $LW 44 @(
+        @{Text='Domestic violence in India  '; Size=19; Bold=$true}
+        @{Text='2001-2021'; Size=19; Color=$P.Red500; Bold=$true}
+    ) @(8,8,304,56) ($z++) -Plain
+$c += T 'ovContext' $RX 20 $RW 44 @(
+        @{Text='1.91M recorded cases. 39.2% of all crime against women.'; Size=10; Color=$P.Muted}
+    ) $null ($z++) -Plain
 
-$kpi = @(
-    @{ n = 'kpiAll';    m = 'M:FactCrimes.All Crime Cases';  t = 'All crimes vs women' }
-    @{ n = 'kpiDV';     m = 'M:FactCrimes.DV Cases';         t = 'Domestic violence' }
-    @{ n = 'kpiShare';  m = 'M:FactCrimes.DV Share %';       t = 'DV share' }
-    @{ n = 'kpiCagr';   m = 'M:FactCrimes.DV CAGR %';        t = 'Annual growth' }
-    @{ n = 'kpiStates'; m = 'M:FactCrimes.States Reporting'; t = 'Entities' }
-    @{ n = 'kpiYears';  m = 'M:FactCrimes.Years Covered';    t = 'Years' }
+# KPI row. Red is reserved for the two focus-crime numbers so the eye lands there.
+$kpis = @(
+    @{n='kpiAll';    m='M:FactCrimes.All Crime Cases';  t='All crimes vs women'; col=$P.Ink;    mob=@(8,168,148,88)}
+    @{n='kpiDV';     m='M:FactCrimes.DV Cases';         t='Domestic violence';   col=$P.Red500; mob=@(8,72,148,88)}
+    @{n='kpiShare';  m='M:FactCrimes.DV Share %';       t='DV share of total';   col=$P.Red500; mob=@(164,72,148,88)}
+    @{n='kpiCagr';   m='M:FactCrimes.DV CAGR %';        t='Annual growth';       col=$P.Ink;    mob=@(164,168,148,88)}
+    @{n='kpiStates'; m='M:FactCrimes.States Reporting'; t='Entities';            col=$P.Ink;    mob=$null}
+    @{n='kpiYears';  m='M:FactCrimes.Years Covered';    t='Years covered';       col=$P.Ink;    mob=$null}
 )
-
-$ov = @()
-$ov += New-TextBox -Name 'ovTitle' -X 32 -Y 16 -W 744 -H 52 -Runs @(
-    @{ Text = 'Domestic violence in India, 2001-2021'; Size = 20; Bold = $true }
-)
-$ov += New-Visual -Name 'ovContext' -Type 'card' -X 792 -Y 16 -W 456 -H 52 `
-    -Roles @{ Values = @('M:FactCrimes.Filter Context Label') }
-
-$x = 32
-foreach ($k in $kpi) {
-    $ov += New-Visual -Name $k.n -Type 'card' -X $x -Y 80 -W 192 -H 96 `
-        -Roles @{ Values = @($k.m) } -Title $k.t -TitleSize 10
-    $x += 204
+$x = $M
+foreach ($k in $kpis) {
+    $c += V $k.n 'card' $x 76 192 96 ([ordered]@{Values=@($k.m)}) $k.t $k.mob $null $k.col ($z++) 22
+    $x += 208
 }
 
-$ov += New-Visual -Name 'ovTrend' -Type 'lineClusteredColumnComboChart' `
-    -X 32 -Y 188 -W 744 -H 268 `
-    -Roles ([ordered]@{
-        Category = @('C:DimYear.Year')
-        Y        = @('M:FactCrimes.DV Cases')
-        Y2       = @('M:FactCrimes.DV 3Y Moving Avg')
-    }) -Title 'Reported domestic violence by year, with 3-year trailing mean'
+$c += V 'ovTrend' 'lineClusteredColumnComboChart' $M 180 $LW 250 ([ordered]@{
+        Category=@('C:DimYear.Year'); Y=@('M:FactCrimes.DV Cases'); Y2=@('M:FactCrimes.DV 3Y Moving Avg')
+    }) 'Reported domestic violence by year, with 3-year trailing mean' @(8,264,304,220) $null $P.Red500 ($z++)
 
-$ov += New-Visual -Name 'ovMix' -Type 'donutChart' -X 792 -Y 188 -W 456 -H 268 `
-    -Roles ([ordered]@{
-        Category = @('C:DimCrimeType.Crime Type')
-        Y        = @('M:FactCrimes.Total Cases')
-    }) -Title 'Crime mix, all 21 years'
+$c += V 'ovMix' 'donutChart' $RX 180 $RW 250 ([ordered]@{
+        Category=@('C:DimCrimeType.Crime Type'); Y=@('M:FactCrimes.Total Cases')
+    }) 'Crime mix, all 21 years' $null $null $null ($z++) 26 -hideLegend
 
-$ov += New-Visual -Name 'ovStates' -Type 'clusteredBarChart' -X 32 -Y 468 -W 744 -H 236 `
-    -Roles ([ordered]@{
-        Category = @('C:DimState.State')
-        Y        = @('M:FactCrimes.DV Cases')
-    }) -SortBy @('M:FactCrimes.DV Cases', 'Descending') `
-    -Title 'Domestic violence by state'
+$c += V 'ovStates' 'clusteredBarChart' $M 442 $LW 254 ([ordered]@{
+        Category=@('C:DimState.State'); Y=@('M:FactCrimes.DV Cases')
+    }) 'Domestic violence by state' @(8,492,304,280) @('M:FactCrimes.DV Cases','Descending') $P.Red500 ($z++)
 
-$ov += New-Visual -Name 'ovAbc' -Type 'card' -X 792 -Y 468 -W 456 -H 68 `
-    -Roles @{ Values = @('M:FactCrimes.ABC Headline') }
+$c += V 'ovAbc' 'card' $RX 442 $RW 76 ([ordered]@{Values=@('M:FactCrimes.ABC Headline')}) `
+        'Concentration' @(8,780,304,88) $null $P.Red700 ($z++) 13
+$c += V 'ovYear' 'slicer' $RX 530 200 166 ([ordered]@{Values=@('C:DimYear.Year')}) 'Year' @(8,876,304,140) $null $null ($z++)
+$c += V 'ovRegion' 'slicer' 1056 530 200 166 ([ordered]@{Values=@('C:DimState.Region')}) 'Region' $null $null $null ($z++)
 
-$ov += New-Visual -Name 'ovYear' -Type 'slicer' -X 792 -Y 548 -W 224 -H 156 `
-    -Roles @{ Values = @('C:DimYear.Year') } -Title 'Year'
-
-$ov += New-Visual -Name 'ovRegion' -Type 'slicer' -X 1028 -Y 548 -W 220 -H 156 `
-    -Roles @{ Values = @('C:DimState.Region') } -Title 'Region'
-
-# Phone canvas is 320 wide and scrolls vertically. One column, priority order,
-# slicers collapsed to the bottom. Two KPI cards per row is the most that stays
-# legible; the remaining two cards are dropped rather than shrunk.
-$PAGES['overview'] = @{
-    Name = 'Executive Overview'; Visuals = $ov
-    Mobile = @{
-        kpiAll   = @(0, 0, 156, 96);    kpiDV    = @(164, 0, 156, 96)
-        kpiShare = @(0, 104, 156, 96);  kpiCagr  = @(164, 104, 156, 96)
-        ovTrend  = @(0, 208, 320, 240)
-        ovStates = @(0, 456, 320, 300)
-        ovAbc    = @(0, 764, 320, 96)
-        ovYear   = @(0, 868, 320, 120)
-    }
-}
+$sections += New-Section 'overview' 'Executive Overview' 0 $c
 
 # ========================================================== 2. CRIME TYPES ===
-# Question: is domestic violence growing faster than everything else? (No.)
+$c = @(); $z = 0
+$c += T 'ctTitle' $M 20 $FW 40 @(
+        @{Text='Crime heads compared  '; Size=17; Bold=$true}
+        @{Text='domestic violence is the largest, but not the fastest growing'; Size=11; Color=$P.Muted}
+    ) @(8,8,304,44) ($z++) -Plain
 
-$ct = @()
-$ct += New-TextBox -Name 'ctTitle' -X 32 -Y 16 -W 1216 -H 44 -Runs @(
-    @{ Text = 'Crime heads compared'; Size = 18; Bold = $true }
-)
+$c += V 'ctIndexed' 'lineChart' $M 72 $LW 288 ([ordered]@{
+        Category=@('C:DimYear.Year'); Series=@('C:DimCrimeType.Crime Type'); Y=@('M:FactCrimes.Index (Base = 100)')
+    }) 'Indexed to 100 in the first visible year' @(8,308,304,240) $null $null ($z++)
 
-$ct += New-Visual -Name 'ctIndexed' -Type 'lineChart' -X 32 -Y 72 -W 744 -H 300 `
-    -Roles ([ordered]@{
-        Category = @('C:DimYear.Year')
-        Series   = @('C:DimCrimeType.Crime Type')
-        Y        = @('M:FactCrimes.DV Index (Base = 100)')
-    }) -Title 'Indexed to 100 in the first visible year'
+$c += V 'ctCagr' 'clusteredBarChart' $RX 72 $RW 288 ([ordered]@{
+        Category=@('C:DimCrimeType.Crime Type'); Y=@('M:FactCrimes.CAGR %')
+    }) 'Compound annual growth by head' @(8,60,304,240) @('M:FactCrimes.CAGR %','Descending') $P.Red700 ($z++)
 
-$ct += New-Visual -Name 'ctCagr' -Type 'clusteredBarChart' -X 792 -Y 72 -W 456 -H 300 `
-    -Roles ([ordered]@{
-        Category = @('C:DimCrimeType.Crime Type')
-        Y        = @('C:DimCrimeType.CAGR % (static)')
-    }) -SortBy @('C:DimCrimeType.CAGR % (static)', 'Descending') `
-    -Title 'Compound annual growth by head'
+$c += V 'ctTable' 'tableEx' $M 376 $LW 236 ([ordered]@{Values=@(
+        'C:DimCrimeType.Crime Type','C:DimCrimeType.IPC Section',
+        'C:DimCrimeType.Total Cases 2001-2021','C:DimCrimeType.Share of All Crime %',
+        'C:DimCrimeType.Is Comparable Series')
+    }) 'The seven heads, with statutory basis' @(8,556,304,220) $null $null ($z++)
 
-$ct += New-Visual -Name 'ctTable' -Type 'tableEx' -X 32 -Y 384 -W 744 -H 240 `
-    -Roles @{ Values = @(
-        'C:DimCrimeType.Crime Type'
-        'C:DimCrimeType.IPC Section'
-        'C:DimCrimeType.Total Cases 2001-2021'
-        'C:DimCrimeType.Share of All Crime %'
-        'C:DimCrimeType.Is Comparable Series'
-    ) } -Title 'The seven heads, with statutory basis'
+$c += T 'ctNote' $RX 376 $RW 236 @(
+        @{Text='Dowry deaths are the control.'; Size=11; Bold=$true; Color=$P.Red700}
+        @{Text="`n`nEvery head grew except dowry deaths: 6,738 in 2001, 6,753 in 2021. Deaths are the hardest category to under-report, so flat deaths against a 178% rise in cruelty complaints argues that much of the growth is rising reporting propensity rather than rising incidence.`n`nThat is an argument, not a proof. This data cannot separate the two."; Size=9}
+    ) @(8,784,304,200) ($z++)
 
-$ct += New-TextBox -Name 'ctNote' -X 792 -Y 384 -W 456 -H 240 -Runs @(
-    @{ Text = 'Dowry deaths are the control.'; Size = 12; Bold = $true }
-    @{ Text = "`n`nEvery head grew except dowry deaths: 6,738 in 2001, 6,753 in 2021. Deaths are the hardest category to under-report, so flat deaths against a 178% rise in cruelty complaints argues that much of the growth is rising reporting propensity rather than rising incidence.`n`nThat is an argument, not a proof. This data cannot separate the two."; Size = 10 }
-)
+$c += V 'ctYear' 'slicer' $M 628 400 68 ([ordered]@{Values=@('C:DimYear.Year')}) 'Year' $null $null $null ($z++)
+$c += V 'ctCrime' 'slicer' 440 628 384 68 ([ordered]@{Values=@('C:DimCrimeType.Crime Type')}) 'Crime head' $null $null $null ($z++)
 
-$ct += New-Visual -Name 'ctYear' -Type 'slicer' -X 32 -Y 636 -W 456 -H 68 `
-    -Roles @{ Values = @('C:DimYear.Year') } -Title 'Year'
-
-$ct += New-Visual -Name 'ctCrime' -Type 'slicer' -X 504 -Y 636 -W 272 -H 68 `
-    -Roles @{ Values = @('C:DimCrimeType.Crime Type') } -Title 'Crime head'
-
-# CAGR bar leads on mobile, not the indexed line - a seven-series line chart is
-# unreadable at 320px, but it is worth keeping below the fold for scrolling.
-$PAGES['crimetypes'] = @{
-    Name = 'Crime Type Trends'; Visuals = $ct
-    Mobile = @{
-        ctCagr    = @(0, 0, 320, 260)
-        ctIndexed = @(0, 268, 320, 260)
-        ctTable   = @(0, 536, 320, 240)
-        ctNote    = @(0, 784, 320, 200)
-    }
-}
+$sections += New-Section 'crimetypes' 'Crime Type Trends' 1 $c
 
 # =========================================================== 3. STATE VIEW ===
-# Question: where is it worst - and does that depend on how you ask?
+$c = @(); $z = 0
+$c += T 'stTitle' $M 20 $LW 40 @(
+        @{Text='Volume and intensity '; Size=17; Bold=$true}
+        @{Text='disagree'; Size=17; Bold=$true; Color=$P.Red500}
+    ) @(8,8,304,44) ($z++) -Plain
+$c += V 'stVerdict' 'card' $RX 20 $RW 40 ([ordered]@{Values=@('M:FactCrimes.State Verdict')}) `
+        $null @(8,60,304,80) $null $P.Ink ($z++) 11
 
-$st = @()
-$st += New-TextBox -Name 'stTitle' -X 32 -Y 16 -W 744 -H 44 -Runs @(
-    @{ Text = 'Volume and intensity disagree'; Size = 18; Bold = $true }
-)
-$st += New-Visual -Name 'stVerdict' -Type 'card' -X 792 -Y 16 -W 456 -H 44 `
-    -Roles @{ Values = @('M:FactCrimes.State Verdict') }
+$c += V 'stScatter' 'scatterChart' $M 72 $LW 300 ([ordered]@{
+        Category=@('C:DimState.State')
+        X=@('M:FactCrimes.DV Cases')
+        Y=@('M:FactCrimes.DV Rate per Lakh Women (Annual Avg)')
+        Size=@('C:DimState.Female Population 2011')
+    }) 'Volume against intensity - the top-left quadrant is what volume ranking misses' $null $null $P.Red500 ($z++)
 
-$st += New-Visual -Name 'stScatter' -Type 'scatterChart' -X 32 -Y 72 -W 744 -H 336 `
-    -Roles ([ordered]@{
-        Category = @('C:DimState.State')
-        X        = @('M:FactCrimes.DV Cases')
-        Y        = @('M:FactCrimes.DV Rate per Lakh Women (Annual Avg)')
-        Size     = @('C:DimState.Female Population 2011')
-    }) -Title 'Case volume against intensity - the top-left quadrant is what volume ranking misses'
+# Deliberately a bar chart, not a filled map. Map visuals are disabled by the
+# Global > Security setting on this machine and render as an error tile. Even
+# enabled, ranked bars beat a choropleth here: a map of India lets the large
+# low-intensity states dominate and mis-geocodes the small union territories,
+# which are exactly the entities this page exists to surface.
+$c += V 'stMap' 'clusteredBarChart' $RX 72 $RW 300 ([ordered]@{
+        Category=@('C:DimState.State'); Y=@('M:FactCrimes.DV Rate per Lakh Women (Annual Avg)')
+    }) 'Intensity by state (cases per lakh women)' @(8,148,304,280) `
+    @('M:FactCrimes.DV Rate per Lakh Women (Annual Avg)','Descending') $P.Red700 ($z++)
 
-$st += New-Visual -Name 'stMap' -Type 'filledMap' -X 792 -Y 72 -W 456 -H 336 `
-    -Roles ([ordered]@{
-        Category = @('C:DimState.State')
-        Y        = @('M:FactCrimes.DV Rate per Lakh Women (Annual Avg)')
-    }) -Title 'Intensity by state'
+$c += V 'stTable' 'tableEx' $M 388 $LW 308 ([ordered]@{Values=@(
+        'C:DimState.State','M:FactCrimes.DV Cases','M:FactCrimes.DV Rank',
+        'M:FactCrimes.DV Rate per Lakh Women (Annual Avg)','M:FactCrimes.DV Rate Rank',
+        'M:FactCrimes.Volume vs Intensity Gap','M:FactCrimes.ABC Class','M:FactCrimes.Risk Zone')
+    }) 'Sorted by the gap - the most-missed states first' @(8,436,304,300) `
+    @('M:FactCrimes.Volume vs Intensity Gap','Descending') $null ($z++)
 
-$st += New-Visual -Name 'stTable' -Type 'tableEx' -X 32 -Y 420 -W 976 -H 284 `
-    -Roles @{ Values = @(
-        'C:DimState.State'
-        'M:FactCrimes.DV Cases'
-        'M:FactCrimes.DV Rank'
-        'M:FactCrimes.DV Rate per Lakh Women (Annual Avg)'
-        'M:FactCrimes.DV Rate Rank'
-        'M:FactCrimes.Volume vs Intensity Gap'
-        'M:FactCrimes.ABC Class'
-        'M:FactCrimes.Risk Zone'
-    ) } -SortBy @('M:FactCrimes.Volume vs Intensity Gap', 'Descending') `
-    -Title 'Sorted by the gap - the most-missed states first'
+$c += V 'stRegion' 'slicer' $RX 388 $RW 146 ([ordered]@{Values=@('C:DimState.Region')}) 'Region' @(8,744,304,140) $null $null ($z++)
+$c += V 'stEntity' 'slicer' $RX 550 $RW 146 ([ordered]@{Values=@('C:DimState.Entity Type')}) 'Entity type' $null $null $null ($z++)
 
-$st += New-Visual -Name 'stRegion' -Type 'slicer' -X 1024 -Y 420 -W 224 -H 136 `
-    -Roles @{ Values = @('C:DimState.Region') } -Title 'Region'
-
-$st += New-Visual -Name 'stEntity' -Type 'slicer' -X 1024 -Y 568 -W 224 -H 136 `
-    -Roles @{ Values = @('C:DimState.Entity Type') } -Title 'Entity type'
-
-# Scatter and filled map are deliberately absent from the phone layout. The
-# scatter carries the page's whole argument at desktop size and communicates
-# nothing at 320px; a map is worse. The verdict card states the finding in
-# words instead, which is the right mobile substitute for a quadrant chart.
-$PAGES['statedeepdive'] = @{
-    Name = 'State Deep Dive'; Visuals = $st
-    Mobile = @{
-        stVerdict = @(0, 0, 320, 96)
-        stTable   = @(0, 104, 320, 340)
-        stRegion  = @(0, 452, 320, 120)
-    }
-}
+$sections += New-Section 'statedeepdive' 'State Deep Dive' 2 $c
 
 # ================================================================== 4. ABC ===
-# Question: if you could only fund eight programmes, which eight?
+$c = @(); $z = 0
+$c += T 'abTitle' $M 20 $LW 40 @(
+        @{Text='ABC classification '; Size=17; Bold=$true}
+        @{Text='and intervention priority'; Size=17; Bold=$true; Color=$P.Red500}
+    ) @(8,8,304,44) ($z++) -Plain
+$c += V 'abHeadline' 'card' $RX 20 $RW 40 ([ordered]@{Values=@('M:FactCrimes.ABC Headline')}) `
+        $null @(8,60,304,80) $null $P.Red700 ($z++) 12
 
-$ab = @()
-$ab += New-TextBox -Name 'abTitle' -X 32 -Y 16 -W 744 -H 44 -Runs @(
-    @{ Text = 'ABC classification and priority'; Size = 18; Bold = $true }
-)
-$ab += New-Visual -Name 'abHeadline' -Type 'card' -X 792 -Y 16 -W 456 -H 44 `
-    -Roles @{ Values = @('M:FactCrimes.ABC Headline') }
+$c += V 'abPareto' 'lineClusteredColumnComboChart' $M 72 $FW 280 ([ordered]@{
+        Category=@('C:DimState.State'); Y=@('M:FactCrimes.DV Cases'); Y2=@('M:FactCrimes.DV Cumulative Share %')
+    }) 'Pareto - bars are volume, line is cumulative share (70% and 90% are the ABC cuts)' `
+    @(8,148,304,260) @('M:FactCrimes.DV Cases','Descending') $P.Red500 ($z++)
 
-$ab += New-Visual -Name 'abPareto' -Type 'lineClusteredColumnComboChart' `
-    -X 32 -Y 72 -W 1216 -H 296 `
-    -Roles ([ordered]@{
-        Category = @('C:DimState.State')
-        Y        = @('M:FactCrimes.DV Cases')
-        Y2       = @('M:FactCrimes.DV Cumulative Share %')
-    }) -SortBy @('M:FactCrimes.DV Cases', 'Descending') `
-    -Title 'Pareto - bars are volume, line is cumulative share (70% and 90% are the ABC cuts)'
+$c += V 'abMatrix' 'pivotTable' $M 368 604 230 ([ordered]@{
+        Rows=@('C:DimState.ABC Class (static)'); Columns=@('C:DimState.Risk Zone (static)'); Values=@('M:FactCrimes.States Reporting')
+    }) 'Where the two segmentations disagree' $null $null $null ($z++)
 
-$ab += New-Visual -Name 'abMatrix' -Type 'pivotTable' -X 32 -Y 380 -W 600 -H 244 `
-    -Roles ([ordered]@{
-        Rows    = @('M:FactCrimes.ABC Class')
-        Columns = @('M:FactCrimes.Risk Zone')
-        Values  = @('M:FactCrimes.States Reporting')
-    }) -Title 'Where the two segmentations disagree'
+$c += V 'abPriority' 'tableEx' 652 368 604 230 ([ordered]@{Values=@(
+        'C:DimState.State','M:FactCrimes.Priority Segment','M:FactCrimes.DV Cases')
+    }) 'Priority segments' @(8,416,304,260) @('M:FactCrimes.DV Cases','Descending') $null ($z++)
 
-$ab += New-Visual -Name 'abPriority' -Type 'tableEx' -X 648 -Y 380 -W 600 -H 244 `
-    -Roles @{ Values = @(
-        'C:DimState.State'
-        'M:FactCrimes.Priority Segment'
-        'M:FactCrimes.DV Cases'
-    ) } -SortBy @('M:FactCrimes.DV Cases', 'Descending') `
-    -Title 'Priority segments'
+$c += T 'abNote' $M 614 $FW 82 @(
+        @{Text='ABC bands by volume; risk zones band by intensity. They are meant to disagree'; Size=10; Bold=$true}
+        @{Text=" - a Class C entity in the Critical zone is small, badly affected, and invisible to every volume-ranked league table. Thresholds are the quartiles of the 2021 rate distribution (2.5 / 9.1 / 22.9 per lakh women), not round numbers, so they survive a refresh without quietly changing meaning."; Size=10}
+    ) @(8,684,304,150) ($z++)
 
-$ab += New-TextBox -Name 'abNote' -X 32 -Y 636 -W 1216 -H 68 -Runs @(
-    @{ Text = 'ABC bands by volume; risk zones band by intensity. They are meant to disagree - a Class C entity in the Critical zone is small, badly affected, and invisible to every volume-ranked league table. Thresholds are the quartiles of the 2021 rate distribution (2.5 / 9.1 / 22.9 per lakh women), not round numbers, so they survive a refresh without quietly changing meaning.'; Size = 10 }
-)
-
-# The ABC/Risk matrix is dropped on mobile - a cross-tab needs horizontal room
-# it will never have, and the priority table carries the same conclusion.
-$PAGES['abc'] = @{
-    Name = 'ABC & Priority'; Visuals = $ab
-    Mobile = @{
-        abHeadline = @(0, 0, 320, 96)
-        abPareto   = @(0, 104, 320, 280)
-        abPriority = @(0, 392, 320, 280)
-        abNote     = @(0, 680, 320, 140)
-    }
-}
+$sections += New-Section 'abc' 'ABC & Priority' 3 $c
 
 # ========================================================= 5. DATA QUALITY ===
-# The page most portfolio dashboards hide. This one leads with it.
+$c = @(); $z = 0
+$c += T 'dqTitle' $M 20 $FW 40 @(
+        @{Text='The published data is broken for 2020-21. '; Size=17; Bold=$true; Color=$P.Red700}
+        @{Text='Here is the proof.'; Size=17; Bold=$true}
+    ) @(8,8,304,56) ($z++) -Plain
 
-$dq = @()
-$dq += New-TextBox -Name 'dqTitle' -X 32 -Y 16 -W 1216 -H 44 -Runs @(
-    @{ Text = 'The published data is broken for 2020-21. Here is the proof.'; Size = 18; Bold = $true }
-)
+$c += T 'dqHook' $M 72 604 180 @(
+        @{Text='As published'; Size=11; Bold=$true; Color=$P.Red700}
+        @{Text="`n`nDelhi, domestic violence 2019:  3,792`nDelhi, domestic violence 2020:  3`n`nDadra & Nagar Haveli (pop. 344,000), 2020:  2,557`n`nDelhi did not stop having domestic violence, and a union territory of 344,000 did not out-report it."; Size=10}
+    ) @(8,72,304,200) ($z++)
 
-$dq += New-TextBox -Name 'dqHook' -X 32 -Y 72 -W 600 -H 168 -Runs @(
-    @{ Text = 'As published:'; Size = 12; Bold = $true }
-    @{ Text = "`n`nDelhi, domestic violence 2019: 3,792`nDelhi, domestic violence 2020: 3`n`nDadra & Nagar Haveli (pop. 344,000), 2020: 2,557`n`nDelhi did not stop having domestic violence, and a union territory of 344,000 did not out-report it."; Size = 11 }
-)
+$c += T 'dqCause' 652 72 604 180 @(
+        @{Text='Root cause'; Size=11; Bold=$true}
+        @{Text="`n`nOn 31 Oct 2019 J&K became a UT and Ladakh was carved out; on 26 Jan 2020 D&N Haveli merged with Daman & Diu. NCRB's 2020 table lists 28 states then 8 UTs. The CSV pasted that value block against a label column still generated from the pre-2019 36-entity list, where J&K sits at position 9 among the states. Every measure row from position 9 down is attached to the wrong state."; Size=9}
+    ) @(8,280,304,220) ($z++)
 
-$dq += New-TextBox -Name 'dqCause' -X 648 -Y 72 -W 600 -H 168 -Runs @(
-    @{ Text = 'Root cause:'; Size = 12; Bold = $true }
-    @{ Text = "`n`nOn 31 Oct 2019 J&K became a UT and Ladakh was carved out; on 26 Jan 2020 D&N Haveli merged with Daman & Diu. NCRB's 2020 table lists 28 states then 8 UTs. The CSV pasted that value block against a label column still generated from the pre-2019 36-entity list, where J&K sits at position 9 among the states. Every measure row from position 9 down is attached to the wrong state."; Size = 10 }
-)
+$c += V 'dqEntities' 'columnChart' $M 268 604 200 ([ordered]@{
+        Category=@('C:DimYear.Year'); Y=@('M:FactCrimes.Source Reporting Entities')
+    }) 'Reporting entities by year - the 34 to 36 step in 2011 is Delhi and Telangana entering' `
+    @(8,508,304,220) $null $P.Teal ($z++)
 
-$dq += New-Visual -Name 'dqEntities' -Type 'columnChart' -X 32 -Y 256 -W 600 -H 224 `
-    -Roles ([ordered]@{
-        Category = @('C:DimYear.Year')
-        Y        = @('C:DimYear.Reporting Entities')
-    }) -Title 'Reporting entities by year - the 34 to 36 step in 2011 is Delhi and Telangana entering'
+$c += V 'dqFlags' 'pivotTable' 652 268 604 200 ([ordered]@{
+        Rows=@('C:FactQuality.Quality Flag'); Columns=@('C:DimYear.Decade'); Values=@('M:FactQuality.Quality Cells')
+    }) 'Three kinds of zero, separated' @(8,736,304,180) $null $null ($z++)
 
-$dq += New-Visual -Name 'dqFlags' -Type 'pivotTable' -X 648 -Y 256 -W 600 -H 224 `
-    -Roles ([ordered]@{
-        Rows    = @('C:FactCrimes.data_quality_flag')
-        Columns = @('C:DimYear.Decade')
-        Values  = @('M:FactCrimes.Fact Rows')
-    }) -Title 'Three kinds of zero, separated'
+$c += T 'dqTests' $M 484 $FW 212 @(
+        @{Text='Four independent tests defend the repair'; Size=11; Bold=$true; Color=$P.Red700}
+        @{Text="`n`n1.  Anomaly bands - 16 of 32 entities fall outside a 0.25x-4x band against their 2017-19 mean.`n2.  Crime-mix profile matching in log space - a 2019 control has 34/36 entities matching their own labels; 2020 has only 10/36, but 28/34 match NCRB's published order.`n3.  Year-over-year continuity - median absolute swing falls from 71.2% to 13.9%; implausible jumps above 60% fall from 15 to 0.`n4.  Invariance - all seven measure totals are unchanged. The repair re-labels; it never invents.`n`nThe 2019 control is the one that matters: running the same test on a year believed correct and getting 34/36 proves the method detects misalignment rather than manufacturing it. Because the repair only moves attribution, every national figure in this report is identical with or without it."; Size=9}
+    ) @(8,924,304,300) ($z++)
 
-$dq += New-TextBox -Name 'dqTests' -X 32 -Y 496 -W 1216 -H 208 -Runs @(
-    @{ Text = 'Four independent tests defend the repair'; Size = 12; Bold = $true }
-    @{ Text = "`n`n1.  Anomaly bands - 16 of 32 entities fall outside a 0.25x-4x band against their 2017-19 mean.`n2.  Crime-mix profile matching in log space - a 2019 control has 34/36 entities matching their own labels; 2020 has only 10/36, but 28/34 match NCRB's published order.`n3.  Year-over-year continuity - median absolute swing falls from 71.2% to 13.9%; implausible jumps above 60% fall from 15 to 0.`n4.  Invariance - all seven measure totals are unchanged. The repair re-labels; it never invents.`n`nThe 2019 control is the one that matters: running the same test on a year believed correct and getting 34/36 proves the method detects misalignment rather than manufacturing it. Because the repair only moves attribution, every national figure in this report is identical with or without it - only state-level 2020-21 attribution was ever at risk."; Size = 10 }
-)
-
-# This page is mostly prose, which is the one thing that reads well on a phone.
-# The flag matrix is dropped; the entity-count chart survives because it is a
-# single series.
-$PAGES['dataquality'] = @{
-    Name = 'Data Quality'; Visuals = $dq
-    Mobile = @{
-        dqTitle    = @(0, 0, 320, 60)
-        dqHook     = @(0, 68, 320, 210)
-        dqCause    = @(0, 286, 320, 230)
-        dqTests    = @(0, 524, 320, 300)
-        dqEntities = @(0, 832, 320, 240)
-    }
-}
+$sections += New-Section 'dataquality' 'Data Quality' 4 $c
 
 # ------------------------------------------------------------------- write --
+Write-Host 'Generating report.json...' -ForegroundColor Cyan
 
-Write-Host "Generating PBIR report definition..." -ForegroundColor Cyan
+$stale = Join-Path $ReportDir 'definition'
+if (Test-Path $stale) { Remove-Item $stale -Recurse -Force; Write-Host '  removed stale PBIR definition/ folder' }
 
-if (Test-Path $PagesRoot) { Remove-Item $PagesRoot -Recurse -Force }
-New-Item -ItemType Directory -Force -Path $PagesRoot | Out-Null
-
-$ordinal = 0
-foreach ($id in $PAGES.Keys) {
-    $mob = if ($PAGES[$id].Mobile) { $PAGES[$id].Mobile } else { @{} }
-    Write-Page -Id $id -DisplayName $PAGES[$id].Name -Visuals $PAGES[$id].Visuals `
-        -Ordinal $ordinal -Mobile $mob
-    $ordinal++
+$problems = Assert-NoOverlap -Sections $sections
+if ($problems.Count -gt 0) {
+    Write-Host 'LAYOUT PROBLEMS:' -ForegroundColor Red
+    $problems | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
+    throw 'Refusing to write a report with overlapping or out-of-bounds visuals.'
 }
+Write-Host '  layout check passed (no overlaps, nothing off-canvas)' -ForegroundColor DarkGray
 
-Write-Json ([ordered]@{
-    '$schema'      = "$SchemaBase/pagesMetadata/1.0.0/schema.json"
-    pageOrder      = @($PAGES.Keys)
-    activePageName = @($PAGES.Keys)[0]
-}) (Join-Path $PagesRoot 'pages.json')
+Write-ReportJson -Path (Join-Path $ReportDir 'report.json') -Sections $sections
 
-Write-Json ([ordered]@{
-    '$schema'          = "$SchemaBase/report/1.0.0/schema.json"
-    themeCollection    = @{ baseTheme = @{ name = 'CY24SU10'; reportThemeType = 'SharedResources' } }
-    layoutOptimization = 'None'
-}) (Join-Path $DefRoot 'report.json')
-
-Write-Json ([ordered]@{
-    '$schema' = "$SchemaBase/versionMetadata/1.0.0/schema.json"
-    version   = '4.0'
-}) (Join-Path $DefRoot 'version.json')
-
-$total = ($PAGES.Values | ForEach-Object { $_.Visuals.Count } | Measure-Object -Sum).Sum
-Write-Host "Done: $($PAGES.Count) pages, $total visuals." -ForegroundColor Green
+$total = ($sections | ForEach-Object { $_.visualContainers.Count } | Measure-Object -Sum).Sum
+$mob = 0
+foreach ($s in $sections) { foreach ($v in $s.visualContainers) { if ($v.config -match '"id":1') { $mob++ } } }
+foreach ($s in $sections) {
+    $pm = 0; foreach ($v in $s.visualContainers) { if ($v.config -match '"id":1') { $pm++ } }
+    Write-Host ("  {0,-22} {1,2} visuals, {2,2} on phone" -f $s.displayName, $s.visualContainers.Count, $pm)
+}
+Write-Host "Done: $($sections.Count) pages, $total visuals, $mob phone placements." -ForegroundColor Green

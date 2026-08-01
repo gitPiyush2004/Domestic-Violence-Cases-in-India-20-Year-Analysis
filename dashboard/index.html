@@ -25,8 +25,9 @@
   --shadow: 0 1px 2px rgba(11,11,11,.04), 0 4px 12px rgba(11,11,11,.04);
 
   /* categorical slots 1-7, fixed order, never cycled */
-  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
-  --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+  --s1: #c1121f; --s2: #31708e; --s3: #bc8a5f; --s4: #e0a500;
+  --s5: #8a817c; --s6: #5f8d76; --s7: #7d6b8f;
+  --brand: #c1121f; --brand-dark: #9d0208; --brand-tint: rgba(193,18,31,.08);
   --deemph: #c3c2b7;
 
   /* status - reserved, never reused for a series */
@@ -106,7 +107,7 @@ nav.tabs {
 }
 .tab:hover { color: var(--text-primary); }
 .tab[aria-selected="true"] { color: var(--text-primary); font-weight: 600;
-  border-bottom-color: var(--s1); }
+  border-bottom-color: var(--brand); }
 
 /* ---------- filter row: ONE row, above everything it scopes ---------- */
 .filters {
@@ -155,7 +156,7 @@ h2.card-title { font-size: 14px; font-weight: 620; margin: 0; letter-spacing: -.
 
 /* ---------- hero + stat tiles ---------- */
 .hero-card { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
-.hero-fig { font-size: 52px; font-weight: 660; line-height: 1; letter-spacing: -.025em; }
+.hero-fig { font-size: 52px; font-weight: 660; line-height: 1; letter-spacing: -.025em; color: var(--brand); }
 .hero-label { font-size: 13px; color: var(--text-secondary); margin-top: 8px; max-width: 320px; }
 .hero-side { flex: 1 1 300px; min-width: 240px; font-size: 13px;
   color: var(--text-secondary); border-left: 1px solid var(--border); padding-left: 24px; }
@@ -247,7 +248,7 @@ tbody tr:hover { background: var(--surface-3); }
 .prose code { background: var(--surface-3); padding: 1px 5px; border-radius: 4px;
   font-size: 12px; }
 .finding {
-  border-left: 2px solid var(--s1); padding: 2px 0 2px 15px; margin: 0 0 20px;
+  border-left: 3px solid var(--brand); padding: 2px 0 2px 15px; margin: 0 0 20px;
 }
 .finding h3 { margin: 0 0 5px; font-size: 14px; color: var(--text-primary); }
 .finding .num { font-size: 11px; color: var(--text-muted); font-weight: 600;

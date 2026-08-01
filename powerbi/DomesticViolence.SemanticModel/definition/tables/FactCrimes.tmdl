@@ -14,13 +14,17 @@ table FactCrimes
 		formatString: #,0
 		lineageTag: 2c1f0a10-0004-4a00-9000-000000000004
 
-	/// Blank for 2011: Assault on Women is missing from the source that year, so the
-	/// all-crime denominator is short and the share would print a false spike.
+	/// Blank when every visible year is non-comparable - i.e. when 2011 is selected on
+	/// its own. Assault on Women is missing from the source that year, so an all-crime
+	/// denominator for 2011 alone is ~40,000 cases short and prints a false ~55% spike
+	/// against a 39.2% baseline. The guard counts COMPARABLE years rather than
+	/// non-comparable ones: counting non-comparable years also blanked the 21-year
+	/// total, because 2011 sits inside it, which suppressed the headline figure.
 	measure 'DV Share %' =
-			VAR NonComparableYears =
-				CALCULATE ( COUNTROWS ( DimYear ), DimYear[All Crimes Comparable] = FALSE () )
+			VAR ComparableYears =
+				CALCULATE ( COUNTROWS ( DimYear ), DimYear[All Crimes Comparable] = TRUE () )
 			RETURN
-				IF ( COALESCE ( NonComparableYears, 0 ) = 0, DIVIDE ( [DV Cases], [All Crime Cases] ) )
+				IF ( COALESCE ( ComparableYears, 0 ) > 0, DIVIDE ( [DV Cases], [All Crime Cases] ) )
 		formatString: 0.0%
 		lineageTag: 2c1f0a10-0005-4a00-9000-000000000005
 
@@ -74,6 +78,41 @@ table FactCrimes
 		formatString: 0.00%
 		lineageTag: 2c1f0a10-000b-4a00-9000-00000000000b
 
+	/// Generic index over Total Cases, so it responds to whatever dimension is on the
+	/// legend. The DV-specific version below hardcodes [DV Cases] and therefore draws a
+	/// single line when crime type is the series - correct for a DV-only chart, useless
+	/// for comparing heads.
+	measure 'Index (Base = 100)' =
+			VAR BaseYear = CALCULATE ( MIN ( DimYear[Year] ), ALLSELECTED ( DimYear ) )
+			VAR BaseValue = CALCULATE ( [Total Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = BaseYear ) )
+			RETURN DIVIDE ( [Total Cases], BaseValue ) * 100
+		formatString: #,0
+		lineageTag: 2c1f0a10-0030-4a00-9000-000000000030
+
+	/// Generic CAGR over Total Cases. Replaces binding a chart straight to the ETL's
+	/// stored cagr_pct column: that column is summarizeBy none (correct - averaging a
+	/// growth rate across heads is meaningless), which left the bar chart empty because
+	/// a chart axis needs something it is allowed to aggregate. A measure is the right
+	/// answer anyway, since it recomputes inside the year slicer.
+	measure 'CAGR %' =
+			VAR VisibleYears = ALLSELECTED ( DimYear[Year] )
+			VAR FirstYear = MINX ( VisibleYears, DimYear[Year] )
+			VAR LastYear = MAXX ( VisibleYears, DimYear[Year] )
+			VAR Periods = LastYear - FirstYear
+			VAR FirstValue = CALCULATE ( [Total Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = FirstYear ) )
+			VAR LastValue = CALCULATE ( [Total Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = LastYear ) )
+			RETURN
+				IF ( Periods > 0 && FirstValue > 0, ( DIVIDE ( LastValue, FirstValue ) ^ DIVIDE ( 1, Periods ) ) - 1 )
+		formatString: 0.00%
+		lineageTag: 2c1f0a10-0031-4a00-9000-000000000031
+
+	/// The entity count NCRB itself published that year. MAX, not SUM - it is a
+	/// attribute of the year, and the stored column is summarizeBy none so a chart
+	/// cannot aggregate it directly.
+	measure 'Source Reporting Entities' = MAX ( DimYear[Reporting Entities] )
+		formatString: #,0
+		lineageTag: 2c1f0a10-0032-4a00-9000-000000000032
+
 	/// Rebases each state to 100 in the first visible year so small states are legible.
 	measure 'DV Index (Base = 100)' =
 			VAR BaseYear = CALCULATE ( MIN ( DimYear[Year] ), ALLSELECTED ( DimYear ) )
@@ -82,8 +121,7 @@ table FactCrimes
 		formatString: #,0
 		lineageTag: 2c1f0a10-000c-4a00-9000-00000000000c
 
-	measure 'Female Population' =
-			SUMX ( VALUES ( DimState[State] ), CALCULATE ( MAX ( DimState[Female Population 2011] ) ) )
+	measure 'Female Population' = SUMX ( VALUES ( DimState[State] ), CALCULATE ( MAX ( DimState[Female Population 2011] ) ) )
 		formatString: #,0
 		lineageTag: 2c1f0a10-000d-4a00-9000-00000000000d
 
@@ -117,10 +155,27 @@ table FactCrimes
 		formatString: 0.0%
 		lineageTag: 2c1f0a10-0011-4a00-9000-000000000011
 
+	/// Classifies on the cumulative share reached BEFORE this state is added, which puts
+	/// the state that crosses the 70% line inside class A rather than outside it.
+	///
+	/// This matters: banding on the inclusive cumulative (Cum <= 0.70) drops Madhya
+	/// Pradesh - whose running total lands on 72.9% - into class B and reports "7 of 36
+	/// carry 68.0%". The ETL and the SQL layer both use the exclusive convention and
+	/// report "8 of 36 carry 72.9%". Same data, same intent, one boundary rule apart.
+	/// The dashboard must not disagree with its own README, so the DAX follows the ETL.
 	measure 'ABC Class' =
-			VAR Cumulative = [DV Cumulative Share %]
+			VAR StateTotals = ADDCOLUMNS ( ALLSELECTED ( DimState[State] ), "@dv", CALCULATE ( [DV Cases] ) )
+			VAR GrandTotal = SUMX ( StateTotals, [@dv] )
+			VAR OwnShare = DIVIDE ( [DV Cases], GrandTotal )
+			VAR CumulativeBefore = [DV Cumulative Share %] - OwnShare
 			RETURN
-				SWITCH ( TRUE (), ISBLANK ( Cumulative ), BLANK (), Cumulative <= 0.70, "A", Cumulative <= 0.90, "B", "C" )
+				SWITCH (
+					TRUE (),
+					ISBLANK ( [DV Cumulative Share %] ), BLANK (),
+					CumulativeBefore < 0.70, "A",
+					CumulativeBefore < 0.90, "B",
+					"C"
+				)
 		lineageTag: 2c1f0a10-0012-4a00-9000-000000000012
 
 	measure 'States in Class A' = COUNTROWS ( FILTER ( VALUES ( DimState[State] ), [ABC Class] = "A" ) )
@@ -131,8 +186,7 @@ table FactCrimes
 		formatString: #,0
 		lineageTag: 2c1f0a10-0014-4a00-9000-000000000014
 
-	measure 'Class A Share %' =
-			DIVIDE ( [Class A Cases], CALCULATE ( [DV Cases], REMOVEFILTERS ( DimState ) ) )
+	measure 'Class A Share %' = DIVIDE ( [Class A Cases], CALCULATE ( [DV Cases], REMOVEFILTERS ( DimState ) ) )
 		formatString: 0.0%
 		lineageTag: 2c1f0a10-0015-4a00-9000-000000000015
 
@@ -144,7 +198,7 @@ table FactCrimes
 			RETURN
 				IF ( NOT ISBLANK ( N ),
 					FORMAT ( N, "0" ) & " of " & FORMAT ( Total, "0" ) & " entities carry "
-						& FORMAT ( Share, "0.0%" ) & " of recorded domestic violence" )
+						& FORMAT ( Share, "0.0%" ) )
 		lineageTag: 2c1f0a10-0016-4a00-9000-000000000016
 
 	measure 'Risk Threshold Moderate' = 2.5
@@ -173,8 +227,7 @@ table FactCrimes
 				)
 		lineageTag: 2c1f0a10-001a-4a00-9000-00000000001a
 
-	measure 'DV Rank' =
-			IF ( NOT ISBLANK ( [DV Cases] ), RANKX ( ALLSELECTED ( DimState[State] ), [DV Cases], , DESC, DENSE ) )
+	measure 'DV Rank' = IF ( NOT ISBLANK ( [DV Cases] ), RANKX ( ALLSELECTED ( DimState[State] ), [DV Cases], , DESC, DENSE ) )
 		formatString: #,0
 		lineageTag: 2c1f0a10-001b-4a00-9000-00000000001b
 
@@ -205,23 +258,27 @@ table FactCrimes
 				)
 		lineageTag: 2c1f0a10-001e-4a00-9000-00000000001e
 
-	/// Writes the full recommendation sentence for whichever single state is selected,
-	/// so the deep-dive page narrates itself during a demo instead of needing one
-	/// hand-written annotation per state.
+	/// Narrates whichever state is selected, so the deep-dive page explains itself during
+	/// a demo instead of needing one hand-written annotation per state.
+	///
+	/// Always returns a string. The first version returned BLANK when no single state was
+	/// selected (SELECTEDVALUE with no default, inside an IF with no else branch) and the
+	/// card rendered as an error rather than as empty. SELECTEDVALUE now carries a
+	/// default and every branch produces text.
 	measure 'State Verdict' =
-			VAR St = SELECTEDVALUE ( DimState[State] )
-			VAR Cases = [DV Cases]
-			VAR Rate = [DV Rate per Lakh Women (Annual Avg)]
-			VAR RankVol = [DV Rank]
-			VAR RankInt = [DV Rate Rank]
-			VAR Cagr = [DV CAGR %]
+			VAR St = SELECTEDVALUE ( DimState[State], "" )
+			VAR Cases = COALESCE ( [DV Cases], 0 )
+			VAR Rate = COALESCE ( [DV Rate per Lakh Women (Annual Avg)], 0 )
+			VAR RankVol = COALESCE ( [DV Rank], 0 )
+			VAR RankInt = COALESCE ( [DV Rate Rank], 0 )
 			RETURN
-				IF ( NOT ISBLANK ( St ) && NOT ISBLANK ( Cases ),
-					St & ": " & FORMAT ( Cases, "#,0" ) & " cases (rank " & FORMAT ( RankVol, "0" )
-						& " by volume, rank " & FORMAT ( RankInt, "0" ) & " by intensity at "
-						& FORMAT ( Rate, "0.0" ) & " per lakh women), "
-						& IF ( Cagr >= 0, "growing ", "declining " )
-						& FORMAT ( ABS ( Cagr ), "0.0%" ) & " a year. " & [Priority Segment] )
+				IF (
+					St = "" || Cases = 0,
+					"Select a single state to see its verdict",
+					St & ": " & FORMAT ( Cases, "#,0" ) & " cases. Rank " & FORMAT ( RankVol, "0" )
+						& " by volume, rank " & FORMAT ( RankInt, "0" ) & " by intensity ("
+						& FORMAT ( Rate, "0.0" ) & " per lakh women a year)."
+				)
 		lineageTag: 2c1f0a10-0026-4a00-9000-000000000026
 
 	measure 'ABC Class Label' =
@@ -246,18 +303,28 @@ table FactCrimes
 		lineageTag: 2c1f0a10-002a-4a00-9000-00000000002a
 
 	/// Numeric companion to [Risk Zone] for conditional formatting and severity sorting.
-	measure 'Risk Zone Rank' =
-			SWITCH ( [Risk Zone], "Critical", 1, "High", 2, "Moderate", 3, "Low", 4, 9 )
+	measure 'Risk Zone Rank' = SWITCH ( [Risk Zone], "Critical", 1, "High", 2, "Moderate", 3, "Low", 4, 9 )
 		formatString: 0
 		lineageTag: 2c1f0a10-002b-4a00-9000-00000000002b
 
+	/// Narrates the current filter state back to the viewer so a screenshot of the page
+	/// is self-describing when it is pasted into a deck.
+	///
+	/// Every numeric goes through FORMAT rather than relying on implicit conversion in
+	/// the & operator, and every VAR is COALESCEd. A card bound to this measure showed
+	/// "Something's wrong with one or more fields" when the year bounds were
+	/// concatenated raw; the sibling ABC Headline card, which formats everything
+	/// explicitly, rendered fine.
 	measure 'Filter Context Label' =
-			VAR YearMin = MIN ( DimYear[Year] )
-			VAR YearMax = MAX ( DimYear[Year] )
-			VAR StateCnt = [States Reporting]
-			VAR AllStates = COUNTROWS ( ALL ( DimState[State] ) )
-			VAR Scope = IF ( StateCnt = AllStates, "all India", FORMAT ( StateCnt, "#,0" ) & " entities" )
-			RETURN "Recorded cases, " & YearMin & "-" & YearMax & ", " & Scope
+			VAR YearMin = COALESCE ( MIN ( DimYear[Year] ), 0 )
+			VAR YearMax = COALESCE ( MAX ( DimYear[Year] ), 0 )
+			VAR StateCnt = COALESCE ( [States Reporting], 0 )
+			VAR AllStates = COALESCE ( COUNTROWS ( ALL ( DimState[State] ) ), 0 )
+			VAR Scope =
+				IF ( StateCnt = AllStates, "all India", FORMAT ( StateCnt, "#,0" ) & " entities" )
+			RETURN
+				"Recorded cases, " & FORMAT ( YearMin, "0" ) & "-" & FORMAT ( YearMax, "0" )
+					& ", " & Scope
 		lineageTag: 2c1f0a10-001f-4a00-9000-00000000001f
 
 	column state_clean
@@ -271,8 +338,8 @@ table FactCrimes
 
 	column year
 		dataType: int64
-		formatString: 0
 		isHidden
+		formatString: 0
 		lineageTag: 2c1f0a10-0021-4a00-9000-000000000021
 		summarizeBy: none
 		sourceColumn: year
@@ -290,8 +357,8 @@ table FactCrimes
 
 	column cases
 		dataType: int64
-		formatString: #,0
 		isHidden
+		formatString: #,0
 		lineageTag: 2c1f0a10-0023-4a00-9000-000000000023
 		summarizeBy: sum
 		sourceColumn: cases
@@ -321,3 +388,4 @@ table FactCrimes
 					Final
 
 	annotation PBI_ResultType = Table
+

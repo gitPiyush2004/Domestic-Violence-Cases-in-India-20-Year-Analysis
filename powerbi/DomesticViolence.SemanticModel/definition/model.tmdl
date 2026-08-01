@@ -3,12 +3,11 @@ model Model
 	defaultPowerBIDataSourceVersion: powerBI_V3
 	discourageImplicitMeasures
 	sourceQueryCulture: en-IN
-
 	dataAccessOptions
 		legacyRedirects
 		returnErrorValuesAsNull
 
-annotation PBI_QueryOrder = ["RepoRoot","FactCrimes","DimState","DimYear","DimCrimeType"]
+annotation PBI_QueryOrder = ["RepoRoot","FactCrimes","FactQuality","DimState","DimYear","DimCrimeType"]
 
 annotation PBI_ProTooling = ["DevMode"]
 
@@ -16,3 +15,5 @@ ref table FactCrimes
 ref table DimState
 ref table DimYear
 ref table DimCrimeType
+ref table FactQuality
+

@@ -1,0 +1,74 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 622.63088471965011,
+            "y": 648.46360390489792
+          },
+          "nodeIndex": "DimCrimeType",
+          "nodeLineageTag": "2c1f0a10-0300-4a00-9000-000000000300",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 455.76464982286581,
+            "y": -50
+          },
+          "nodeIndex": "DimState",
+          "nodeLineageTag": "2c1f0a10-0100-4a00-9000-000000000100",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 120.6300526831335
+          },
+          "nodeIndex": "DimYear",
+          "nodeLineageTag": "2c1f0a10-0200-4a00-9000-000000000200",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 335.65368673700004,
+            "y": 303.70507901698187
+          },
+          "nodeIndex": "FactCrimes",
+          "nodeLineageTag": "2c1f0a10-0001-4a00-9000-000000000001",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}
