@@ -189,7 +189,10 @@ function Write-Json ($Object, $Path) {
 }
 
 function Write-Page {
-    param([string]$Id, [string]$DisplayName, [array]$Visuals, [int]$Ordinal)
+    param(
+        [string]$Id, [string]$DisplayName, [array]$Visuals, [int]$Ordinal,
+        [hashtable]$Mobile = @{}
+    )
 
     $pageDir = Join-Path $PagesRoot $Id
     if (Test-Path $pageDir) { Remove-Item $pageDir -Recurse -Force }
@@ -204,11 +207,29 @@ function Write-Page {
         width         = 1280
     }) (Join-Path $pageDir 'page.json')
 
+    $sep = [System.IO.Path]::DirectorySeparatorChar
     foreach ($v in $Visuals) {
-        Write-Json $v (Join-Path $pageDir "visuals\$($v.name)\visual.json")
+        $vdir = Join-Path $pageDir "visuals$sep$($v.name)"
+        Write-Json $v (Join-Path $vdir 'visual.json')
+
+        # A visual appears on the phone canvas only if it has a mobile.json.
+        # Omitting one is therefore how the scatter and the filled map get
+        # dropped on mobile - neither survives at 320px, and a shrunken version
+        # is worse than an absent one.
+        if ($Mobile.ContainsKey($v.name)) {
+            $m = $Mobile[$v.name]
+            Write-Json ([ordered]@{
+                '$schema' = "$SchemaBase/visualContainerMobileState/1.0.0/schema.json"
+                position  = [ordered]@{
+                    x = $m[0]; y = $m[1]; z = 0
+                    width = $m[2]; height = $m[3]; tabOrder = 0
+                }
+            }) (Join-Path $vdir 'mobile.json')
+        }
     }
 
-    Write-Host ("  {0,-14} {1,-26} {2,2} visuals" -f $Id, $DisplayName, $Visuals.Count)
+    Write-Host ("  {0,-14} {1,-26} {2,2} visuals, {3,2} on mobile" -f `
+        $Id, $DisplayName, $Visuals.Count, $Mobile.Count)
 }
 
 # ------------------------------------------------------------------- layout --
@@ -272,7 +293,20 @@ $ov += New-Visual -Name 'ovYear' -Type 'slicer' -X 792 -Y 548 -W 224 -H 156 `
 $ov += New-Visual -Name 'ovRegion' -Type 'slicer' -X 1028 -Y 548 -W 220 -H 156 `
     -Roles @{ Values = @('C:DimState.Region') } -Title 'Region'
 
-$PAGES['overview'] = @{ Name = 'Executive Overview'; Visuals = $ov }
+# Phone canvas is 320 wide and scrolls vertically. One column, priority order,
+# slicers collapsed to the bottom. Two KPI cards per row is the most that stays
+# legible; the remaining two cards are dropped rather than shrunk.
+$PAGES['overview'] = @{
+    Name = 'Executive Overview'; Visuals = $ov
+    Mobile = @{
+        kpiAll   = @(0, 0, 156, 96);    kpiDV    = @(164, 0, 156, 96)
+        kpiShare = @(0, 104, 156, 96);  kpiCagr  = @(164, 104, 156, 96)
+        ovTrend  = @(0, 208, 320, 240)
+        ovStates = @(0, 456, 320, 300)
+        ovAbc    = @(0, 764, 320, 96)
+        ovYear   = @(0, 868, 320, 120)
+    }
+}
 
 # ========================================================== 2. CRIME TYPES ===
 # Question: is domestic violence growing faster than everything else? (No.)
@@ -316,7 +350,17 @@ $ct += New-Visual -Name 'ctYear' -Type 'slicer' -X 32 -Y 636 -W 456 -H 68 `
 $ct += New-Visual -Name 'ctCrime' -Type 'slicer' -X 504 -Y 636 -W 272 -H 68 `
     -Roles @{ Values = @('C:DimCrimeType.Crime Type') } -Title 'Crime head'
 
-$PAGES['crimetypes'] = @{ Name = 'Crime Type Trends'; Visuals = $ct }
+# CAGR bar leads on mobile, not the indexed line - a seven-series line chart is
+# unreadable at 320px, but it is worth keeping below the fold for scrolling.
+$PAGES['crimetypes'] = @{
+    Name = 'Crime Type Trends'; Visuals = $ct
+    Mobile = @{
+        ctCagr    = @(0, 0, 320, 260)
+        ctIndexed = @(0, 268, 320, 260)
+        ctTable   = @(0, 536, 320, 240)
+        ctNote    = @(0, 784, 320, 200)
+    }
+}
 
 # =========================================================== 3. STATE VIEW ===
 # Question: where is it worst - and does that depend on how you ask?
@@ -361,7 +405,18 @@ $st += New-Visual -Name 'stRegion' -Type 'slicer' -X 1024 -Y 420 -W 224 -H 136 `
 $st += New-Visual -Name 'stEntity' -Type 'slicer' -X 1024 -Y 568 -W 224 -H 136 `
     -Roles @{ Values = @('C:DimState.Entity Type') } -Title 'Entity type'
 
-$PAGES['statedeepdive'] = @{ Name = 'State Deep Dive'; Visuals = $st }
+# Scatter and filled map are deliberately absent from the phone layout. The
+# scatter carries the page's whole argument at desktop size and communicates
+# nothing at 320px; a map is worse. The verdict card states the finding in
+# words instead, which is the right mobile substitute for a quadrant chart.
+$PAGES['statedeepdive'] = @{
+    Name = 'State Deep Dive'; Visuals = $st
+    Mobile = @{
+        stVerdict = @(0, 0, 320, 96)
+        stTable   = @(0, 104, 320, 340)
+        stRegion  = @(0, 452, 320, 120)
+    }
+}
 
 # ================================================================== 4. ABC ===
 # Question: if you could only fund eight programmes, which eight?
@@ -401,7 +456,17 @@ $ab += New-TextBox -Name 'abNote' -X 32 -Y 636 -W 1216 -H 68 -Runs @(
     @{ Text = 'ABC bands by volume; risk zones band by intensity. They are meant to disagree - a Class C entity in the Critical zone is small, badly affected, and invisible to every volume-ranked league table. Thresholds are the quartiles of the 2021 rate distribution (2.5 / 9.1 / 22.9 per lakh women), not round numbers, so they survive a refresh without quietly changing meaning.'; Size = 10 }
 )
 
-$PAGES['abc'] = @{ Name = 'ABC & Priority'; Visuals = $ab }
+# The ABC/Risk matrix is dropped on mobile - a cross-tab needs horizontal room
+# it will never have, and the priority table carries the same conclusion.
+$PAGES['abc'] = @{
+    Name = 'ABC & Priority'; Visuals = $ab
+    Mobile = @{
+        abHeadline = @(0, 0, 320, 96)
+        abPareto   = @(0, 104, 320, 280)
+        abPriority = @(0, 392, 320, 280)
+        abNote     = @(0, 680, 320, 140)
+    }
+}
 
 # ========================================================= 5. DATA QUALITY ===
 # The page most portfolio dashboards hide. This one leads with it.
@@ -439,7 +504,19 @@ $dq += New-TextBox -Name 'dqTests' -X 32 -Y 496 -W 1216 -H 208 -Runs @(
     @{ Text = "`n`n1.  Anomaly bands - 16 of 32 entities fall outside a 0.25x-4x band against their 2017-19 mean.`n2.  Crime-mix profile matching in log space - a 2019 control has 34/36 entities matching their own labels; 2020 has only 10/36, but 28/34 match NCRB's published order.`n3.  Year-over-year continuity - median absolute swing falls from 71.2% to 13.9%; implausible jumps above 60% fall from 15 to 0.`n4.  Invariance - all seven measure totals are unchanged. The repair re-labels; it never invents.`n`nThe 2019 control is the one that matters: running the same test on a year believed correct and getting 34/36 proves the method detects misalignment rather than manufacturing it. Because the repair only moves attribution, every national figure in this report is identical with or without it - only state-level 2020-21 attribution was ever at risk."; Size = 10 }
 )
 
-$PAGES['dataquality'] = @{ Name = 'Data Quality'; Visuals = $dq }
+# This page is mostly prose, which is the one thing that reads well on a phone.
+# The flag matrix is dropped; the entity-count chart survives because it is a
+# single series.
+$PAGES['dataquality'] = @{
+    Name = 'Data Quality'; Visuals = $dq
+    Mobile = @{
+        dqTitle    = @(0, 0, 320, 60)
+        dqHook     = @(0, 68, 320, 210)
+        dqCause    = @(0, 286, 320, 230)
+        dqTests    = @(0, 524, 320, 300)
+        dqEntities = @(0, 832, 320, 240)
+    }
+}
 
 # ------------------------------------------------------------------- write --
 
@@ -450,7 +527,9 @@ New-Item -ItemType Directory -Force -Path $PagesRoot | Out-Null
 
 $ordinal = 0
 foreach ($id in $PAGES.Keys) {
-    Write-Page -Id $id -DisplayName $PAGES[$id].Name -Visuals $PAGES[$id].Visuals -Ordinal $ordinal
+    $mob = if ($PAGES[$id].Mobile) { $PAGES[$id].Mobile } else { @{} }
+    Write-Page -Id $id -DisplayName $PAGES[$id].Name -Visuals $PAGES[$id].Visuals `
+        -Ordinal $ordinal -Mobile $mob
     $ordinal++
 }
 

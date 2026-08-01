@@ -1,11 +1,24 @@
-# Dashboard build guide
+# Dashboard guide
 
-The semantic model in `powerbi/` is complete — four tables, three relationships,
-thirty measures. The report ships with one blank page, because report layout is the
-one part of Power BI that is genuinely faster to drag than to hand-author.
+The dashboard is **built**: five pages, 40 visuals, 24 of them also placed on the
+phone canvas. Open `powerbi/DomesticViolence.pbip`, approve the data source, refresh.
 
-This is the page-by-page spec. Build it once and you have the dashboard the README
-describes.
+The layout is not hand-drawn. PBIR stores every visual as its own JSON file, so five
+pages is roughly 1,500 lines of near-duplicate boilerplate in which a single stray
+brace prevents the whole report from opening — and Power BI Desktop reports *nothing*
+when a project fails to load, so a typo is indistinguishable from a crash. Instead
+`powerbi/generate_report.ps1` declares the layout compactly and emits the JSON:
+
+```bash
+pwsh -File powerbi/generate_report.ps1
+```
+
+The declaration at the bottom of that script is what you review; the JSON under
+`DomesticViolence.Report/definition/pages/` is a build artefact. To move a visual,
+edit the declaration and re-run — never edit the generated JSON.
+
+This document explains what is on each page and why, and gives the figures to verify
+a refresh against.
 
 ---
 
@@ -164,8 +177,25 @@ strongest thing in the project.
 
 ## Mobile layouts
 
-**View → Mobile layout**, per page. Phone canvas is 320×640 — a portrait strip, not a
-shrunken desktop page. Rules that matter:
+Already generated — 24 of the 40 visuals carry a `mobile.json`. In PBIR a visual
+appears on the phone canvas **only if it has one**, so omitting the file is how a
+visual gets dropped from mobile. What is deliberately absent:
+
+| Dropped on mobile | Why |
+|---|---|
+| State scatter | Carries the page's whole argument at desktop size, communicates nothing at 320 px |
+| Filled map | Worse than the scatter at phone width |
+| ABC × Risk matrix | A cross-tab needs horizontal room it will never have |
+| Data-quality flag matrix | Same |
+| Two of the six KPI cards | Two per row is the most that stays legible; the rest are dropped, not shrunk |
+
+The State page substitutes the `[State Verdict]` card for the scatter — a sentence is
+the right mobile replacement for a quadrant chart.
+
+To review or adjust, open **View → Mobile layout** in Desktop, or edit the `Mobile`
+hashtable on the relevant page in `generate_report.ps1` and re-run.
+
+The rules the layout follows:
 
 1. **One column.** Cards full width, stacked, in priority order.
 2. **Drop the scatter and the map.** Neither survives at 320 px. Replace with the
