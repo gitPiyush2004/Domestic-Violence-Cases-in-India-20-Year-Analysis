@@ -1,0 +1,27 @@
+# Netlify config for THIS folder only.
+#
+# The repository publishes two independent sites. Netlify builds one site per
+# configuration, so each site sets its Base directory to its own folder and
+# Netlify reads the netlify.toml it finds there. publish = "." then means
+# "this folder is the web root".
+#
+# No build step and no dependencies - plain HTML, CSS and JS with no CDN calls,
+# so the site also works offline and from a file:// URL.
+
+[build]
+  publish = "."
+  command = ""
+
+# data.js only changes when the ETL re-runs, so it caches well. HTML must
+# revalidate or a redeploy stays invisible to anyone who has already visited.
+[[headers]]
+  for = "/data.js"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
