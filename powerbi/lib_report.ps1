@@ -170,9 +170,12 @@ function New-Container {
             fontSize = (LitN $CardSize)
             bold     = (LitB $true)
         } } )
+        # Category label OFF. The container title already names the measure, so
+        # the label underneath was a second copy of the same words - and the
+        # three stacked elements (title, value, label) overflowed a 96px card
+        # once the title was centred, clipping the value itself.
         $objects['categoryLabels'] = @( @{ properties = [ordered]@{
-            color    = (Col $script:PAL.Muted)
-            fontSize = (LitN 9)
+            show = (LitB $false)
         } } )
     }
 
@@ -193,13 +196,20 @@ function New-Container {
     # --- container-level formatting (the "tile" look) -----------------------
     $vc = [ordered]@{}
     if ($Title) {
+        # KPI cards centre their title so the title, the value and the category
+        # label all sit on one axis. Charts keep left-aligned titles, which is
+        # where the eye starts on a plot.
+        $align = if ($Type -eq 'card') { 'center' } else { 'left' }
+        # 9pt on cards: at 10pt, "Domestic violence" and "Annual growth" both
+        # truncate inside a 192px tile once the title is centred.
+        if ($Type -eq 'card') { $TitleSize = 9 }
         $vc['title'] = @( @{ properties = [ordered]@{
             show       = (LitB $true)
             text       = (LitT ($Title -replace "'", "''"))
             fontSize   = (LitN $TitleSize)
             bold       = (LitB $true)
             fontColor  = (Col $script:PAL.Ink)
-            alignment  = (LitT 'left')
+            alignment  = (LitT $align)
         } } )
     }
     if (-not $Plain) {
@@ -249,7 +259,7 @@ function New-Section {
         ordinal          = $Ordinal
         visualContainers = @($Containers)
         config           = ($pageCfg | ConvertTo-Json -Depth 20 -Compress)
-        displayOption    = 1
+        displayOption    = 0
         width            = 1280
         height           = 720
     }

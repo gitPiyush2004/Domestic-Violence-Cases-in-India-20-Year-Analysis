@@ -173,7 +173,7 @@ h2.card-title { font-size: 14px; font-weight: 620; margin: 0; letter-spacing: -.
 .up { color: var(--critical); } .down { color: var(--success-text); }
 
 /* ---------- charts ---------- */
-.chart-host { position: relative; width: 100%; }
+.chart-host { position: relative; width: 100%; margin-top: 4px; }
 svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .gridline { stroke: var(--grid); stroke-width: 1; }
 .axisline { stroke: var(--axis); stroke-width: 1; }
@@ -741,14 +741,14 @@ function lineChart(hostId, series, opts) {
   const host = document.getElementById(hostId);
   host.textContent = "";
   const W = 760, H = 300;
-  const P = { t: 16, r: 58, b: 34, l: 56 };
+  const P = { t: 30, r: 58, b: 34, l: 56 };
   const svg = svgRoot(host, W, H);
   const tip = mkTip(host);
 
   const pts = series.filter(d => d.value != null);
   if (!pts.length) return;
   const maxV = Math.max(...pts.map(d => d.value));
-  const ticks = niceTicks(maxV * 1.08, 5);
+  const ticks = niceTicks(maxV * 1.22, 5);
   const top = ticks[ticks.length - 1];
   const xs = i => P.l + (W - P.l - P.r) * (i / (series.length - 1));
   const ys = v => H - P.b - (H - P.t - P.b) * (v / top);
@@ -803,9 +803,12 @@ function lineChart(hostId, series, opts) {
     svg.appendChild(el("circle", { cx: xs(m.i), cy: ys(m.d.value), r: 4.5,
                                    fill: cssv("--s1"), stroke: cssv("--surface-1"),
                                    "stroke-width": 2 }));
+    /* Clamp to the padding band. svg.chart is overflow:visible, so on a series
+       that peaks at the very top an unclamped label escapes the plot and lands
+       on the card header - which is what the trend chart used to do. */
+    const ly = Math.max(12, ys(m.d.value) - (m.anchor === "start" ? -4 : 11));
     const tx = el("text", { class: "dlabel", x: xs(m.i) + (m.anchor === "start" ? 9 : 0),
-                            y: ys(m.d.value) - (m.anchor === "start" ? -4 : 11),
-                            "text-anchor": m.anchor });
+                            y: ly, "text-anchor": m.anchor });
     tx.textContent = m.label;
     svg.appendChild(tx);
   });

@@ -78,41 +78,6 @@ table FactCrimes
 		formatString: 0.00%
 		lineageTag: 2c1f0a10-000b-4a00-9000-00000000000b
 
-	/// Generic index over Total Cases, so it responds to whatever dimension is on the
-	/// legend. The DV-specific version below hardcodes [DV Cases] and therefore draws a
-	/// single line when crime type is the series - correct for a DV-only chart, useless
-	/// for comparing heads.
-	measure 'Index (Base = 100)' =
-			VAR BaseYear = CALCULATE ( MIN ( DimYear[Year] ), ALLSELECTED ( DimYear ) )
-			VAR BaseValue = CALCULATE ( [Total Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = BaseYear ) )
-			RETURN DIVIDE ( [Total Cases], BaseValue ) * 100
-		formatString: #,0
-		lineageTag: 2c1f0a10-0030-4a00-9000-000000000030
-
-	/// Generic CAGR over Total Cases. Replaces binding a chart straight to the ETL's
-	/// stored cagr_pct column: that column is summarizeBy none (correct - averaging a
-	/// growth rate across heads is meaningless), which left the bar chart empty because
-	/// a chart axis needs something it is allowed to aggregate. A measure is the right
-	/// answer anyway, since it recomputes inside the year slicer.
-	measure 'CAGR %' =
-			VAR VisibleYears = ALLSELECTED ( DimYear[Year] )
-			VAR FirstYear = MINX ( VisibleYears, DimYear[Year] )
-			VAR LastYear = MAXX ( VisibleYears, DimYear[Year] )
-			VAR Periods = LastYear - FirstYear
-			VAR FirstValue = CALCULATE ( [Total Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = FirstYear ) )
-			VAR LastValue = CALCULATE ( [Total Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = LastYear ) )
-			RETURN
-				IF ( Periods > 0 && FirstValue > 0, ( DIVIDE ( LastValue, FirstValue ) ^ DIVIDE ( 1, Periods ) ) - 1 )
-		formatString: 0.00%
-		lineageTag: 2c1f0a10-0031-4a00-9000-000000000031
-
-	/// The entity count NCRB itself published that year. MAX, not SUM - it is a
-	/// attribute of the year, and the stored column is summarizeBy none so a chart
-	/// cannot aggregate it directly.
-	measure 'Source Reporting Entities' = MAX ( DimYear[Reporting Entities] )
-		formatString: #,0
-		lineageTag: 2c1f0a10-0032-4a00-9000-000000000032
-
 	/// Rebases each state to 100 in the first visible year so small states are legible.
 	measure 'DV Index (Base = 100)' =
 			VAR BaseYear = CALCULATE ( MIN ( DimYear[Year] ), ALLSELECTED ( DimYear ) )
@@ -157,7 +122,7 @@ table FactCrimes
 
 	/// Classifies on the cumulative share reached BEFORE this state is added, which puts
 	/// the state that crosses the 70% line inside class A rather than outside it.
-	///
+	/// 
 	/// This matters: banding on the inclusive cumulative (Cum <= 0.70) drops Madhya
 	/// Pradesh - whose running total lands on 72.9% - into class B and reports "7 of 36
 	/// carry 68.0%". The ETL and the SQL layer both use the exclusive convention and
@@ -260,7 +225,7 @@ table FactCrimes
 
 	/// Narrates whichever state is selected, so the deep-dive page explains itself during
 	/// a demo instead of needing one hand-written annotation per state.
-	///
+	/// 
 	/// Always returns a string. The first version returned BLANK when no single state was
 	/// selected (SELECTEDVALUE with no default, inside an IF with no else branch) and the
 	/// card rendered as an error rather than as empty. SELECTEDVALUE now carries a
@@ -309,7 +274,7 @@ table FactCrimes
 
 	/// Narrates the current filter state back to the viewer so a screenshot of the page
 	/// is self-describing when it is pasted into a deck.
-	///
+	/// 
 	/// Every numeric goes through FORMAT rather than relying on implicit conversion in
 	/// the & operator, and every VAR is COALESCEd. A card bound to this measure showed
 	/// "Something's wrong with one or more fields" when the year bounds were
@@ -326,6 +291,41 @@ table FactCrimes
 				"Recorded cases, " & FORMAT ( YearMin, "0" ) & "-" & FORMAT ( YearMax, "0" )
 					& ", " & Scope
 		lineageTag: 2c1f0a10-001f-4a00-9000-00000000001f
+
+	/// Generic index over Total Cases, so it responds to whatever dimension is on the
+	/// legend. The DV-specific version below hardcodes [DV Cases] and therefore draws a
+	/// single line when crime type is the series - correct for a DV-only chart, useless
+	/// for comparing heads.
+	measure 'Index (Base = 100)' =
+			VAR BaseYear = CALCULATE ( MIN ( DimYear[Year] ), ALLSELECTED ( DimYear ) )
+			VAR BaseValue = CALCULATE ( [Total Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = BaseYear ) )
+			RETURN DIVIDE ( [Total Cases], BaseValue ) * 100
+		formatString: #,0
+		lineageTag: 2c1f0a10-0030-4a00-9000-000000000030
+
+	/// Generic CAGR over Total Cases. Replaces binding a chart straight to the ETL's
+	/// stored cagr_pct column: that column is summarizeBy none (correct - averaging a
+	/// growth rate across heads is meaningless), which left the bar chart empty because
+	/// a chart axis needs something it is allowed to aggregate. A measure is the right
+	/// answer anyway, since it recomputes inside the year slicer.
+	measure 'CAGR %' =
+			VAR VisibleYears = ALLSELECTED ( DimYear[Year] )
+			VAR FirstYear = MINX ( VisibleYears, DimYear[Year] )
+			VAR LastYear = MAXX ( VisibleYears, DimYear[Year] )
+			VAR Periods = LastYear - FirstYear
+			VAR FirstValue = CALCULATE ( [Total Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = FirstYear ) )
+			VAR LastValue = CALCULATE ( [Total Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = LastYear ) )
+			RETURN
+				IF ( Periods > 0 && FirstValue > 0, ( DIVIDE ( LastValue, FirstValue ) ^ DIVIDE ( 1, Periods ) ) - 1 )
+		formatString: 0.00%
+		lineageTag: 2c1f0a10-0031-4a00-9000-000000000031
+
+	/// The entity count NCRB itself published that year. MAX, not SUM - it is a
+	/// attribute of the year, and the stored column is summarizeBy none so a chart
+	/// cannot aggregate it directly.
+	measure 'Source Reporting Entities' = MAX ( DimYear[Reporting Entities] )
+		formatString: #,0
+		lineageTag: 2c1f0a10-0032-4a00-9000-000000000032
 
 	column state_clean
 		dataType: string

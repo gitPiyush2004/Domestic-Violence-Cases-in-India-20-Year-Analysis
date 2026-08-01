@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power BI Dashboard — Domestic Violence in India (2001–2021)</title>
+<meta name="description" content="A five-page Power BI report on 21 years of NCRB crime data: 42 DAX measures, a star schema, and a repaired 2020-21 attribution defect.">
+<style>
+  :root{
+    --brand:#c1121f; --brand-dark:#9d0208; --brand-tint:rgba(193,18,31,.07);
+    --ink:#1a1a1a; --body:#41403d; --muted:#7a7873;
+    --bg:#fbf9f8; --card:#fff; --line:#e8e0dc;
+    --shadow:0 1px 2px rgba(0,0,0,.03), 0 8px 24px rgba(0,0,0,.05);
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --ink:#f5f3f2; --body:#c9c6c2; --muted:#8d8a85;
+           --bg:#141313; --card:#1c1b1b; --line:#2e2b2a;
+           --brand:#e5484d; --brand-dark:#f07178; --brand-tint:rgba(229,72,77,.10);
+           --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35); }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--body);
+    font:16px/1.62 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  a{color:var(--brand);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  header{border-bottom:1px solid var(--line);background:var(--card);padding:56px 0 44px}
+  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--brand);font-weight:700;margin:0 0 14px}
+  h1{font-size:clamp(28px,4.4vw,44px);line-height:1.12;margin:0 0 14px;
+    color:var(--ink);font-weight:700;letter-spacing:-.02em}
+  h1 em{font-style:normal;color:var(--brand)}
+  .lede{font-size:clamp(16px,2vw,19px);max-width:70ch;margin:0 0 26px}
+  .cta{display:flex;gap:12px;flex-wrap:wrap}
+  .btn{display:inline-block;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:600}
+  .btn-primary{background:var(--brand);color:#fff}
+  .btn-primary:hover{background:var(--brand-dark);text-decoration:none}
+  .btn-ghost{border:1px solid var(--line);color:var(--ink)}
+  .btn-ghost:hover{border-color:var(--brand);color:var(--brand);text-decoration:none}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:1px;background:var(--line);border-block:1px solid var(--line)}
+  .stat{background:var(--card);padding:22px 20px}
+  .stat b{display:block;font-size:26px;color:var(--ink);font-weight:700;letter-spacing:-.02em}
+  .stat b.hot{color:var(--brand)}
+  .stat span{font-size:12.5px;color:var(--muted)}
+
+  section{padding:56px 0}
+  h2{font-size:clamp(21px,2.6vw,27px);color:var(--ink);margin:0 0 8px;
+    font-weight:700;letter-spacing:-.015em}
+  .sub{color:var(--muted);font-size:15px;margin:0 0 30px;max-width:72ch}
+
+  .page{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);overflow:hidden;margin-bottom:34px}
+  .page-head{padding:22px 24px 18px;border-bottom:1px solid var(--line)}
+  .page-num{display:inline-block;min-width:26px;height:26px;line-height:26px;
+    text-align:center;border-radius:6px;background:var(--brand-tint);
+    color:var(--brand);font-weight:700;font-size:13px;margin-right:10px}
+  .page-head h3{display:inline;font-size:18px;color:var(--ink);margin:0;font-weight:700}
+  .page-q{margin:12px 0 0;font-size:15px;color:var(--body)}
+  .page-q b{color:var(--ink)}
+  .shot{display:block;width:100%;height:auto;border-top:1px solid var(--line)}
+  .page-body{padding:20px 24px 24px}
+  .page-body ul{margin:0;padding-left:20px}
+  .page-body li{margin-bottom:8px;font-size:14.5px}
+  .page-body li:last-child{margin-bottom:0}
+  .missing{padding:44px 24px;text-align:center;color:var(--muted);font-size:14px;
+    background:var(--brand-tint);border-top:1px solid var(--line)}
+
+  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px}
+  .box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px}
+  .box h4{margin:0 0 10px;font-size:15px;color:var(--ink);font-weight:700}
+  .box p{margin:0;font-size:14.5px}
+  .box code{font-family:var(--mono);font-size:12.5px;background:var(--brand-tint);
+    color:var(--brand);padding:1px 5px;border-radius:4px}
+
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  .tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700}
+  td:first-child{color:var(--ink);font-weight:600}
+
+  .callout{border-left:3px solid var(--brand);background:var(--brand-tint);
+    padding:18px 22px;border-radius:0 10px 10px 0;margin:0 0 26px}
+  .callout p{margin:0 0 10px}
+  .callout p:last-child{margin:0}
+  .callout strong{color:var(--ink)}
+
+  footer{border-top:1px solid var(--line);background:var(--card);
+    padding:34px 0;font-size:14px;color:var(--muted)}
+  @media (max-width:700px){ section{padding:38px 0} header{padding:38px 0 30px} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <p class="eyebrow">Power BI · Portfolio project</p>
+    <h1>Domestic violence in India <em>2001–2021</em></h1>
+    <p class="lede">
+      A five-page Power BI report over 21 years of NCRB crime data — built on a star
+      schema with 42 DAX measures, and on a dataset whose published 2020–21 state
+      attribution I found to be broken and repaired.
+    </p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/gitPiyush2004/Domestic-Violence-Cases-in-India-20-Year-Analysis">View the repository</a>
+      <a class="btn btn-ghost" href="../dashboard/index.html">Interactive web version</a>
+    </div>
+  </div>
+</header>
+
+<div class="stats">
+  <div class="stat"><b>4.87M</b><span>recorded crimes against women</span></div>
+  <div class="stat"><b class="hot">1.91M</b><span>domestic violence (IPC 498A)</span></div>
+  <div class="stat"><b class="hot">39.2%</b><span>DV share of all crime</span></div>
+  <div class="stat"><b>5.24%</b><span>compound annual growth</span></div>
+  <div class="stat"><b>36</b><span>states &amp; union territories</span></div>
+  <div class="stat"><b>5,019</b><span>fact rows</span></div>
+</div>
+
+<section>
+  <div class="wrap">
+    <h2>The headline is a bug, not a chart</h2>
+    <p class="sub">The strongest thing in this project is not a visual. It is a defect I
+    found in the published data and then proved.</p>
+
+    <div class="callout">
+      <p>As published, <strong>Delhi records 3 domestic violence cases in 2020</strong>,
+      down from 3,792 the year before — while <strong>Dadra &amp; Nagar Haveli, population
+      344,000, records 2,557</strong>.</p>
+      <p>Delhi did not stop having domestic violence, and a union territory of 344,000
+      did not out-report it.</p>
+    </div>
+
+    <div class="cols">
+      <div class="box">
+        <h4>Root cause</h4>
+        <p>J&amp;K became a union territory in Oct 2019 and Ladakh was carved out; D&amp;N
+        Haveli merged with Daman &amp; Diu in Jan 2020. NCRB's 2020 table therefore lists
+        28 states then 8 UTs. The CSV pasted that value block against a label column still
+        generated from the pre-2019 36-entity list — so every measure row from position
+        nine down is attached to the wrong state.</p>
+      </div>
+      <div class="box">
+        <h4>How the repair is defended</h4>
+        <p>Four independent tests: anomaly bands, crime-mix profile matching in log space
+        (a <strong>2019 control scores 34/36</strong>, 2020 scores 10/36 but
+        <strong>28/34 against NCRB's order</strong>), year-over-year continuity
+        (median swing <code>71.2% → 13.9%</code>), and total invariance —
+        <strong>all seven measure totals unchanged</strong>. The repair re-labels; it
+        never invents.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <h2>The five pages</h2>
+    <p class="sub">Each page exists to answer one question. If a page cannot be summarised
+    in a single question, it is doing too much.</p>
+
+    <div class="page">
+      <div class="page-head">
+        <span class="page-num">1</span><h3>Executive Overview</h3>
+        <p class="page-q"><b>How big is this, and is it getting worse?</b></p>
+      </div>
+      <img class="shot" src="img/page1.png" alt="Executive Overview page of the Power BI report" loading="lazy" onerror="this.outerHTML='<p class=&quot;missing&quot;>Screenshot pending — the page is described below.</p>'">
+      <div class="page-body"><ul>
+        <li>Six KPI cards. Red is reserved for the two focus-crime figures so the eye lands there — everything else is warm neutral.</li>
+        <li>Reported cases by year with a 3-year trailing mean; the 2020 dip and 2021 rebound are visible without annotation.</li>
+        <li>A concentration card that rewrites itself as the year slicer moves.</li>
+      </ul></div>
+    </div>
+
+    <div class="page">
+      <div class="page-head">
+        <span class="page-num">2</span><h3>Crime Type Trends</h3>
+        <p class="page-q"><b>Is domestic violence growing faster than everything else?</b> No — kidnapping (8.9%/yr) and trafficking (11.9%/yr) both outpace it.</p>
+      </div>
+      <img class="shot" src="img/page2.png" alt="Crime Type Trends page of the Power BI report" loading="lazy" onerror="this.outerHTML='<p class=&quot;missing&quot;>Screenshot pending — the page is described below.</p>'">
+      <div class="page-body"><ul>
+        <li>All seven heads indexed to 100 in the first visible year — rebasing is what makes series of wildly different magnitude legible on one axis.</li>
+        <li>The statutory table carries IPC sections and a comparability flag: three of the seven heads have documented breaks and must not be trended across them.</li>
+        <li><strong>Dowry deaths are flat</strong> — 6,738 to 6,753 over 21 years. Deaths are the hardest category to under-report, so that flatness argues much of the growth elsewhere is reporting propensity, not incidence.</li>
+      </ul></div>
+    </div>
+
+    <div class="page">
+      <div class="page-head">
+        <span class="page-num">3</span><h3>State Deep Dive</h3>
+        <p class="page-q"><b>Where is it worst — and does that depend on how you ask?</b></p>
+      </div>
+      <img class="shot" src="img/page3.png" alt="State Deep Dive page of the Power BI report" loading="lazy" onerror="this.outerHTML='<p class=&quot;missing&quot;>Screenshot pending — the page is described below.</p>'">
+      <div class="page-body"><ul>
+        <li>The volume-versus-intensity scatter is the page's whole argument. West Bengal leads on volume (302,143 cases) but ranks 6th on intensity; Assam has the highest 2021 rate at 84.8 per lakh women.</li>
+        <li>The table sorts by the gap between the two rankings, so the states that volume-only league tables miss surface first.</li>
+        <li>Deliberately no filled map — a choropleth of India lets the large low-intensity states dominate and mis-geocodes the small union territories, which are exactly the entities this page exists to surface.</li>
+      </ul></div>
+    </div>
+
+    <div class="page">
+      <div class="page-head">
+        <span class="page-num">4</span><h3>ABC &amp; Priority</h3>
+        <p class="page-q"><b>If you could only fund eight programmes, which eight?</b></p>
+      </div>
+      <img class="shot" src="img/page4.png" alt="ABC and Priority page of the Power BI report" loading="lazy" onerror="this.outerHTML='<p class=&quot;missing&quot;>Screenshot pending — the page is described below.</p>'">
+      <div class="page-body"><ul>
+        <li><strong>8 of 36 entities carry 72.9%</strong> of all recorded domestic violence — the most actionable number in the project.</li>
+        <li>ABC bands by volume; risk zones band by intensity at the quartiles of the 2021 distribution. They are meant to disagree, and the off-diagonal cells are the finding.</li>
+        <li>The classification recomputes inside the year slicer, so the A-list for 2001–2010 is not the A-list for 2011–2021.</li>
+      </ul></div>
+    </div>
+
+    <div class="page">
+      <div class="page-head">
+        <span class="page-num">5</span><h3>Data Quality</h3>
+        <p class="page-q"><b>Why can you trust these numbers?</b></p>
+      </div>
+      <img class="shot" src="img/page5.png" alt="Data Quality page of the Power BI report" loading="lazy" onerror="this.outerHTML='<p class=&quot;missing&quot;>Screenshot pending — the page is described below.</p>'">
+      <div class="page-body"><ul>
+        <li>Most portfolio dashboards hide this page. This one leads with it.</li>
+        <li>Three kinds of zero are separated and counted: an entity that did not exist yet, a measure missing from the export, and a genuine zero. Conflating them is how a dashboard becomes confidently wrong.</li>
+        <li>The DV-share measure returns <strong>blank</strong> for 2011 rather than the ~55% it would otherwise print off an incomplete denominator. A dashboard should be silent where the data is unsound rather than plausible.</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <h2>Under the hood</h2>
+    <p class="sub">The model is committed as PBIP/TMDL — plain text, so every table, measure
+    and relationship reviews in a pull request instead of hiding inside a binary.</p>
+
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>Object</th><th>Count</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Tables</td><td>5</td><td>1 fact, 3 dimensions, 1 unfiltered audit table</td></tr>
+          <tr><td>Relationships</td><td>4</td><td>Star, single-direction filtering throughout</td></tr>
+          <tr><td>DAX measures</td><td>42</td><td>Time intelligence, rates, Pareto, ranking, narrative cards</td></tr>
+          <tr><td>Report pages</td><td>5</td><td>40 visuals, 32 also laid out for phone</td></tr>
+          <tr><td>Fact grain</td><td>5,019</td><td>state × year × crime head</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cols" style="margin-top:26px">
+      <div class="box">
+        <h4>No date table</h4>
+        <p>The grain is annual. A marked calendar would allow
+        <code>SAMEPERIODLASTYEAR</code> against 21 synthetic timestamps — correct answers,
+        implied precision the source does not have. Year-over-year is an explicit integer
+        offset instead.</p>
+      </div>
+      <div class="box">
+        <h4>One filter rule, one place</h4>
+        <p><code>include_in_analysis</code> is computed once in the ETL. SQL, DAX and
+        Power Query all defer to it rather than each re-deriving which zeros are real.</p>
+      </div>
+      <div class="box">
+        <h4>The layout is generated</h4>
+        <p>PBIP stores a report as JSON nested inside JSON. A PowerShell generator emits it
+        from a compact declaration, and a build-time validator refuses to write a report
+        with overlapping or off-canvas visuals — layout bugs become build failures.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Source: NCRB <em>Crime in India</em> annual reports 2001–2021 (Kaggle mirror),
+    denominators from Census 2011. NCRB counts cases <strong>reported to police</strong>,
+    not incidents — every figure here is a reporting measure.
+    <br><br>
+    <a href="https://github.com/gitPiyush2004/Domestic-Violence-Cases-in-India-20-Year-Analysis">Repository</a>
+    &nbsp;·&nbsp;
+    <a href="../dashboard/index.html">Interactive web dashboard</a>
+  </div>
+</footer>
+
+</body>
+</html>

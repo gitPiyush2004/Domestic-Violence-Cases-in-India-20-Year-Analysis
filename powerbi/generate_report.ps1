@@ -56,12 +56,12 @@ $c += T 'ovContext' $RX 20 $RW 44 @(
 
 # KPI row. Red is reserved for the two focus-crime numbers so the eye lands there.
 $kpis = @(
-    @{n='kpiAll';    m='M:FactCrimes.All Crime Cases';  t='All crimes vs women'; col=$P.Ink;    mob=@(8,168,148,88)}
-    @{n='kpiDV';     m='M:FactCrimes.DV Cases';         t='Domestic violence';   col=$P.Red500; mob=@(8,72,148,88)}
-    @{n='kpiShare';  m='M:FactCrimes.DV Share %';       t='DV share of total';   col=$P.Red500; mob=@(164,72,148,88)}
+    @{n='kpiAll';    m='M:FactCrimes.All Crime Cases';  t='All crimes'; col=$P.Ink;    mob=@(8,168,148,88)}
+    @{n='kpiDV';     m='M:FactCrimes.DV Cases';         t='DV cases';            col=$P.Red500; mob=@(8,72,148,88)}
+    @{n='kpiShare';  m='M:FactCrimes.DV Share %';       t='DV share';   col=$P.Red500; mob=@(164,72,148,88)}
     @{n='kpiCagr';   m='M:FactCrimes.DV CAGR %';        t='Annual growth';       col=$P.Ink;    mob=@(164,168,148,88)}
     @{n='kpiStates'; m='M:FactCrimes.States Reporting'; t='Entities';            col=$P.Ink;    mob=$null}
-    @{n='kpiYears';  m='M:FactCrimes.Years Covered';    t='Years covered';       col=$P.Ink;    mob=$null}
+    @{n='kpiYears';  m='M:FactCrimes.Years Covered';    t='Years';       col=$P.Ink;    mob=$null}
 )
 $x = $M
 foreach ($k in $kpis) {
@@ -95,27 +95,30 @@ $c += T 'ctTitle' $M 20 $FW 40 @(
         @{Text='domestic violence is the largest, but not the fastest growing'; Size=11; Color=$P.Muted}
     ) @(8,8,304,44) ($z++) -Plain
 
-$c += V 'ctIndexed' 'lineChart' $M 72 $LW 288 ([ordered]@{
+$c += V 'ctIndexed' 'lineChart' $M 72 $LW 280 ([ordered]@{
         Category=@('C:DimYear.Year'); Series=@('C:DimCrimeType.Crime Type'); Y=@('M:FactCrimes.Index (Base = 100)')
     }) 'Indexed to 100 in the first visible year' @(8,308,304,240) $null $null ($z++)
 
-$c += V 'ctCagr' 'clusteredBarChart' $RX 72 $RW 288 ([ordered]@{
+$c += V 'ctCagr' 'clusteredBarChart' $RX 72 $RW 280 ([ordered]@{
         Category=@('C:DimCrimeType.Crime Type'); Y=@('M:FactCrimes.CAGR %')
     }) 'Compound annual growth by head' @(8,60,304,240) @('M:FactCrimes.CAGR %','Descending') $P.Red700 ($z++)
 
-$c += V 'ctTable' 'tableEx' $M 376 $LW 236 ([ordered]@{Values=@(
+$c += V 'ctTable' 'tableEx' $M 368 $LW 328 ([ordered]@{Values=@(
         'C:DimCrimeType.Crime Type','C:DimCrimeType.IPC Section',
         'C:DimCrimeType.Total Cases 2001-2021','C:DimCrimeType.Share of All Crime %',
         'C:DimCrimeType.Is Comparable Series')
     }) 'The seven heads, with statutory basis' @(8,556,304,220) $null $null ($z++)
 
-$c += T 'ctNote' $RX 376 $RW 236 @(
-        @{Text='Dowry deaths are the control.'; Size=11; Bold=$true; Color=$P.Red700}
-        @{Text="`n`nEvery head grew except dowry deaths: 6,738 in 2001, 6,753 in 2021. Deaths are the hardest category to under-report, so flat deaths against a 178% rise in cruelty complaints argues that much of the growth is rising reporting propensity rather than rising incidence.`n`nThat is an argument, not a proof. This data cannot separate the two."; Size=9}
+$c += T 'ctNote' $RX 368 $RW 160 @(
+        @{Text='Dowry deaths are the control. '; Size=10; Bold=$true; Color=$P.Red700}
+        @{Text="Every head grew except dowry deaths: 6,738 in 2001, 6,753 in 2021. Deaths are the hardest category to under-report, so flat deaths against a 178% rise in cruelty complaints argues much of the growth is reporting propensity, not incidence. An argument, not a proof."; Size=9}
     ) @(8,784,304,200) ($z++)
 
-$c += V 'ctYear' 'slicer' $M 628 400 68 ([ordered]@{Values=@('C:DimYear.Year')}) 'Year' $null $null $null ($z++)
-$c += V 'ctCrime' 'slicer' 440 628 384 68 ([ordered]@{Values=@('C:DimCrimeType.Crime Type')}) 'Crime head' $null $null $null ($z++)
+# Slicers get a real column with 152px of height each. At the 68px they had
+# before, a list slicer renders its header and clips every item - present in the
+# file, useless to the reader.
+$c += V 'ctYear' 'slicer' $RX 544 200 152 ([ordered]@{Values=@('C:DimYear.Year')}) 'Year' @(8,996,148,150) $null $null ($z++)
+$c += V 'ctCrime' 'slicer' 1056 544 200 152 ([ordered]@{Values=@('C:DimCrimeType.Crime Type')}) 'Crime head' @(164,996,148,150) $null $null ($z++)
 
 $sections += New-Section 'crimetypes' 'Crime Type Trends' 1 $c
 
