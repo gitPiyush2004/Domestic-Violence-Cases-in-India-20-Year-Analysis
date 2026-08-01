@@ -1,8 +1,0 @@
-crime_code,crime_type,ipc_section,total_cases_2001_2021,share_of_all_crime_pct,cases_2001,cases_2021,cagr_pct,is_focus_crime,series_break_note,is_comparable_series
-DV,Domestic Violence,Cruelty by Husband or his Relatives (IPC 498A),1909978,39.24,49032,136234,5.24,True,No known break. Continuous IPC 498A reporting across all 21 years.,True
-AoW,Assault on Women,Assault on Women with Intent to Outrage Modesty (IPC 354),1162229,23.88,33622,89200,5.0,False,"Source gap in 2011 (all entities zero, excluded). The +56% step in 2013 follows the Criminal Law (Amendment) Act 2013, which widened IPC 354.",False
-K&A,Kidnapping & Abduction,Kidnapping and Abduction of Women (IPC 363-369),835023,17.15,13681,75369,8.91,False,No known break.,True
-Rape,Rape,Rape (IPC 376),535702,11.01,15694,31677,3.57,False,Definition of rape widened by the Criminal Law (Amendment) Act 2013; the 2013 step (+5%) is modest but the basis changed.,True
-AoM,Insult to Modesty,Insult to the Modesty of Women (IPC 509),244884,5.03,9656,7788,-1.07,False,Unstable series: +74% in 2014 and -73% in 2017 with no corresponding statutory change. Treat IPC 509 levels as indicative; do not trend across 2016/2017.,False
-DD,Dowry Deaths,Dowry Deaths (IPC 302 / 304B),158750,3.26,6738,6753,0.01,False,No known break.,True
-WT,Women Trafficking,"Importation of Girls / Trafficking (IPC 366B, 372, 373)",21156,0.43,114,1071,11.85,False,"Series break in 2011 (36 -> 2,435 cases) from a widening of trafficking reporting. Pre-2011 and post-2011 figures are not comparable.",False

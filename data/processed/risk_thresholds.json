@@ -1,7 +1,0 @@
-{
-  "metric": "dv_rate_per_lakh_female_2021",
-  "method": "quartiles of the 2021 distribution",
-  "moderate_min": 2.5,
-  "high_min": 9.1,
-  "critical_min": 22.9
-}
