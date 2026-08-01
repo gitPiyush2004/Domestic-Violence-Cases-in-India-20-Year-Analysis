@@ -370,6 +370,15 @@ function sIdx(){var o=[];for(var i=0;i<ST.length;i++){var m=SMETA[ST[i]];if(!m)c
   if(F.regions.size&&!F.regions.has(m.region))continue;
   if(F.etypes.size&&!F.etypes.has(m.entity_type))continue;
   if(F.state&&ST[i]!==F.state)continue;o.push(i);}return o;}
+/* Same set but IGNORING a clicked state.
+   Power BI's default interaction is Highlight for charts and Filter for tables
+   and cards: clicking a state leaves the other states on the chart, dimmed,
+   rather than reducing it to a single mark. Charts that enumerate states use
+   this; cards, tables and the verdict use sIdx() and filter properly. */
+function sBase(){var o=[];for(var i=0;i<ST.length;i++){var m=SMETA[ST[i]];if(!m)continue;
+  if(F.regions.size&&!F.regions.has(m.region))continue;
+  if(F.etypes.size&&!F.etypes.has(m.entity_type))continue;o.push(i);}return o;}
+function isDim(n){ return F.state && n!==F.state; }
 function cIdx(){var o=[];for(var i=0;i<CR.length;i++)if(!F.crimes.size||F.crimes.has(CR[i]))o.push(i);return o;}
 function sum(si,ci,yi){si=si||sIdx();ci=ci||cIdx();yi=yi||yIdx();var t=0;
   for(var a=0;a<si.length;a++){var r=V[si[a]];
@@ -449,7 +458,7 @@ function hbar(host,rows,W,H,fill,onClick,fv,labW){
     tx(s,x,H-P.b+11,"ax","middle").textContent=(fv||compact)(v);});
   rows.forEach(function(d,i){
     var y=P.t+i*rh,w=(W-P.l-P.r)*(d.v/top);
-    var r=E("rect",{x:P.l,y:y+2,width:Math.max(w,1),height:Math.max(rh-5,3),fill:fill,rx:2,class:"hit"});
+    var r=E("rect",{x:P.l,y:y+2,width:Math.max(w,1),height:Math.max(rh-5,3),fill:fill,rx:2,class:"hit"+(isDim(d.n)?" dim":"")});
     if(onClick)r.addEventListener("click",function(){onClick(d);});
     r.appendChild(E("title")).textContent=d.n+": "+(fv?fv(d.v):fmt(d.v));
     s.appendChild(r);
@@ -519,7 +528,7 @@ function p1(){
     ds.appendChild(E("circle",{cx:lx,cy:y-3,r:3.4,fill:"var(--s"+((i%7)+1)+")"}));
     tx(ds,lx+8,y,"ax").textContent=(d.n.length>19?d.n.slice(0,18)+"…":d.n);});
 
-  var rows=si.map(function(i){return{n:ST[i],v:sum([i],[DVI],yi)};})
+  var rows=sBase().map(function(i){return{n:ST[i],v:sum([i],[DVI],yi)};})
     .filter(function(d){return d.v>0;}).sort(function(a,b){return b.v-a.v;}).slice(0,11);
   hbar("v_states",rows,782,218,"var(--s1)",function(d){tglState(d.n);});
 
@@ -587,10 +596,29 @@ function p2(){
 }
 
 /* ================= PAGE 3 ================= */
-function rowsState(){
-  var si=sIdx(),yi=yIdx(),ci=cIdx();
-  var rows=si.map(function(i){var m=SMETA[ST[i]]||{},v=sum([i],ci,yi);
-    return{n:ST[i],v:v,rate:(m.female_population_2011&&yi.length)?(v/yi.length)/m.female_population_2011*1e5:0,
+function rowsState(forCharts){
+  /* Domestic violence only, deliberately.
+     The Power BI page binds [DV Cases] and [DV Rate per Lakh Women] and carries
+     no crime-head slicer, so it is DV throughout. This used to pass the active
+     crime set, which with no crime filter meant ALL SEVEN HEADS summed under a
+     column headed "DV cases" - Assam read 2,91,980 instead of 135,415, every
+     rate came out ~2.16x too high, and the intensity ranking reordered so Assam
+     displaced Telangana at the top. The two dashboards have to agree. */
+  var si=forCharts?sBase():sIdx(), yi=yIdx();
+  var rows=si.map(function(i){
+    var m=SMETA[ST[i]]||{}, v=sum([i],[DVI],yi);
+    /* Annualise over the years THIS entity reports, not the 21 in the window.
+       Power BI's rate measure divides by DISTINCTCOUNT(FactCrimes[year]) inside
+       the state's filter context, and FactCrimes excludes years before an entity
+       existed. Dividing by 21 regardless understated every late entrant -
+       Telangana (8 years from 2014) came out at 16.5 instead of 43.2 and fell
+       out of the intensity ranking entirely, handing Assam a first place that
+       belongs to Telangana. */
+    var fy = m.first_year_observed || YR[0];
+    var eff = 0;
+    for (var k=0;k<yi.length;k++) if (YR[yi[k]] >= fy) eff++;
+    return{n:ST[i],v:v,
+           rate:(m.female_population_2011&&eff)?(v/eff)/m.female_population_2011*1e5:0,
            pop:m.female_population_2011||0,abc:m.abc_class||"–",risk:m.risk_zone||"–"};})
     .filter(function(d){return d.v>0;});
   rows.slice().sort(function(a,b){return b.v-a.v;}).forEach(function(d,i){d.rv=i+1;});
@@ -599,11 +627,12 @@ function rowsState(){
   return rows;
 }
 function p3(){
-  var rows=rowsState();
+  var rows=rowsState();          // filtered - drives the table and the verdict
+  var chartRows=rowsState(true); // unfiltered by a clicked state - drives the charts
   var W=782,H=262,P={t:14,r:12,b:22,l:38};
   var s=mk("v_scatter",W,H);
-  var mxV=Math.max.apply(null,rows.map(function(d){return d.v;}))||1;
-  var mxR=Math.max.apply(null,rows.map(function(d){return d.rate;}))||1;
+  var mxV=Math.max.apply(null,chartRows.map(function(d){return d.v;}))||1;
+  var mxR=Math.max.apply(null,chartRows.map(function(d){return d.rate;}))||1;
   var txk=tks(mxV*1.05,4),topX=txk[txk.length-1];
   var tyk=tks(mxR*1.1,4),topY=tyk[tyk.length-1];
   tyk.forEach(function(v){var y=H-P.b-(H-P.t-P.b)*(v/topY);
@@ -611,15 +640,15 @@ function p3(){
     tx(s,P.l-5,y+3,"ax","end").textContent=v.toFixed(0);});
   txk.forEach(function(v){var x=P.l+(W-P.l-P.r)*(v/topX);
     tx(s,x,H-P.b+12,"ax","middle").textContent=compact(v);});
-  var mxP=Math.max.apply(null,rows.map(function(d){return d.pop;}))||1;
-  rows.forEach(function(d){
+  var mxP=Math.max.apply(null,chartRows.map(function(d){return d.pop;}))||1;
+  chartRows.forEach(function(d){
     var x=P.l+(W-P.l-P.r)*(d.v/topX),y=H-P.b-(H-P.t-P.b)*(d.rate/topY),r=3.5+8*Math.sqrt(d.pop/mxP);
-    var c=E("circle",{cx:x,cy:y,r:r,fill:"var(--s1)","fill-opacity":.6,stroke:"var(--brand)",class:"hit"});
+    var c=E("circle",{cx:x,cy:y,r:r,fill:"var(--s1)","fill-opacity":.6,stroke:"var(--brand)",class:"hit"+(isDim(d.n)?" dim":"")});
     c.addEventListener("click",function(){tglState(d.n);});
     c.appendChild(E("title")).textContent=d.n+" — "+fmt(d.v)+" cases, "+d.rate.toFixed(1)+" per lakh women/yr";
     s.appendChild(c);});
 
-  hbar("v_rate",rows.slice().sort(function(a,b){return b.rate-a.rate;}).slice(0,12)
+  hbar("v_rate",chartRows.slice().sort(function(a,b){return b.rate-a.rate;}).slice(0,12)
     .map(function(d){return{n:d.n,v:d.rate};}),398,264,"var(--brand2)",
     function(d){tglState(d.n);},function(v){return v.toFixed(0);},112);
 
@@ -641,8 +670,8 @@ function p3(){
 }
 
 /* ================= PAGE 4 ================= */
-function abc(){
-  var si=sIdx(),yi=yIdx();
+function abc(forCharts){
+  var si=forCharts?sBase():sIdx(), yi=yIdx();
   var rows=si.map(function(i){return{n:ST[i],v:sum([i],[DVI],yi)};})
     .filter(function(d){return d.v>0;}).sort(function(a,b){return b.v-a.v;});
   var tot=rows.reduce(function(p,q){return p+q.v;},0)||1,run=0;
@@ -654,7 +683,9 @@ function abc(){
   return{rows:rows,total:rows.length,a:a.length,share:a.reduce(function(p,q){return p+q.v;},0)/tot};
 }
 function p4(){
-  var ab=abc(),rows=ab.rows;
+  var ab=abc(),rows=abc(true).rows;   // chart shows all states, dimming non-selected
+  document.getElementById("v_abchead2").textContent=
+    ab.a+" of "+ab.total+" entities carry "+pct(ab.share);
   var W=1214,H=244,P={t:10,r:32,b:62,l:44};
   var s=mk("v_pareto",W,H);
   var mx=rows.length?rows[0].v:1,tk=tks(mx*1.05,4),top=tk[tk.length-1];
@@ -666,7 +697,7 @@ function p4(){
   rows.forEach(function(d,i){
     var h=(H-P.t-P.b)*(d.v/top),x=x0+i*bw+bw*0.15;
     var col=d.cls==="A"?"var(--s1)":(d.cls==="B"?"var(--brand2)":"#d9a3a6");
-    var r=E("rect",{x:x,y:H-P.b-h,width:Math.max(bw*0.7,1),height:Math.max(h,1),fill:col,rx:1,class:"hit"});
+    var r=E("rect",{x:x,y:H-P.b-h,width:Math.max(bw*0.7,1),height:Math.max(h,1),fill:col,rx:1,class:"hit"+(isDim(d.n)?" dim":"")});
     r.addEventListener("click",function(){tglState(d.n);});
     r.appendChild(E("title")).textContent=d.n+": "+fmt(d.v)+" — class "+d.cls+", cumulative "+pct(d.cum);
     s.appendChild(r);
@@ -681,7 +712,7 @@ function p4(){
 
   var Z=["Critical","High","Moderate","Low"],m={A:{},B:{},C:{}};
   ["A","B","C"].forEach(function(k){Z.forEach(function(z){m[k][z]=0;});});
-  rows.forEach(function(d){var z=(SMETA[d.n]||{}).risk_zone;if(m[d.cls]&&z&&m[d.cls][z]!=null)m[d.cls][z]++;});
+  ab.rows.forEach(function(d){var z=(SMETA[d.n]||{}).risk_zone;if(m[d.cls]&&z&&m[d.cls][z]!=null)m[d.cls][z]++;});
   var t1=document.getElementById("t_matrix");
   t1.innerHTML="<thead><tr><th>ABC</th>"+Z.map(function(z){return "<th>"+z+"</th>";}).join("")+"<th>Total</th></tr></thead>";
   var b1=document.createElement("tbody");
@@ -695,7 +726,7 @@ function p4(){
   var t2=document.getElementById("t_priority");
   t2.innerHTML="<thead><tr><th>State</th><th>Priority segment</th><th>DV cases</th></tr></thead>";
   var b2=document.createElement("tbody");
-  rows.forEach(function(d){var z=(SMETA[d.n]||{}).risk_zone,hot=(z==="Critical"||z==="High");
+  ab.rows.forEach(function(d){var z=(SMETA[d.n]||{}).risk_zone,hot=(z==="Critical"||z==="High");
     var seg=d.cls==="A"&&hot?"P1 — Scale intervention (high volume, high intensity)"
       :d.cls==="A"?"P2 — Sustain capacity (high volume, contained intensity)"
       :hot?"P3 — Targeted intervention (small entity, high intensity)":"P4 — Monitor";
