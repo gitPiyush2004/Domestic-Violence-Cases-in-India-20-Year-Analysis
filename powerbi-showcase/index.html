@@ -4,121 +4,137 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Power BI Dashboard — Domestic Violence in India (2001–2021)</title>
-<meta name="description" content="Interactive replica of a five-page Power BI report on 21 years of NCRB crime data: slicers, cross-filtering, ABC classification and a repaired 2020-21 attribution defect.">
+<meta name="description" content="Interactive browser replica of a five-page Power BI report on 21 years of NCRB crime data: slicers, cross-filtering, ABC classification and a repaired 2020-21 attribution defect.">
 <style>
-/* Dark only - this is a deliberate single-theme page, so no prefers-color-scheme. */
+/* ---------------------------------------------------------------------------
+   Dark page chrome around a LIGHT 1280x720 report canvas.
+
+   The canvas holds the same tiles at the same coordinates as the Power BI
+   report (see powerbi/generate_report.ps1), absolutely positioned, and is
+   scaled with a transform to fit whatever width is available. That is what
+   keeps it reading as a Power BI page rather than a web page: fixed
+   composition, everything visible at once, no vertical sprawl.
+--------------------------------------------------------------------------- */
 :root{
-  --bg:#131212; --card:#1b1a1a; --card2:#211f1f; --line:#302d2c;
-  --ink:#f6f4f3; --body:#c9c5c1; --muted:#8b8781;
-  --brand:#e5484d; --brand-dim:#b3282d; --brand-tint:rgba(229,72,77,.12);
-  --grid:#2a2726; --teal:#4a9ab5;
-  --s1:#e5484d; --s2:#4a9ab5; --s3:#c99a63; --s4:#e0b341;
-  --s5:#9b938c; --s6:#6fae8e; --s7:#a586bd;
-  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  /* page chrome - dark */
+  --bg:#131212; --chrome:#1b1a1a; --chrome2:#211f1f; --cline:#302d2c;
+  --cink:#f6f4f3; --cbody:#c9c5c1; --cmuted:#8b8781;
+  /* report canvas - light, matching the Power BI theme */
+  --canvas:#faf7f5; --tile:#fff; --line:#e7deda;
+  --ink:#1f2933; --body:#41403d; --muted:#6b7280;
+  --brand:#c1121f; --brand2:#9d0208; --tint:rgba(193,18,31,.08);
+  --grid:#ece5e1; --teal:#31708e;
+  --s1:#c1121f; --s2:#31708e; --s3:#bc8a5f; --s4:#e0a500;
+  --s5:#8a817c; --s6:#5f8d76; --s7:#7d6b8f;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--body);
-  font:14px/1.55 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
+html,body{margin:0;background:var(--bg);color:var(--cbody);
+  font:14px/1.5 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
   -webkit-font-smoothing:antialiased}
-.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
-a{color:var(--brand);text-decoration:none} a:hover{text-decoration:underline}
+.wrap{max-width:1320px;margin:0 auto;padding:0 20px}
+a{color:#e5484d;text-decoration:none} a:hover{text-decoration:underline}
 
-header{border-bottom:1px solid var(--line);background:var(--card);padding:26px 0 20px}
-.hrow{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
-h1{margin:0;font-size:24px;font-weight:700;color:var(--ink);letter-spacing:-.02em}
-h1 em{font-style:normal;color:var(--brand)}
-.tag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);
-  font-weight:700;margin:0 0 8px}
-.hnote{font-size:12.5px;color:var(--muted);max-width:46ch}
-.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.lnk{border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12.5px;color:var(--ink)}
-.lnk:hover{border-color:var(--brand);color:var(--brand);text-decoration:none}
+header{border-bottom:1px solid var(--cline);background:var(--chrome);padding:22px 0 18px}
+.hrow{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap}
+h1{margin:0;font-size:22px;font-weight:700;color:var(--cink);letter-spacing:-.02em}
+h1 em{font-style:normal;color:#e5484d}
+.tag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#e5484d;font-weight:700;margin:0 0 7px}
+.hnote{font-size:12px;color:var(--cmuted);max-width:44ch}
+.links{display:flex;gap:8px;margin-top:10px}
+.lnk{border:1px solid var(--cline);border-radius:7px;padding:5px 11px;font-size:12px;color:var(--cink)}
+.lnk:hover{border-color:#e5484d;color:#e5484d;text-decoration:none}
 
-nav{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
-.tabs{display:flex;gap:2px;max-width:1240px;margin:0 auto;padding:0 20px;overflow-x:auto}
-.tab{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);
-  font:inherit;font-size:13px;padding:12px 14px;cursor:pointer;white-space:nowrap}
-.tab:hover{color:var(--ink)}
-.tab[aria-selected="true"]{color:var(--ink);font-weight:650;border-bottom-color:var(--brand)}
+nav{background:var(--chrome);border-bottom:1px solid var(--cline);position:sticky;top:0;z-index:30}
+.tabs{display:flex;gap:2px;max-width:1320px;margin:0 auto;padding:0 20px;overflow-x:auto}
+.tab{background:none;border:0;border-bottom:2px solid transparent;color:var(--cmuted);
+  font:inherit;font-size:13px;padding:11px 14px;cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--cink)}
+.tab[aria-selected="true"]{color:var(--cink);font-weight:650;border-bottom-color:#e5484d}
 
-.bar{background:var(--card2);border-bottom:1px solid var(--line);padding:10px 0}
-.barin{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-  max-width:1240px;margin:0 auto;padding:0 20px;font-size:12.5px}
-.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.chip{background:var(--brand-tint);border:1px solid var(--brand-dim);color:var(--brand);
+.bar{background:var(--chrome2);border-bottom:1px solid var(--cline);padding:9px 0}
+.barin{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  max-width:1320px;margin:0 auto;padding:0 20px;font-size:12px}
+.chip{background:rgba(229,72,77,.14);border:1px solid #7a2226;color:#e5484d;
   border-radius:20px;padding:3px 10px;font-size:11.5px;cursor:pointer}
-.chip:hover{background:var(--brand-dim);color:#fff}
+.chip:hover{background:#7a2226;color:#fff}
 .chip::after{content:" ✕";opacity:.7;font-size:10px}
-.clearall{background:none;border:1px solid var(--line);color:var(--muted);border-radius:7px;
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.clearall{background:none;border:1px solid var(--cline);color:var(--cmuted);border-radius:7px;
   padding:4px 10px;font:inherit;font-size:11.5px;cursor:pointer}
-.clearall:hover{color:var(--ink);border-color:var(--brand)}
-.scope{color:var(--muted)}
+.clearall:hover{color:var(--cink);border-color:#e5484d}
+.scope{color:var(--cmuted)}
 
-main{padding:20px 0 60px}
-.page{display:none} .page.on{display:block}
-.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
-.c12{grid-column:span 12}.c8{grid-column:span 8}.c7{grid-column:span 7}
-.c6{grid-column:span 6}.c5{grid-column:span 5}.c4{grid-column:span 4}.c3{grid-column:span 3}.c2{grid-column:span 2}
-@media(max-width:1000px){.c8,.c7,.c6,.c5,.c4{grid-column:span 12}.c3,.c2{grid-column:span 6}}
-@media(max-width:560px){.c3,.c2{grid-column:span 12}}
+/* ---------- the report canvas ---------- */
+.stage{padding:22px 0 40px;overflow-x:auto}
+.stage::-webkit-scrollbar{height:9px}
+.stage::-webkit-scrollbar-thumb{background:var(--cline);border-radius:9px}
+.frame{position:relative;margin:0 auto;transform-origin:top left;}
+.canvas{position:absolute;top:0;left:0;width:1280px;height:720px;background:var(--canvas);
+  border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.4),0 18px 50px rgba(0,0,0,.45);
+  color:var(--body);overflow:hidden;display:none}
+.canvas.on{display:block}
+.v{position:absolute;background:var(--tile);border:1px solid var(--line);border-radius:6px;
+  padding:7px 9px;overflow:hidden}
+.v.plain{background:none;border:0;padding:0}
+.vt{font-size:10.5px;font-weight:700;color:var(--ink);margin:0 0 1px;line-height:1.25}
+.vs{font-size:9px;color:var(--muted);margin:0 0 3px;line-height:1.3}
+.kpi{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.kpi .k{font-size:9.5px;color:var(--ink);font-weight:700;margin-bottom:3px}
+.kpi .val{font-size:23px;font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1}
+.kpi .val.hot{color:var(--brand)}
+.h1c{font-size:19px;font-weight:700;color:var(--ink);letter-spacing:-.02em}
+.h1c em{font-style:normal;color:var(--brand)}
+.h2c{font-size:16px;font-weight:700;color:var(--ink)}
+.sub{font-size:10px;color:var(--muted)}
 
-.card{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:12px 14px}
-.ch{font-size:12.5px;font-weight:650;color:var(--ink);margin:0 0 2px}
-.cs{font-size:11.5px;color:var(--muted);margin:0 0 8px}
-.kpi{text-align:center;padding:12px 8px}
-.kpi .k{font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:600}
-.kpi .v{font-size:27px;font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1.1}
-.kpi .v.hot{color:var(--brand)}
-
-svg{display:block;width:100%;height:auto;overflow:visible}
+svg{display:block;overflow:visible}
 .gl{stroke:var(--grid);stroke-width:1}
-.ax{fill:var(--muted);font-size:10px}
-.dl{fill:var(--ink);font-size:10px;font-weight:600}
-.bar-r{cursor:pointer} .bar-r:hover{opacity:.75}
-.dim{opacity:.28}
+.ax{fill:var(--muted);font-size:9px}
+.dl{fill:var(--ink);font-size:9.5px;font-weight:700}
+.hit{cursor:pointer} .hit:hover{opacity:.75}
+.dim{opacity:.25}
 
-.slicer{max-height:190px;overflow-y:auto;border:1px solid var(--line);border-radius:7px;padding:6px 8px;background:var(--card2)}
-.slicer::-webkit-scrollbar{width:8px}.slicer::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
-.si{display:flex;align-items:center;gap:8px;padding:2px 0;font-size:12.5px;cursor:pointer}
-.si input{accent-color:var(--brand);cursor:pointer}
+.sl{overflow-y:auto;height:calc(100% - 18px);padding-right:2px}
+.sl::-webkit-scrollbar{width:7px}.sl::-webkit-scrollbar-thumb{background:var(--line);border-radius:7px}
+.si{display:flex;align-items:center;gap:6px;font-size:10px;padding:1px 0;cursor:pointer;color:var(--body)}
+.si input{accent-color:var(--brand);width:11px;height:11px;cursor:pointer}
 .si:hover{color:var(--ink)}
 
-table{width:100%;border-collapse:collapse;font-size:12px}
-.tw{overflow:auto;max-height:320px}
-.tw::-webkit-scrollbar{width:8px;height:8px}.tw::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
-th,td{padding:6px 9px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
-th{position:sticky;top:0;background:var(--card);color:var(--muted);font-size:10.5px;
-  text-transform:uppercase;letter-spacing:.06em;font-weight:700;z-index:1}
+.tw{overflow:auto;height:calc(100% - 20px)}
+.tw::-webkit-scrollbar{width:7px;height:7px}.tw::-webkit-scrollbar-thumb{background:var(--line);border-radius:7px}
+table{width:100%;border-collapse:collapse;font-size:9.5px}
+th,td{padding:3px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{position:sticky;top:0;background:var(--tile);color:var(--muted);font-size:8.5px;
+  text-transform:uppercase;letter-spacing:.05em;font-weight:700;z-index:1}
 td:first-child,th:first-child{text-align:left;color:var(--ink);font-weight:600}
-tbody tr{cursor:pointer} tbody tr:hover{background:var(--card2)}
-tr.tot td{font-weight:700;color:var(--ink);border-top:1px solid var(--line)}
-.pos{color:var(--brand)} .neg{color:#6fae8e}
+tbody tr{cursor:pointer} tbody tr:hover{background:var(--canvas)}
+tr.tot td{font-weight:700;color:var(--ink)}
+.pos{color:var(--brand)}
 
-.prose{font-size:12.5px} .prose b{color:var(--ink)}
-.prose .hd{color:var(--brand);font-weight:700;margin-bottom:6px}
-.prose ol{margin:6px 0 0;padding-left:18px} .prose li{margin-bottom:4px}
-.note{border-left:3px solid var(--brand);background:var(--brand-tint);padding:10px 14px;
-  border-radius:0 8px 8px 0;font-size:12.5px}
-footer{border-top:1px solid var(--line);background:var(--card);padding:22px 0;font-size:12px;color:var(--muted)}
+.prose{font-size:9.5px;line-height:1.5;color:var(--body)}
+.prose b{color:var(--ink)}
+.prose .hd{color:var(--brand);font-weight:700;font-size:10.5px;margin-bottom:3px}
+.prose ol{margin:3px 0 0;padding-left:14px}.prose li{margin-bottom:2px}
+
+.hint{color:var(--cmuted);font-size:11.5px;text-align:center;padding:0 0 8px}
+footer{border-top:1px solid var(--cline);background:var(--chrome);padding:20px 0;font-size:12px;color:var(--cmuted)}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="wrap hrow">
-    <div>
-      <p class="tag">Power BI · interactive replica</p>
-      <h1>Domestic violence in India <em>2001–2021</em></h1>
-      <div class="links">
-        <a class="lnk" href="https://github.com/gitPiyush2004/Domestic-Violence-Cases-in-India-20-Year-Analysis">Repository</a>
-        <a class="lnk" href="../dashboard/index.html">Full web dashboard</a>
-      </div>
+<header><div class="wrap hrow">
+  <div>
+    <p class="tag">Power BI · interactive replica</p>
+    <h1>Domestic violence in India <em>2001–2021</em></h1>
+    <div class="links">
+      <a class="lnk" href="https://github.com/gitPiyush2004/Domestic-Violence-Cases-in-India-20-Year-Analysis">Repository</a>
+      <a class="lnk" href="../dashboard/index.html">Full web dashboard</a>
     </div>
-    <p class="hnote">Every figure is computed live from the same star schema the Power BI
-    model uses. Slicers filter, and clicking a bar, slice or row cross-filters the page —
-    click again to clear.</p>
   </div>
-</header>
+  <p class="hnote">The report canvas below is the Power BI page, rebuilt in the browser at the
+  same 1280×720 composition. Slicers filter and clicking a bar, slice or row cross-filters —
+  click again to clear.</p>
+</div></header>
 
 <nav><div class="tabs" role="tablist">
   <button class="tab" role="tab" aria-selected="true"  data-p="p1">Executive Overview</button>
@@ -134,182 +150,186 @@ footer{border-top:1px solid var(--line);background:var(--card);padding:22px 0;fo
   <button class="clearall" id="clearAll">Reset all filters</button>
 </div></div>
 
-<main class="wrap">
+<div class="stage"><div class="frame" id="frame">
 
-  <!-- ============ PAGE 1 ============ -->
-  <section class="page on" id="p1">
-    <div class="grid" style="margin-bottom:12px">
-      <div class="card kpi c2"><div class="k">All crimes</div><div class="v" id="k1">–</div></div>
-      <div class="card kpi c2"><div class="k">DV cases</div><div class="v hot" id="k2">–</div></div>
-      <div class="card kpi c2"><div class="k">DV share</div><div class="v hot" id="k3">–</div></div>
-      <div class="card kpi c2"><div class="k">Annual growth</div><div class="v" id="k4">–</div></div>
-      <div class="card kpi c2"><div class="k">Entities</div><div class="v" id="k5">–</div></div>
-      <div class="card kpi c2"><div class="k">Years</div><div class="v" id="k6">–</div></div>
+  <!-- ==================== PAGE 1 ==================== -->
+  <section class="canvas on" id="p1">
+    <div class="v plain" style="left:24px;top:20px;width:800px;height:44px">
+      <div class="h1c">Domestic violence in India&nbsp; <em>2001–2021</em></div>
     </div>
-    <div class="grid">
-      <div class="card c8">
-        <p class="ch">Reported domestic violence by year, with 3-year trailing mean</p>
-        <p class="cs">Click a column to filter the page to that year.</p>
-        <div id="v_trend"></div>
-      </div>
-      <div class="card c4">
-        <p class="ch">Crime mix, all selected years</p>
-        <p class="cs">Click a slice to filter by crime head.</p>
-        <div id="v_mix"></div>
-      </div>
-      <div class="card c8">
-        <p class="ch">Domestic violence by state</p>
-        <p class="cs">Click a bar to filter the page to that state.</p>
-        <div id="v_states"></div>
-      </div>
-      <div class="card c4">
-        <p class="ch">Concentration</p>
-        <div style="font-size:19px;font-weight:700;color:var(--brand);margin:6px 0 12px" id="v_abchead">–</div>
-        <p class="ch" style="margin-top:4px">Year</p>
-        <div class="slicer" id="sl_year"></div>
-        <p class="ch" style="margin-top:10px">Region</p>
-        <div class="slicer" id="sl_region" style="max-height:130px"></div>
-      </div>
+    <div class="v plain" style="left:840px;top:26px;width:416px;height:38px">
+      <div class="sub" id="ctxline">–</div>
     </div>
-  </section>
 
-  <!-- ============ PAGE 2 ============ -->
-  <section class="page" id="p2">
-    <div class="grid">
-      <div class="card c8">
-        <p class="ch">Indexed to 100 in the first visible year</p>
-        <p class="cs">Rebasing is what makes seven series of wildly different magnitude legible on one axis.</p>
-        <div id="v_index"></div>
-      </div>
-      <div class="card c4">
-        <p class="ch">Compound annual growth by head</p>
-        <p class="cs">Click a bar to filter by crime head.</p>
-        <div id="v_cagr"></div>
-      </div>
-      <div class="card c8">
-        <p class="ch">The seven heads, with statutory basis</p>
-        <div class="tw"><table id="t_heads"></table></div>
-      </div>
-      <div class="card c4">
-        <div class="prose" style="margin-bottom:12px">
-          <div class="hd">Dowry deaths are the control.</div>
-          Every head grew except dowry deaths: 6,738 in 2001, 6,753 in 2021. Deaths are the
-          hardest category to under-report, so flat deaths against a 178% rise in cruelty
-          complaints argues much of the growth is reporting propensity, not incidence.
-          <b>An argument, not a proof.</b>
-        </div>
-        <p class="ch">Crime head</p>
-        <div class="slicer" id="sl_crime" style="max-height:150px"></div>
-      </div>
+    <div class="v kpi" style="left:24px;top:76px;width:192px;height:96px"><div class="k">All crimes</div><div class="val" id="k1">–</div></div>
+    <div class="v kpi" style="left:232px;top:76px;width:192px;height:96px"><div class="k">DV cases</div><div class="val hot" id="k2">–</div></div>
+    <div class="v kpi" style="left:440px;top:76px;width:192px;height:96px"><div class="k">DV share</div><div class="val hot" id="k3">–</div></div>
+    <div class="v kpi" style="left:648px;top:76px;width:192px;height:96px"><div class="k">Annual growth</div><div class="val" id="k4">–</div></div>
+    <div class="v kpi" style="left:856px;top:76px;width:192px;height:96px"><div class="k">Entities</div><div class="val" id="k5">–</div></div>
+    <div class="v kpi" style="left:1064px;top:76px;width:192px;height:96px"><div class="k">Years</div><div class="val" id="k6">–</div></div>
+
+    <div class="v" style="left:24px;top:180px;width:800px;height:250px">
+      <p class="vt">Reported domestic violence by year, with 3-year trailing mean</p>
+      <div id="v_trend"></div>
+    </div>
+    <div class="v" style="left:840px;top:180px;width:416px;height:250px">
+      <p class="vt">Crime mix, all selected years</p>
+      <div id="v_mix"></div>
+    </div>
+    <div class="v" style="left:24px;top:442px;width:800px;height:254px">
+      <p class="vt">Domestic violence by state</p>
+      <div id="v_states"></div>
+    </div>
+    <div class="v" style="left:840px;top:442px;width:416px;height:76px">
+      <p class="vt" style="text-align:center">Concentration</p>
+      <div style="text-align:center;font-size:15px;font-weight:700;color:var(--brand)" id="v_abchead">–</div>
+    </div>
+    <div class="v" style="left:840px;top:530px;width:200px;height:166px">
+      <p class="vt">Year</p><div class="sl" id="sl_year"></div>
+    </div>
+    <div class="v" style="left:1056px;top:530px;width:200px;height:166px">
+      <p class="vt">Region</p><div class="sl" id="sl_region"></div>
     </div>
   </section>
 
-  <!-- ============ PAGE 3 ============ -->
-  <section class="page" id="p3">
-    <div class="grid">
-      <div class="card c8">
-        <p class="ch">Volume against intensity — the top-left quadrant is what volume ranking misses</p>
-        <p class="cs">Bubble size is female population. Click a bubble to filter to that state.</p>
-        <div id="v_scatter"></div>
-      </div>
-      <div class="card c4">
-        <p class="ch">Intensity by state (cases per lakh women)</p>
-        <p class="cs">Annual average over the selected years.</p>
-        <div id="v_rate"></div>
-      </div>
-      <div class="card c8">
-        <p class="ch">Sorted by the gap — the most-missed states first</p>
-        <p class="cs">A positive gap means the state is more intense than its case count suggests.</p>
-        <div class="tw"><table id="t_states"></table></div>
-      </div>
-      <div class="card c4">
-        <p class="ch">Region</p>
-        <div class="slicer" id="sl_region2" style="max-height:130px"></div>
-        <p class="ch" style="margin-top:10px">Entity type</p>
-        <div class="slicer" id="sl_etype" style="max-height:80px"></div>
-      </div>
+  <!-- ==================== PAGE 2 ==================== -->
+  <section class="canvas" id="p2">
+    <div class="v plain" style="left:24px;top:20px;width:1232px;height:40px">
+      <span class="h2c">Crime heads compared</span>
+      <span class="sub">&nbsp; domestic violence is the largest, but not the fastest growing</span>
+    </div>
+    <div class="v" style="left:24px;top:72px;width:800px;height:280px">
+      <p class="vt">Indexed to 100 in the first visible year</p>
+      <div id="v_index"></div>
+    </div>
+    <div class="v" style="left:840px;top:72px;width:416px;height:280px">
+      <p class="vt">Compound annual growth by head</p>
+      <div id="v_cagr"></div>
+    </div>
+    <div class="v" style="left:24px;top:368px;width:800px;height:328px">
+      <p class="vt">The seven heads, with statutory basis</p>
+      <div class="tw"><table id="t_heads"></table></div>
+    </div>
+    <div class="v" style="left:840px;top:368px;width:416px;height:160px">
+      <div class="prose"><span class="hd">Dowry deaths are the control.</span>
+        Every head grew except dowry deaths: 6,738 in 2001, 6,753 in 2021. Deaths are the
+        hardest category to under-report, so flat deaths against a 178% rise in cruelty
+        complaints argues much of the growth is reporting propensity, not incidence.
+        <b>An argument, not a proof.</b></div>
+    </div>
+    <div class="v" style="left:840px;top:544px;width:200px;height:152px">
+      <p class="vt">Year</p><div class="sl" id="sl_year2"></div>
+    </div>
+    <div class="v" style="left:1056px;top:544px;width:200px;height:152px">
+      <p class="vt">Crime head</p><div class="sl" id="sl_crime"></div>
     </div>
   </section>
 
-  <!-- ============ PAGE 4 ============ -->
-  <section class="page" id="p4">
-    <div class="grid">
-      <div class="card c12">
-        <p class="ch">Pareto — bars are volume, line is cumulative share (70% and 90% are the ABC cuts)</p>
-        <p class="cs" id="v_abchead2">–</p>
-        <div id="v_pareto"></div>
-      </div>
-      <div class="card c5">
-        <p class="ch">Where the two segmentations disagree</p>
-        <p class="cs">ABC bands by volume, risk zones by intensity.</p>
-        <div class="tw"><table id="t_matrix"></table></div>
-      </div>
-      <div class="card c7">
-        <p class="ch">Priority segments</p>
-        <div class="tw"><table id="t_priority"></table></div>
-      </div>
-      <div class="card c12">
-        <div class="note">ABC bands by volume; risk zones band by intensity. <b>They are meant to
-        disagree</b> — a Class C entity in the Critical zone is small, badly affected, and invisible
-        to every volume-ranked league table. Thresholds are the quartiles of the 2021 rate
-        distribution (2.5 / 9.1 / 22.9 per lakh women), not round numbers, so they survive a
-        refresh without quietly changing meaning.</div>
-      </div>
+  <!-- ==================== PAGE 3 ==================== -->
+  <section class="canvas" id="p3">
+    <div class="v plain" style="left:24px;top:20px;width:800px;height:40px">
+      <span class="h2c">Volume and intensity <em style="font-style:normal;color:var(--brand)">disagree</em></span>
+    </div>
+    <div class="v" style="left:840px;top:20px;width:416px;height:40px;display:flex;align-items:center">
+      <div style="font-size:10px;color:var(--ink);font-weight:600" id="v_verdict">–</div>
+    </div>
+    <div class="v" style="left:24px;top:72px;width:800px;height:300px">
+      <p class="vt">Volume against intensity — the top-left quadrant is what volume ranking misses</p>
+      <div id="v_scatter"></div>
+    </div>
+    <div class="v" style="left:840px;top:72px;width:416px;height:300px">
+      <p class="vt">Intensity by state (cases per lakh women)</p>
+      <div id="v_rate"></div>
+    </div>
+    <div class="v" style="left:24px;top:388px;width:800px;height:308px">
+      <p class="vt">Sorted by the gap — the most-missed states first</p>
+      <div class="tw"><table id="t_states"></table></div>
+    </div>
+    <div class="v" style="left:840px;top:388px;width:416px;height:146px">
+      <p class="vt">Region</p><div class="sl" id="sl_region2"></div>
+    </div>
+    <div class="v" style="left:840px;top:550px;width:416px;height:146px">
+      <p class="vt">Entity type</p><div class="sl" id="sl_etype"></div>
     </div>
   </section>
 
-  <!-- ============ PAGE 5 ============ -->
-  <section class="page" id="p5">
-    <div class="grid">
-      <div class="card c12">
-        <p class="ch" style="font-size:16px;color:var(--brand)">The published data is broken for 2020–21. Here is the proof.</p>
-      </div>
-      <div class="card c6">
-        <div class="prose"><div class="hd">As published</div>
-          Delhi, domestic violence 2019: <b>3,792</b><br>
-          Delhi, domestic violence 2020: <b>3</b><br><br>
-          Dadra &amp; Nagar Haveli (pop. 344,000), 2020: <b>2,557</b><br><br>
-          Delhi did not stop having domestic violence, and a union territory of 344,000 did
-          not out-report it.
-        </div>
-      </div>
-      <div class="card c6">
-        <div class="prose"><div class="hd">Root cause</div>
-          On 31 Oct 2019 J&amp;K became a UT and Ladakh was carved out; on 26 Jan 2020 D&amp;N
-          Haveli merged with Daman &amp; Diu. NCRB's 2020 table lists 28 states then 8 UTs. The
-          CSV pasted that value block against a label column still generated from the pre-2019
-          36-entity list, where J&amp;K sits at position 9 among the states. Every measure row
-          from position 9 down is attached to the wrong state.
-        </div>
-      </div>
-      <div class="card c6">
-        <p class="ch">Reporting entities by year</p>
-        <p class="cs">The 34 → 36 step in 2011 is Delhi and Telangana entering.</p>
-        <div id="v_entities"></div>
-      </div>
-      <div class="card c6">
-        <p class="ch">Three kinds of zero, separated</p>
-        <p class="cs">Conflating them is how a dashboard becomes confidently wrong.</p>
-        <div class="tw"><table id="t_flags"></table></div>
-      </div>
-      <div class="card c12">
-        <div class="prose"><div class="hd">Four independent tests defend the repair</div>
-          <ol>
-            <li>Anomaly bands — 16 of 32 entities fall outside a 0.25×–4× band against their 2017–19 mean.</li>
-            <li>Crime-mix profile matching in log space — a 2019 control has <b>34/36</b> entities matching their own labels; 2020 has only 10/36, but <b>28/34</b> match NCRB's published order.</li>
-            <li>Year-over-year continuity — median absolute swing falls from <b>71.2% to 13.9%</b>; implausible jumps above 60% fall from 15 to 0.</li>
-            <li>Invariance — all seven measure totals are unchanged. <b>The repair re-labels; it never invents.</b></li>
-          </ol>
-          <p style="margin:8px 0 0">The 2019 control is the one that matters: running the same test on a year
-          believed correct and getting 34/36 proves the method detects misalignment rather than
-          manufacturing it. Because the repair only moves attribution, every national figure in
-          this report is identical with or without it.</p>
-        </div>
-      </div>
+  <!-- ==================== PAGE 4 ==================== -->
+  <section class="canvas" id="p4">
+    <div class="v plain" style="left:24px;top:20px;width:800px;height:40px">
+      <span class="h2c">ABC classification <em style="font-style:normal;color:var(--brand)">and intervention priority</em></span>
+    </div>
+    <div class="v" style="left:840px;top:20px;width:416px;height:40px;display:flex;align-items:center;justify-content:center">
+      <div style="font-size:13px;font-weight:700;color:var(--brand)" id="v_abchead2">–</div>
+    </div>
+    <div class="v" style="left:24px;top:72px;width:1232px;height:280px">
+      <p class="vt">Pareto — bars are volume, line is cumulative share (70% and 90% are the ABC cuts)</p>
+      <div id="v_pareto"></div>
+    </div>
+    <div class="v" style="left:24px;top:368px;width:604px;height:230px">
+      <p class="vt">Where the two segmentations disagree</p>
+      <div class="tw"><table id="t_matrix"></table></div>
+    </div>
+    <div class="v" style="left:652px;top:368px;width:604px;height:230px">
+      <p class="vt">Priority segments</p>
+      <div class="tw"><table id="t_priority"></table></div>
+    </div>
+    <div class="v" style="left:24px;top:614px;width:1232px;height:82px">
+      <div class="prose"><b>ABC bands by volume; risk zones band by intensity. They are meant to disagree</b>
+        — a Class C entity in the Critical zone is small, badly affected, and invisible to every
+        volume-ranked league table. Thresholds are the quartiles of the 2021 rate distribution
+        (2.5 / 9.1 / 22.9 per lakh women), not round numbers, so they survive a refresh without
+        quietly changing meaning.</div>
     </div>
   </section>
 
-</main>
+  <!-- ==================== PAGE 5 ==================== -->
+  <section class="canvas" id="p5">
+    <div class="v plain" style="left:24px;top:20px;width:1232px;height:40px">
+      <span class="h2c" style="color:var(--brand2)">The published data is broken for 2020–21.</span>
+      <span class="h2c">&nbsp;Here is the proof.</span>
+    </div>
+    <div class="v" style="left:24px;top:72px;width:604px;height:180px">
+      <div class="prose"><div class="hd">As published</div>
+        Delhi, domestic violence 2019:&nbsp; <b>3,792</b><br>
+        Delhi, domestic violence 2020:&nbsp; <b>3</b><br><br>
+        Dadra &amp; Nagar Haveli (pop. 344,000), 2020:&nbsp; <b>2,557</b><br><br>
+        Delhi did not stop having domestic violence, and a union territory of 344,000 did not
+        out-report it.</div>
+    </div>
+    <div class="v" style="left:652px;top:72px;width:604px;height:180px">
+      <div class="prose"><div class="hd">Root cause</div>
+        On 31 Oct 2019 J&amp;K became a UT and Ladakh was carved out; on 26 Jan 2020 D&amp;N Haveli
+        merged with Daman &amp; Diu. NCRB's 2020 table lists 28 states then 8 UTs. The CSV pasted
+        that value block against a label column still generated from the pre-2019 36-entity list,
+        where J&amp;K sits at position 9 among the states. Every measure row from position 9 down
+        is attached to the wrong state.</div>
+    </div>
+    <div class="v" style="left:24px;top:268px;width:604px;height:200px">
+      <p class="vt">Reporting entities by year</p>
+      <p class="vs">The 34 → 36 step in 2011 is Delhi and Telangana entering.</p>
+      <div id="v_entities"></div>
+    </div>
+    <div class="v" style="left:652px;top:268px;width:604px;height:200px">
+      <p class="vt">Three kinds of zero, separated</p>
+      <div class="tw"><table id="t_flags"></table></div>
+    </div>
+    <div class="v" style="left:24px;top:484px;width:1232px;height:212px">
+      <div class="prose"><div class="hd">Four independent tests defend the repair</div>
+        <ol>
+          <li>Anomaly bands — 16 of 32 entities fall outside a 0.25×–4× band against their 2017–19 mean.</li>
+          <li>Crime-mix profile matching in log space — a 2019 control has <b>34/36</b> entities matching their own labels; 2020 has only 10/36, but <b>28/34</b> match NCRB's published order.</li>
+          <li>Year-over-year continuity — median absolute swing falls from <b>71.2% to 13.9%</b>; implausible jumps above 60% fall from 15 to 0.</li>
+          <li>Invariance — all seven measure totals are unchanged. <b>The repair re-labels; it never invents.</b></li>
+        </ol>
+        <p style="margin:5px 0 0">The 2019 control is the one that matters: running the same test on a
+        year believed correct and getting 34/36 proves the method detects misalignment rather than
+        manufacturing it. Because the repair only moves attribution, every national figure in this
+        report is identical with or without it.</p></div>
+    </div>
+  </section>
+
+</div></div>
+<p class="hint" id="hint"></p>
 
 <footer><div class="wrap">
   Source: NCRB <em>Crime in India</em> 2001–2021 (Kaggle mirror), denominators from Census 2011.
@@ -320,442 +340,390 @@ footer{border-top:1px solid var(--line);background:var(--card);padding:22px 0;fo
 <script>
 (function(){
 "use strict";
-var D = window.DATA, CU = D.cube;
-var ST = CU.states, CR = CU.crimes, YR = CU.years, V = CU.values;
-var DVI = CR.indexOf("Domestic Violence");
-var SMETA = {}; D.states.forEach(function(s){ SMETA[s.state_clean] = s; });
-var CMETA = {}; D.crime_types.forEach(function(c){ CMETA[c.crime_type] = c; });
+var D=window.DATA, CU=D.cube, ST=CU.states, CR=CU.crimes, YR=CU.years, V=CU.values;
+var DVI=CR.indexOf("Domestic Violence");
+var SMETA={}; D.states.forEach(function(s){SMETA[s.state_clean]=s;});
+var CMETA={}; D.crime_types.forEach(function(c){CMETA[c.crime_type]=c;});
+var ALLC=CR.map(function(_,i){return i;});
 
-/* ---------- filter state ---------- */
-var F = { years:new Set(), regions:new Set(), etypes:new Set(), crimes:new Set(), state:null };
+/* ---------- fit the 1280x720 canvas to the viewport ---------- */
+var frame=document.getElementById("frame"), stage=document.querySelector(".stage");
+function fit(){
+  var avail=stage.clientWidth-2;
+  /* Never shrink below 0.42 - past that the axis labels stop being readable and
+     a horizontal scroll is the better trade. */
+  var sc=Math.max(Math.min(avail/1280,1),0.42);
+  frame.style.transform="scale("+sc+")";
+  frame.style.width=1280+"px";
+  frame.style.height=720+"px";
+  stage.style.height=(720*sc+44)+"px";
+  frame.style.marginLeft=(avail>1280*sc)?((avail-1280*sc)/2)+"px":"0";
+  document.getElementById("hint").textContent =
+    (1280*sc>avail-4) ? "Scroll sideways to see the full report canvas" : "";
+}
+window.addEventListener("resize",fit);
 
-function activeYearIdx(){
-  var out=[]; for(var i=0;i<YR.length;i++){ if(!F.years.size || F.years.has(YR[i])) out.push(i); } return out;
-}
-function activeStateIdx(){
-  var out=[];
-  for(var i=0;i<ST.length;i++){
-    var m = SMETA[ST[i]]; if(!m) continue;
-    if(F.regions.size && !F.regions.has(m.region)) continue;
-    if(F.etypes.size && !F.etypes.has(m.entity_type)) continue;
-    if(F.state && ST[i] !== F.state) continue;
-    out.push(i);
-  }
-  return out;
-}
-function activeCrimeIdx(){
-  var out=[]; for(var i=0;i<CR.length;i++){ if(!F.crimes.size || F.crimes.has(CR[i])) out.push(i); } return out;
-}
-/* Sum the cube. Passing null for a dimension means "all of it", which is how the
-   share denominator ignores the crime filter without ignoring state or year. */
-function sum(si,ci,yi){
-  si=si||activeStateIdx(); ci=ci||activeCrimeIdx(); yi=yi||activeYearIdx();
-  var t=0;
-  for(var a=0;a<si.length;a++){ var row=V[si[a]];
-    for(var b=0;b<ci.length;b++){ var cell=row[ci[b]];
-      for(var c=0;c<yi.length;c++) t+=cell[yi[c]];
-    }
-  }
-  return t;
-}
-var ALLC = CR.map(function(_,i){return i;});
+/* ---------- filters ---------- */
+var F={years:new Set(),regions:new Set(),etypes:new Set(),crimes:new Set(),state:null};
+function yIdx(){var o=[];for(var i=0;i<YR.length;i++)if(!F.years.size||F.years.has(YR[i]))o.push(i);return o;}
+function sIdx(){var o=[];for(var i=0;i<ST.length;i++){var m=SMETA[ST[i]];if(!m)continue;
+  if(F.regions.size&&!F.regions.has(m.region))continue;
+  if(F.etypes.size&&!F.etypes.has(m.entity_type))continue;
+  if(F.state&&ST[i]!==F.state)continue;o.push(i);}return o;}
+function cIdx(){var o=[];for(var i=0;i<CR.length;i++)if(!F.crimes.size||F.crimes.has(CR[i]))o.push(i);return o;}
+function sum(si,ci,yi){si=si||sIdx();ci=ci||cIdx();yi=yi||yIdx();var t=0;
+  for(var a=0;a<si.length;a++){var r=V[si[a]];
+    for(var b=0;b<ci.length;b++){var c=r[ci[b]];
+      for(var d=0;d<yi.length;d++)t+=c[yi[d]];}}return t;}
 
-/* ---------- formatting ---------- */
-function fmt(n){ return n==null?"–":n.toLocaleString("en-IN"); }
-function compact(n){
-  if(n>=1e7) return (n/1e6).toFixed(0)+"M";
-  if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:0)+"M";
-  if(n>=1e5) return (n/1e3).toFixed(0)+"K";
-  if(n>=1000) return (n/1000).toFixed(0)+"K";
-  return String(Math.round(n));
-}
-function pct(x,d){ return (x*100).toFixed(d==null?1:d)+"%"; }
+/* ---------- helpers ---------- */
+function fmt(n){return n==null?"–":n.toLocaleString("en-IN");}
+function compact(n){ if(n>=1e6)return(n/1e6).toFixed(0)+"M"; if(n>=1000)return(n/1000).toFixed(0)+"K"; return String(Math.round(n)); }
+function pct(x,d){return (x*100).toFixed(d==null?1:d)+"%";}
 var NS="http://www.w3.org/2000/svg";
-function E(t,a){ var e=document.createElementNS(NS,t); for(var k in a) e.setAttribute(k,a[k]); return e; }
-function svg(host,w,h){ var el=document.getElementById(host); el.textContent="";
-  var s=E("svg",{viewBox:"0 0 "+w+" "+h,preserveAspectRatio:"xMidYMid meet"}); el.appendChild(s); return s; }
-function txt(s,x,y,cls,anchor){ var t=E("text",{x:x,y:y,class:cls||"ax"}); if(anchor)t.setAttribute("text-anchor",anchor); s.appendChild(t); return t; }
-function ticks(max,n){ if(max<=0)return[0]; var raw=max/n, mag=Math.pow(10,Math.floor(Math.log10(raw)));
-  var step=[1,2,2.5,5,10].map(function(m){return m*mag;}).find(function(v){return v>=raw;})||10*mag;
-  var out=[]; for(var v=0;v<=max+step*0.001;v+=step) out.push(v); return out; }
+function E(t,a){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
+function mk(host,w,h){var el=document.getElementById(host);el.textContent="";
+  var s=E("svg",{viewBox:"0 0 "+w+" "+h,width:w,height:h});el.appendChild(s);return s;}
+function tx(s,x,y,c,a){var t=E("text",{x:x,y:y,class:c||"ax"});if(a)t.setAttribute("text-anchor",a);s.appendChild(t);return t;}
+function tks(mx,n){if(mx<=0)return[0];var raw=mx/n,mag=Math.pow(10,Math.floor(Math.log10(raw)));
+  var st=[1,2,2.5,5,10].map(function(m){return m*mag;}).find(function(v){return v>=raw;})||10*mag;
+  var o=[];for(var v=0;v<=mx+st*0.001;v+=st)o.push(v);return o;}
 
-/* ---------- slicers ---------- */
-function buildSlicer(host,items,set,onChange){
-  var el=document.getElementById(host); el.textContent="";
+function slicer(host,items,set,after){
+  var el=document.getElementById(host); if(!el) return; el.textContent="";
   items.forEach(function(it){
-    var lab=document.createElement("label"); lab.className="si";
-    var cb=document.createElement("input"); cb.type="checkbox"; cb.checked=set.has(it);
-    cb.addEventListener("change",function(){ if(cb.checked) set.add(it); else set.delete(it); onChange(); });
-    var sp=document.createElement("span"); sp.textContent=it;
-    lab.appendChild(cb); lab.appendChild(sp); el.appendChild(lab);
+    var l=document.createElement("label");l.className="si";
+    var c=document.createElement("input");c.type="checkbox";c.checked=set.has(it);
+    c.addEventListener("change",function(){c.checked?set.add(it):set.delete(it);sync();after&&after();render();});
+    var s=document.createElement("span");s.textContent=it;
+    l.appendChild(c);l.appendChild(s);el.appendChild(l);
   });
 }
-var REGIONS = Array.from(new Set(D.states.map(function(s){return s.region;}))).sort();
-var ETYPES  = Array.from(new Set(D.states.map(function(s){return s.entity_type;}))).sort();
+var REGIONS=Array.from(new Set(D.states.map(function(s){return s.region;}))).sort();
+var ETYPES=Array.from(new Set(D.states.map(function(s){return s.entity_type;}))).sort();
 
-/* ---------- chips ---------- */
-function renderChips(){
-  var c=document.getElementById("chips"); c.textContent="";
-  function chip(label,fn){ var b=document.createElement("button"); b.className="chip"; b.textContent=label;
-    b.addEventListener("click",function(){ fn(); render(); }); c.appendChild(b); }
-  if(F.state) chip(F.state,function(){F.state=null;});
-  F.crimes.forEach(function(x){ chip(x,function(){F.crimes.delete(x);}); });
-  F.regions.forEach(function(x){ chip(x,function(){F.regions.delete(x);}); });
-  F.etypes.forEach(function(x){ chip(x,function(){F.etypes.delete(x);}); });
-  if(F.years.size){ var ys=Array.from(F.years).sort();
-    chip(ys.length>3?(ys[0]+"–"+ys[ys.length-1]+" ("+ys.length+")"):ys.join(", "),function(){F.years.clear();}); }
-  var si=activeStateIdx(), yi=activeYearIdx();
-  function plural(n,one,many){ return n+" "+(n===1?one:many); }
-  document.getElementById("scope").textContent =
-    "In scope: "+plural(si.length,"entity","entities")+" · "+plural(yi.length,"year","years")+
-    " · "+(F.crimes.size?plural(F.crimes.size,"crime head","crime heads"):"all crime heads");
+function chips(){
+  var c=document.getElementById("chips");c.textContent="";
+  function add(t,fn){var b=document.createElement("button");b.className="chip";b.textContent=t;
+    b.addEventListener("click",function(){fn();sync();render();});c.appendChild(b);}
+  if(F.state)add(F.state,function(){F.state=null;});
+  F.crimes.forEach(function(x){add(x,function(){F.crimes.delete(x);});});
+  F.regions.forEach(function(x){add(x,function(){F.regions.delete(x);});});
+  F.etypes.forEach(function(x){add(x,function(){F.etypes.delete(x);});});
+  if(F.years.size){var y=Array.from(F.years).sort();
+    add(y.length>3?(y[0]+"–"+y[y.length-1]+" ("+y.length+")"):y.join(", "),function(){F.years.clear();});}
+  var si=sIdx(),yi=yIdx();
+  function pl(n,a,b){return n+" "+(n===1?a:b);}
+  document.getElementById("scope").textContent="In scope: "+pl(si.length,"entity","entities")+
+    " · "+pl(yi.length,"year","years")+" · "+(F.crimes.size?pl(F.crimes.size,"crime head","crime heads"):"all crime heads");
+}
+
+/* ---------- shared: horizontal bars ---------- */
+function hbar(host,rows,W,H,fill,onClick,fv,labW){
+  var P={t:4,r:38,b:16,l:labW||96};
+  var s=mk(host,W,H);
+  var rh=Math.min(19,(H-P.t-P.b)/Math.max(rows.length,1));
+  var mx=Math.max.apply(null,rows.map(function(d){return d.v;}))||1;
+  var tk=tks(mx,3),top=tk[tk.length-1];
+  tk.forEach(function(v){var x=P.l+(W-P.l-P.r)*(v/top);
+    s.appendChild(E("line",{class:"gl",x1:x,x2:x,y1:P.t,y2:H-P.b}));
+    tx(s,x,H-P.b+11,"ax","middle").textContent=(fv||compact)(v);});
+  rows.forEach(function(d,i){
+    var y=P.t+i*rh,w=(W-P.l-P.r)*(d.v/top);
+    var r=E("rect",{x:P.l,y:y+2,width:Math.max(w,1),height:Math.max(rh-5,3),fill:fill,rx:2,class:"hit"});
+    if(onClick)r.addEventListener("click",function(){onClick(d);});
+    r.appendChild(E("title")).textContent=d.n+": "+(fv?fv(d.v):fmt(d.v));
+    s.appendChild(r);
+    tx(s,P.l-6,y+rh/2+3,"ax","end").textContent=(d.n.length>18?d.n.slice(0,17)+"…":d.n);
+  });
 }
 
 /* ================= PAGE 1 ================= */
-function renderP1(){
-  var si=activeStateIdx(), yi=activeYearIdx(), ci=activeCrimeIdx();
-  var dv=sum(si,[DVI],yi), all=sum(si,ALLC,yi);
+function p1(){
+  var si=sIdx(),yi=yIdx();
+  var dv=sum(si,[DVI],yi),all=sum(si,ALLC,yi);
   document.getElementById("k1").textContent=compact(all);
   document.getElementById("k2").textContent=compact(dv);
-  /* Share over exactly the selected years - no special-casing of 2011.
-     The Power BI measure, the SQL layer and the README all report 39.2% on the
-     full window, and this page must not quietly disagree with them by a third of
-     a point. 2011's incomplete denominator (Assault on Women is missing from the
-     source that year) is disclosed on the Data Quality page instead, which is
-     where a caveat belongs - not silently baked into a headline number. */
-  document.getElementById("k3").textContent = all>0 ? pct(dv/all) : "–";
-  var y0=yi[0], y1=yi[yi.length-1], n=YR[y1]-YR[y0];
-  var f=sum(si,[DVI],[y0]), l=sum(si,[DVI],[y1]);
-  document.getElementById("k4").textContent = (n>0&&f>0)?pct(Math.pow(l/f,1/n)-1,2):"–";
+  /* Share over exactly the selected years. Power BI, the SQL layer and the README
+     all report 39.2% on the full window; this page must not disagree. 2011's
+     incomplete denominator is disclosed on the Data Quality page instead. */
+  document.getElementById("k3").textContent=all>0?pct(dv/all):"–";
+  var a=yi[0],b=yi[yi.length-1],n=YR[b]-YR[a];
+  var f=sum(si,[DVI],[a]),l=sum(si,[DVI],[b]);
+  document.getElementById("k4").textContent=(n>0&&f>0)?pct(Math.pow(l/f,1/n)-1,2):"–";
   document.getElementById("k5").textContent=si.length;
   document.getElementById("k6").textContent=yi.length;
+  document.getElementById("ctxline").textContent=
+    compact(dv)+" recorded cases. "+(all>0?pct(dv/all):"–")+" of all crime against women.";
 
-  /* combo: DV columns + 3y trailing mean */
-  var series=yi.map(function(i){return {y:YR[i],v:sum(si,[DVI],[i])};});
-  var W=760,H=250,P={t:22,r:16,b:26,l:48};
-  var s=svg("v_trend",W,H);
-  var mx=Math.max.apply(null,series.map(function(d){return d.v;}))||1;
-  var tk=ticks(mx*1.15,4), top=tk[tk.length-1];
-  var bw=(W-P.l-P.r)/series.length;
-  tk.forEach(function(v){ var y=H-P.b-(H-P.t-P.b)*(v/top);
+  var ser=yi.map(function(i){return{y:YR[i],v:sum(si,[DVI],[i])};});
+  var W=782,H=214,P={t:14,r:8,b:20,l:40};
+  var s=mk("v_trend",W,H);
+  var mx=Math.max.apply(null,ser.map(function(d){return d.v;}))||1;
+  var tk=tks(mx*1.15,4),top=tk[tk.length-1],bw=(W-P.l-P.r)/ser.length;
+  tk.forEach(function(v){var y=H-P.b-(H-P.t-P.b)*(v/top);
     s.appendChild(E("line",{class:"gl",x1:P.l,x2:W-P.r,y1:y,y2:y}));
-    txt(s,P.l-7,y+3.5,"ax","end").textContent=compact(v); });
-  series.forEach(function(d,i){
-    var h=(H-P.t-P.b)*(d.v/top), x=P.l+i*bw+bw*0.18, y=H-P.b-h;
-    var r=E("rect",{x:x,y:y,width:bw*0.64,height:Math.max(h,1),fill:"var(--s1)",class:"bar-r",rx:1});
-    r.addEventListener("click",function(){ toggleYear(d.y); });
+    tx(s,P.l-5,y+3,"ax","end").textContent=compact(v);});
+  ser.forEach(function(d,i){
+    var h=(H-P.t-P.b)*(d.v/top),x=P.l+i*bw+bw*0.18;
+    var r=E("rect",{x:x,y:H-P.b-h,width:bw*0.64,height:Math.max(h,1),fill:"var(--s1)",rx:1,class:"hit"});
+    r.addEventListener("click",function(){tglYear(d.y);});
     r.appendChild(E("title")).textContent=d.y+": "+fmt(d.v);
     s.appendChild(r);
-    if(series.length<=12||i%2===0||i===series.length-1)
-      txt(s,P.l+i*bw+bw/2,H-P.b+14,"ax","middle").textContent=d.y;
+    if(ser.length<=12||i%3===0||i===ser.length-1)
+      tx(s,P.l+i*bw+bw/2,H-P.b+12,"ax","middle").textContent=d.y;
   });
-  if(series.length>2){
-    var dp="";
-    series.forEach(function(d,i){
-      var a=Math.max(0,i-2), w=series.slice(a,i+1), m=w.reduce(function(p,q){return p+q.v;},0)/w.length;
-      dp+=(i?" L":"M")+(P.l+i*bw+bw/2)+" "+(H-P.b-(H-P.t-P.b)*(m/top));
-    });
-    s.appendChild(E("path",{d:dp,fill:"none",stroke:"var(--ink)","stroke-width":1.6,opacity:.8}));
-  }
+  if(ser.length>2){var dp="";
+    ser.forEach(function(d,i){var st=Math.max(0,i-2),w=ser.slice(st,i+1),
+      m=w.reduce(function(p,q){return p+q.v;},0)/w.length;
+      dp+=(i?" L":"M")+(P.l+i*bw+bw/2)+" "+(H-P.b-(H-P.t-P.b)*(m/top));});
+    s.appendChild(E("path",{d:dp,fill:"none",stroke:"#2b2b2b","stroke-width":1.4,opacity:.85}));}
 
-  /* donut: crime mix */
-  var mix=CR.map(function(c,i){return {n:c,v:sum(si,[i],yi),i:i};}).filter(function(d){return d.v>0;});
+  var mix=CR.map(function(c,i){return{n:c,v:sum(si,[i],yi),i:i};}).filter(function(d){return d.v>0;});
   var tot=mix.reduce(function(p,q){return p+q.v;},0)||1;
-  var DW=300,DH=250,cx=DW/2,cy=DH/2-4,R=84,r0=48,ang=-Math.PI/2;
-  var ds=svg("v_mix",DW,DH);
+  var DW=398,DH=214,cx=DW/2-52,cy=DH/2,R=76,r0=44,ang=-Math.PI/2;
+  var ds=mk("v_mix",DW,DH);
   mix.forEach(function(d,i){
-    var a2=ang+2*Math.PI*(d.v/tot);
-    var big=(a2-ang)>Math.PI?1:0;
-    var p=["M",cx+R*Math.cos(ang),cy+R*Math.sin(ang),
-           "A",R,R,0,big,1,cx+R*Math.cos(a2),cy+R*Math.sin(a2),
-           "L",cx+r0*Math.cos(a2),cy+r0*Math.sin(a2),
-           "A",r0,r0,0,big,0,cx+r0*Math.cos(ang),cy+r0*Math.sin(ang),"Z"].join(" ");
+    var a2=ang+2*Math.PI*(d.v/tot),big=(a2-ang)>Math.PI?1:0;
+    var p=["M",cx+R*Math.cos(ang),cy+R*Math.sin(ang),"A",R,R,0,big,1,cx+R*Math.cos(a2),cy+R*Math.sin(a2),
+           "L",cx+r0*Math.cos(a2),cy+r0*Math.sin(a2),"A",r0,r0,0,big,0,cx+r0*Math.cos(ang),cy+r0*Math.sin(ang),"Z"].join(" ");
     var sel=F.crimes.size&&F.crimes.has(d.n);
-    var path=E("path",{d:p,fill:"var(--s"+((i%7)+1)+")",class:"bar-r"+((F.crimes.size&&!sel)?" dim":"")});
-    path.addEventListener("click",function(){ toggleCrime(d.n); });
-    path.appendChild(E("title")).textContent=d.n+": "+fmt(d.v)+" ("+pct(d.v/tot)+")";
-    ds.appendChild(path); ang=a2;
-  });
-  txt(ds,cx,cy-2,"dl","middle").textContent=compact(tot);
-  txt(ds,cx,cy+12,"ax","middle").textContent="all heads";
-  var ly=DH-40;
-  mix.slice(0,4).forEach(function(d,i){
-    var lx=6+(i%2)*150, yy=ly+Math.floor(i/2)*14;
-    ds.appendChild(E("circle",{cx:lx,cy:yy-3,r:4,fill:"var(--s"+((i%7)+1)+")"}));
-    txt(ds,lx+9,yy,"ax").textContent=(d.n.length>17?d.n.slice(0,16)+"…":d.n);
-  });
+    var pa=E("path",{d:p,fill:"var(--s"+((i%7)+1)+")",class:"hit"+((F.crimes.size&&!sel)?" dim":"")});
+    pa.addEventListener("click",function(){tglCrime(d.n);});
+    pa.appendChild(E("title")).textContent=d.n+": "+fmt(d.v)+" ("+pct(d.v/tot)+")";
+    ds.appendChild(pa);ang=a2;});
+  tx(ds,cx,cy-1,"dl","middle").textContent=compact(tot);
+  tx(ds,cx,cy+11,"ax","middle").textContent="all heads";
+  mix.slice(0,7).forEach(function(d,i){
+    var lx=DW-146,y=14+i*13;
+    ds.appendChild(E("circle",{cx:lx,cy:y-3,r:3.4,fill:"var(--s"+((i%7)+1)+")"}));
+    tx(ds,lx+8,y,"ax").textContent=(d.n.length>19?d.n.slice(0,18)+"…":d.n);});
 
-  /* horizontal bars: DV by state */
-  var rows=si.map(function(i){return {n:ST[i],v:sum([i],[DVI],yi)};})
-             .filter(function(d){return d.v>0;})
-             .sort(function(a,b){return b.v-a.v;}).slice(0,12);
-  hbar("v_states",rows,"var(--s1)",function(d){ toggleState(d.n); });
+  var rows=si.map(function(i){return{n:ST[i],v:sum([i],[DVI],yi)};})
+    .filter(function(d){return d.v>0;}).sort(function(a,b){return b.v-a.v;}).slice(0,11);
+  hbar("v_states",rows,782,218,"var(--s1)",function(d){tglState(d.n);});
 
-  var ab=abc();
-  var hd=ab.a+" of "+ab.total+" entities carry "+pct(ab.share);
+  var ab=abc(),hd=ab.a+" of "+ab.total+" entities carry "+pct(ab.share);
   document.getElementById("v_abchead").textContent=hd;
   document.getElementById("v_abchead2").textContent=hd;
 }
 
-function hbar(host,rows,fill,onClick,fmtV){
-  var W=760,rowH=22,H=Math.max(60,rows.length*rowH+26),P={t:6,r:56,b:20,l:132};
-  var s=svg(host,W,H);
-  var mx=Math.max.apply(null,rows.map(function(d){return d.v;}))||1;
-  var tk=ticks(mx,4), top=tk[tk.length-1];
-  tk.forEach(function(v){ var x=P.l+(W-P.l-P.r)*(v/top);
-    s.appendChild(E("line",{class:"gl",x1:x,x2:x,y1:P.t,y2:H-P.b}));
-    txt(s,x,H-P.b+13,"ax","middle").textContent=(fmtV||compact)(v); });
-  rows.forEach(function(d,i){
-    var y=P.t+i*rowH, w=(W-P.l-P.r)*(d.v/top);
-    var r=E("rect",{x:P.l,y:y+3,width:Math.max(w,1),height:rowH-8,fill:fill,rx:2,class:"bar-r"});
-    if(onClick) r.addEventListener("click",function(){ onClick(d); });
-    r.appendChild(E("title")).textContent=d.n+": "+(fmtV?fmtV(d.v):fmt(d.v));
-    s.appendChild(r);
-    txt(s,P.l-8,y+rowH/2+3,"ax","end").textContent=(d.n.length>20?d.n.slice(0,19)+"…":d.n);
-  });
-}
-
 /* ================= PAGE 2 ================= */
-function renderP2(){
-  var si=activeStateIdx(), yi=activeYearIdx();
+function p2(){
+  var si=sIdx(),yi=yIdx();
   var show=CR.map(function(c,i){return i;}).filter(function(i){return !F.crimes.size||F.crimes.has(CR[i]);});
-
-  var W=760,H=270,P={t:24,r:16,b:34,l:46};
-  var s=svg("v_index",W,H);
-  var lines=show.map(function(ci){
-    var base=sum(si,[ci],[yi[0]])||0;
-    return { ci:ci, n:CR[ci], pts:yi.map(function(y){ var v=sum(si,[ci],[y]); return base>0?(v/base*100):null; }) };
-  });
-  var mx=1; lines.forEach(function(L){ L.pts.forEach(function(p){ if(p!=null&&p>mx) mx=p; }); });
-  var tk=ticks(mx*1.1,4), top=tk[tk.length-1];
-  tk.forEach(function(v){ var y=H-P.b-(H-P.t-P.b)*(v/top);
+  var W=782,H=244,P={t:12,r:8,b:38,l:38};
+  var s=mk("v_index",W,H);
+  var lines=show.map(function(ci){var base=sum(si,[ci],[yi[0]])||0;
+    return{ci:ci,n:CR[ci],pts:yi.map(function(y){var v=sum(si,[ci],[y]);return base>0?v/base*100:null;})};});
+  var mx=1;lines.forEach(function(L){L.pts.forEach(function(p){if(p!=null&&p>mx)mx=p;});});
+  var tk=tks(mx*1.1,4),top=tk[tk.length-1];
+  tk.forEach(function(v){var y=H-P.b-(H-P.t-P.b)*(v/top);
     s.appendChild(E("line",{class:"gl",x1:P.l,x2:W-P.r,y1:y,y2:y}));
-    txt(s,P.l-7,y+3.5,"ax","end").textContent=compact(v); });
-  var xs=function(i){ return P.l+(W-P.l-P.r)*(yi.length<2?0.5:i/(yi.length-1)); };
+    tx(s,P.l-5,y+3,"ax","end").textContent=compact(v);});
+  var xs=function(i){return P.l+(W-P.l-P.r)*(yi.length<2?0.5:i/(yi.length-1));};
+  lines.forEach(function(L){var d="";
+    L.pts.forEach(function(p,i){if(p==null)return;d+=(d?" L":"M")+xs(i)+" "+(H-P.b-(H-P.t-P.b)*(p/top));});
+    var pa=E("path",{d:d,fill:"none",stroke:"var(--s"+((L.ci%7)+1)+")","stroke-width":1.5});
+    pa.appendChild(E("title")).textContent=L.n;s.appendChild(pa);});
+  yi.forEach(function(y,i){if(yi.length<=12||i%3===0||i===yi.length-1)
+    tx(s,xs(i),H-P.b+12,"ax","middle").textContent=YR[y];});
+  var lx=P.l,ly=H-8;
   lines.forEach(function(L){
-    var d=""; L.pts.forEach(function(p,i){ if(p==null)return; d+=(d?" L":"M")+xs(i)+" "+(H-P.b-(H-P.t-P.b)*(p/top)); });
-    var path=E("path",{d:d,fill:"none",stroke:"var(--s"+((L.ci%7)+1)+")","stroke-width":1.8});
-    path.appendChild(E("title")).textContent=L.n; s.appendChild(path);
-  });
-  yi.forEach(function(y,i){ if(yi.length<=12||i%3===0||i===yi.length-1)
-    txt(s,xs(i),H-P.b+14,"ax","middle").textContent=YR[y]; });
-  var lgx=P.l;
-  lines.forEach(function(L){
-    s.appendChild(E("circle",{cx:lgx,cy:H-6,r:4,fill:"var(--s"+((L.ci%7)+1)+")"}));
-    var t=txt(s,lgx+8,H-3,"ax"); t.textContent=(L.n.length>13?L.n.slice(0,12)+"…":L.n);
-    lgx += 20 + Math.min(L.n.length,13)*5.6;
-  });
+    s.appendChild(E("circle",{cx:lx,cy:ly-3,r:3.2,fill:"var(--s"+((L.ci%7)+1)+")"}));
+    tx(s,lx+7,ly,"ax").textContent=(L.n.length>12?L.n.slice(0,11)+"…":L.n);
+    lx+=18+Math.min(L.n.length,12)*5;});
 
-  var cg=show.map(function(ci){
-    var f=sum(si,[ci],[yi[0]]), l=sum(si,[ci],[yi[yi.length-1]]), n=YR[yi[yi.length-1]]-YR[yi[0]];
-    return { n:CR[ci], v:(n>0&&f>0)?(Math.pow(l/f,1/n)-1)*100:0 };
-  }).sort(function(a,b){return b.v-a.v;});
-  hbar("v_cagr",cg.map(function(d){return {n:d.n,v:Math.max(d.v,0)};}),"var(--brand-dim)",
-       function(d){ toggleCrime(d.n); }, function(v){return v.toFixed(1)+"%";});
+  var cg=show.map(function(ci){var f=sum(si,[ci],[yi[0]]),l=sum(si,[ci],[yi[yi.length-1]]),n=YR[yi[yi.length-1]]-YR[yi[0]];
+    return{n:CR[ci],v:(n>0&&f>0)?(Math.pow(l/f,1/n)-1)*100:0};}).sort(function(a,b){return b.v-a.v;});
+  hbar("v_cagr",cg.map(function(d){return{n:d.n,v:Math.max(d.v,0)};}),398,244,"var(--brand2)",
+       function(d){tglCrime(d.n);},function(v){return v.toFixed(0)+"%";},110);
 
   var t=document.getElementById("t_heads");
-  t.innerHTML="<thead><tr><th>Crime head</th><th>IPC section</th><th>Cases</th><th>Share</th><th>CAGR</th><th>Comparable</th></tr></thead>";
+  t.innerHTML="<thead><tr><th>Crime head</th><th>IPC section</th><th>Cases</th><th>Share</th><th>CAGR</th><th>Comp.</th></tr></thead>";
   var tb=document.createElement("tbody");
-  CR.map(function(c,i){return {n:c,i:i,v:sum(si,[i],yi)};}).sort(function(a,b){return b.v-a.v;}).forEach(function(d){
-    var m=CMETA[d.n]||{}, tr=document.createElement("tr");
-    var cg2=(function(){ var f=sum(si,[d.i],[yi[0]]), l=sum(si,[d.i],[yi[yi.length-1]]), n=YR[yi[yi.length-1]]-YR[yi[0]];
-      return (n>0&&f>0)?((Math.pow(l/f,1/n)-1)*100):null; })();
+  CR.map(function(c,i){return{n:c,i:i,v:sum(si,[i],yi)};}).sort(function(a,b){return b.v-a.v;}).forEach(function(d){
+    var m=CMETA[d.n]||{},f=sum(si,[d.i],[yi[0]]),l=sum(si,[d.i],[yi[yi.length-1]]),n=YR[yi[yi.length-1]]-YR[yi[0]];
+    var cg2=(n>0&&f>0)?((Math.pow(l/f,1/n)-1)*100):null;
+    var tr=document.createElement("tr");
     tr.innerHTML="<td>"+d.n+"</td><td style='text-align:left;color:var(--muted);font-weight:400'>"+(m.ipc_section||"–")+
       "</td><td>"+fmt(d.v)+"</td><td>"+(m.share_of_all_crime_pct!=null?m.share_of_all_crime_pct.toFixed(2)+"%":"–")+
       "</td><td>"+(cg2==null?"–":cg2.toFixed(2)+"%")+"</td><td>"+(m.is_comparable_series?"Yes":"<span class='pos'>No</span>")+"</td>";
-    tr.addEventListener("click",function(){ toggleCrime(d.n); });
-    tb.appendChild(tr);
-  });
+    tr.addEventListener("click",function(){tglCrime(d.n);});tb.appendChild(tr);});
   t.appendChild(tb);
 }
 
 /* ================= PAGE 3 ================= */
-function stateRows(){
-  var si=activeStateIdx(), yi=activeYearIdx(), ci=activeCrimeIdx();
-  var rows=si.map(function(i){
-    var m=SMETA[ST[i]]||{}, v=sum([i],ci,yi);
-    var rate=(m.female_population_2011&&yi.length)?(v/yi.length)/m.female_population_2011*100000:0;
-    return { n:ST[i], v:v, rate:rate, pop:m.female_population_2011||0,
-             abc:m.abc_class||"–", risk:m.risk_zone||"–", region:m.region };
-  }).filter(function(d){return d.v>0;});
-  var byV=rows.slice().sort(function(a,b){return b.v-a.v;});
-  byV.forEach(function(d,i){ d.rankV=i+1; });
-  var byR=rows.slice().sort(function(a,b){return b.rate-a.rate;});
-  byR.forEach(function(d,i){ d.rankR=i+1; });
-  rows.forEach(function(d){ d.gap=d.rankV-d.rankR; });
+function rowsState(){
+  var si=sIdx(),yi=yIdx(),ci=cIdx();
+  var rows=si.map(function(i){var m=SMETA[ST[i]]||{},v=sum([i],ci,yi);
+    return{n:ST[i],v:v,rate:(m.female_population_2011&&yi.length)?(v/yi.length)/m.female_population_2011*1e5:0,
+           pop:m.female_population_2011||0,abc:m.abc_class||"–",risk:m.risk_zone||"–"};})
+    .filter(function(d){return d.v>0;});
+  rows.slice().sort(function(a,b){return b.v-a.v;}).forEach(function(d,i){d.rv=i+1;});
+  rows.slice().sort(function(a,b){return b.rate-a.rate;}).forEach(function(d,i){d.rr=i+1;});
+  rows.forEach(function(d){d.gap=d.rv-d.rr;});
   return rows;
 }
-function renderP3(){
-  var rows=stateRows();
-  var W=760,H=300,P={t:18,r:20,b:34,l:48};
-  var s=svg("v_scatter",W,H);
+function p3(){
+  var rows=rowsState();
+  var W=782,H=262,P={t:14,r:12,b:22,l:38};
+  var s=mk("v_scatter",W,H);
   var mxV=Math.max.apply(null,rows.map(function(d){return d.v;}))||1;
   var mxR=Math.max.apply(null,rows.map(function(d){return d.rate;}))||1;
-  var tx=ticks(mxV*1.05,4), topX=tx[tx.length-1];
-  var ty=ticks(mxR*1.1,4),  topY=ty[ty.length-1];
-  ty.forEach(function(v){ var y=H-P.b-(H-P.t-P.b)*(v/topY);
+  var txk=tks(mxV*1.05,4),topX=txk[txk.length-1];
+  var tyk=tks(mxR*1.1,4),topY=tyk[tyk.length-1];
+  tyk.forEach(function(v){var y=H-P.b-(H-P.t-P.b)*(v/topY);
     s.appendChild(E("line",{class:"gl",x1:P.l,x2:W-P.r,y1:y,y2:y}));
-    txt(s,P.l-7,y+3.5,"ax","end").textContent=v.toFixed(0); });
-  tx.forEach(function(v){ var x=P.l+(W-P.l-P.r)*(v/topX);
-    txt(s,x,H-P.b+14,"ax","middle").textContent=compact(v); });
+    tx(s,P.l-5,y+3,"ax","end").textContent=v.toFixed(0);});
+  txk.forEach(function(v){var x=P.l+(W-P.l-P.r)*(v/topX);
+    tx(s,x,H-P.b+12,"ax","middle").textContent=compact(v);});
   var mxP=Math.max.apply(null,rows.map(function(d){return d.pop;}))||1;
   rows.forEach(function(d){
-    var x=P.l+(W-P.l-P.r)*(d.v/topX), y=H-P.b-(H-P.t-P.b)*(d.rate/topY);
-    var r=4+10*Math.sqrt(d.pop/mxP);
-    var c=E("circle",{cx:x,cy:y,r:r,fill:"var(--s1)","fill-opacity":.62,stroke:"var(--brand)",class:"bar-r"});
-    c.addEventListener("click",function(){ toggleState(d.n); });
+    var x=P.l+(W-P.l-P.r)*(d.v/topX),y=H-P.b-(H-P.t-P.b)*(d.rate/topY),r=3.5+8*Math.sqrt(d.pop/mxP);
+    var c=E("circle",{cx:x,cy:y,r:r,fill:"var(--s1)","fill-opacity":.6,stroke:"var(--brand)",class:"hit"});
+    c.addEventListener("click",function(){tglState(d.n);});
     c.appendChild(E("title")).textContent=d.n+" — "+fmt(d.v)+" cases, "+d.rate.toFixed(1)+" per lakh women/yr";
-    s.appendChild(c);
-  });
-  txt(s,P.l,12,"ax").textContent="cases per lakh women / year  ↑    volume →";
+    s.appendChild(c);});
 
   hbar("v_rate",rows.slice().sort(function(a,b){return b.rate-a.rate;}).slice(0,12)
-        .map(function(d){return {n:d.n,v:d.rate};}),"var(--brand-dim)",
-       function(d){ toggleState(d.n); }, function(v){return v.toFixed(0);});
+    .map(function(d){return{n:d.n,v:d.rate};}),398,264,"var(--brand2)",
+    function(d){tglState(d.n);},function(v){return v.toFixed(0);},112);
+
+  var sel=rows.length===1?rows[0]:null;
+  document.getElementById("v_verdict").textContent = sel
+    ? sel.n+": "+fmt(sel.v)+" cases. Rank "+sel.rv+" by volume, rank "+sel.rr+" by intensity ("+sel.rate.toFixed(1)+" per lakh women/yr)."
+    : "Select a single state to see its verdict";
 
   var t=document.getElementById("t_states");
   t.innerHTML="<thead><tr><th>State</th><th>DV cases</th><th>Rank</th><th>Per lakh/yr</th><th>Rate rank</th><th>Gap</th><th>ABC</th><th>Risk</th></tr></thead>";
   var tb=document.createElement("tbody");
   rows.sort(function(a,b){return b.gap-a.gap;}).forEach(function(d){
     var tr=document.createElement("tr");
-    tr.innerHTML="<td>"+d.n+"</td><td>"+fmt(d.v)+"</td><td>"+d.rankV+"</td><td>"+d.rate.toFixed(1)+
-      "</td><td>"+d.rankR+"</td><td class='"+(d.gap>0?"pos":"")+"'>"+(d.gap>0?"+":"")+d.gap+
+    tr.innerHTML="<td>"+d.n+"</td><td>"+fmt(d.v)+"</td><td>"+d.rv+"</td><td>"+d.rate.toFixed(1)+
+      "</td><td>"+d.rr+"</td><td class='"+(d.gap>0?"pos":"")+"'>"+(d.gap>0?"+":"")+d.gap+
       "</td><td>"+d.abc+"</td><td>"+d.risk+"</td>";
-    tr.addEventListener("click",function(){ toggleState(d.n); });
-    tb.appendChild(tr);
-  });
+    tr.addEventListener("click",function(){tglState(d.n);});tb.appendChild(tr);});
   t.appendChild(tb);
 }
 
 /* ================= PAGE 4 ================= */
 function abc(){
-  var si=activeStateIdx(), yi=activeYearIdx();
-  var rows=si.map(function(i){return {n:ST[i],v:sum([i],[DVI],yi)};})
-             .filter(function(d){return d.v>0;}).sort(function(a,b){return b.v-a.v;});
-  var tot=rows.reduce(function(p,q){return p+q.v;},0)||1, run=0;
+  var si=sIdx(),yi=yIdx();
+  var rows=si.map(function(i){return{n:ST[i],v:sum([i],[DVI],yi)};})
+    .filter(function(d){return d.v>0;}).sort(function(a,b){return b.v-a.v;});
+  var tot=rows.reduce(function(p,q){return p+q.v;},0)||1,run=0;
   /* Class on the cumulative reached BEFORE this state, so the state that crosses
-     70% lands inside A. Same convention as the ETL, the SQL and the DAX. */
-  rows.forEach(function(d){ var before=run/tot; run+=d.v;
-    d.cum=run/tot; d.cls = before<0.70?"A":(before<0.90?"B":"C"); });
+     70% lands inside A - the same convention as the ETL, the SQL and the DAX. */
+  rows.forEach(function(d){var before=run/tot;run+=d.v;d.cum=run/tot;
+    d.cls=before<0.70?"A":(before<0.90?"B":"C");});
   var a=rows.filter(function(d){return d.cls==="A";});
-  return { rows:rows, total:rows.length, a:a.length,
-           share:a.reduce(function(p,q){return p+q.v;},0)/tot };
+  return{rows:rows,total:rows.length,a:a.length,share:a.reduce(function(p,q){return p+q.v;},0)/tot};
 }
-function renderP4(){
-  var ab=abc(), rows=ab.rows;
-  var W=1180,H=270,P={t:16,r:44,b:70,l:52};
-  var s=svg("v_pareto",W,H);
-  var mx=rows.length?rows[0].v:1, tk=ticks(mx*1.05,4), top=tk[tk.length-1];
+function p4(){
+  var ab=abc(),rows=ab.rows;
+  var W=1214,H=244,P={t:10,r:32,b:62,l:44};
+  var s=mk("v_pareto",W,H);
+  var mx=rows.length?rows[0].v:1,tk=tks(mx*1.05,4),top=tk[tk.length-1];
   var bw=(W-P.l-P.r)/Math.max(rows.length,1);
-  tk.forEach(function(v){ var y=H-P.b-(H-P.t-P.b)*(v/top);
+  tk.forEach(function(v){var y=H-P.b-(H-P.t-P.b)*(v/top);
     s.appendChild(E("line",{class:"gl",x1:P.l,x2:W-P.r,y1:y,y2:y}));
-    txt(s,P.l-7,y+3.5,"ax","end").textContent=compact(v); });
-  [0.5,1].forEach(function(f){ var y=H-P.b-(H-P.t-P.b)*f;
-    txt(s,W-P.r+6,y+3.5,"ax").textContent=(f*100)+"%"; });
+    tx(s,P.l-5,y+3,"ax","end").textContent=compact(v);});
+  [0.5,1].forEach(function(f){tx(s,W-P.r+5,H-P.b-(H-P.t-P.b)*f+3,"ax").textContent=(f*100)+"%";});
   rows.forEach(function(d,i){
-    var h=(H-P.t-P.b)*(d.v/top), x=P.l+i*bw+bw*0.15;
-    var col = d.cls==="A"?"var(--s1)":(d.cls==="B"?"var(--brand-dim)":"#6b4a4c");
-    var r=E("rect",{x:x,y:H-P.b-h,width:Math.max(bw*0.7,1),height:Math.max(h,1),fill:col,rx:1,class:"bar-r"});
-    r.addEventListener("click",function(){ toggleState(d.n); });
+    var h=(H-P.t-P.b)*(d.v/top),x=P.l+i*bw+bw*0.15;
+    var col=d.cls==="A"?"var(--s1)":(d.cls==="B"?"var(--brand2)":"#d9a3a6");
+    var r=E("rect",{x:x,y:H-P.b-h,width:Math.max(bw*0.7,1),height:Math.max(h,1),fill:col,rx:1,class:"hit"});
+    r.addEventListener("click",function(){tglState(d.n);});
     r.appendChild(E("title")).textContent=d.n+": "+fmt(d.v)+" — class "+d.cls+", cumulative "+pct(d.cum);
     s.appendChild(r);
-    var t=txt(s,P.l+i*bw+bw/2,H-P.b+10,"ax","end");
-    t.textContent=(d.n.length>15?d.n.slice(0,14)+"…":d.n);
-    t.setAttribute("transform","rotate(-45 "+(P.l+i*bw+bw/2)+" "+(H-P.b+10)+")");
-  });
-  var dp=""; rows.forEach(function(d,i){ dp+=(i?" L":"M")+(P.l+i*bw+bw/2)+" "+(H-P.b-(H-P.t-P.b)*d.cum); });
-  s.appendChild(E("path",{d:dp,fill:"none",stroke:"var(--ink)","stroke-width":1.6,opacity:.85}));
-  [0.7,0.9].forEach(function(f){ var y=H-P.b-(H-P.t-P.b)*f;
-    s.appendChild(E("line",{x1:P.l,x2:W-P.r,y1:y,y2:y,stroke:"var(--brand)","stroke-dasharray":"4 4","stroke-width":1,opacity:.55})); });
+    var cxp=P.l+i*bw+bw/2;
+    var t=tx(s,cxp,H-P.b+8,"ax","end");
+    t.textContent=(d.n.length>14?d.n.slice(0,13)+"…":d.n);
+    t.setAttribute("transform","rotate(-45 "+cxp+" "+(H-P.b+8)+")");});
+  var dp="";rows.forEach(function(d,i){dp+=(i?" L":"M")+(P.l+i*bw+bw/2)+" "+(H-P.b-(H-P.t-P.b)*d.cum);});
+  s.appendChild(E("path",{d:dp,fill:"none",stroke:"#2b2b2b","stroke-width":1.4,opacity:.85}));
+  [0.7,0.9].forEach(function(f){var y=H-P.b-(H-P.t-P.b)*f;
+    s.appendChild(E("line",{x1:P.l,x2:W-P.r,y1:y,y2:y,stroke:"var(--brand)","stroke-dasharray":"4 4","stroke-width":1,opacity:.5}));});
 
-  var ZONES=["Critical","High","Moderate","Low"];
-  var m={A:{},B:{},C:{}}; ["A","B","C"].forEach(function(k){ ZONES.forEach(function(z){ m[k][z]=0; }); });
-  rows.forEach(function(d){ var z=(SMETA[d.n]||{}).risk_zone; if(m[d.cls]&&z&&m[d.cls][z]!=null) m[d.cls][z]++; });
+  var Z=["Critical","High","Moderate","Low"],m={A:{},B:{},C:{}};
+  ["A","B","C"].forEach(function(k){Z.forEach(function(z){m[k][z]=0;});});
+  rows.forEach(function(d){var z=(SMETA[d.n]||{}).risk_zone;if(m[d.cls]&&z&&m[d.cls][z]!=null)m[d.cls][z]++;});
   var t1=document.getElementById("t_matrix");
-  t1.innerHTML="<thead><tr><th>ABC</th>"+ZONES.map(function(z){return "<th>"+z+"</th>";}).join("")+"<th>Total</th></tr></thead>";
+  t1.innerHTML="<thead><tr><th>ABC</th>"+Z.map(function(z){return "<th>"+z+"</th>";}).join("")+"<th>Total</th></tr></thead>";
   var b1=document.createElement("tbody");
-  ["A","B","C"].forEach(function(k){
-    var tot=ZONES.reduce(function(p,z){return p+m[k][z];},0);
-    b1.innerHTML+="<tr><td>"+k+"</td>"+ZONES.map(function(z){return "<td>"+(m[k][z]||"")+"</td>";}).join("")+"<td>"+tot+"</td></tr>";
-  });
-  var col=ZONES.map(function(z){ return ["A","B","C"].reduce(function(p,k){return p+m[k][z];},0); });
+  ["A","B","C"].forEach(function(k){var t=Z.reduce(function(p,z){return p+m[k][z];},0);
+    b1.innerHTML+="<tr><td>"+k+"</td>"+Z.map(function(z){return "<td>"+(m[k][z]||"")+"</td>";}).join("")+"<td>"+t+"</td></tr>";});
+  var col=Z.map(function(z){return ["A","B","C"].reduce(function(p,k){return p+m[k][z];},0);});
   b1.innerHTML+="<tr class='tot'><td>Total</td>"+col.map(function(v){return "<td>"+v+"</td>";}).join("")+
-                "<td>"+col.reduce(function(p,q){return p+q;},0)+"</td></tr>";
+    "<td>"+col.reduce(function(p,q){return p+q;},0)+"</td></tr>";
   t1.appendChild(b1);
 
   var t2=document.getElementById("t_priority");
   t2.innerHTML="<thead><tr><th>State</th><th>Priority segment</th><th>DV cases</th></tr></thead>";
   var b2=document.createElement("tbody");
-  rows.forEach(function(d){
-    var z=(SMETA[d.n]||{}).risk_zone, hot=(z==="Critical"||z==="High");
-    var seg = d.cls==="A"&&hot ? "P1 — Scale intervention (high volume, high intensity)"
-            : d.cls==="A"      ? "P2 — Sustain capacity (high volume, contained intensity)"
-            : hot              ? "P3 — Targeted intervention (small entity, high intensity)"
-            :                    "P4 — Monitor";
+  rows.forEach(function(d){var z=(SMETA[d.n]||{}).risk_zone,hot=(z==="Critical"||z==="High");
+    var seg=d.cls==="A"&&hot?"P1 — Scale intervention (high volume, high intensity)"
+      :d.cls==="A"?"P2 — Sustain capacity (high volume, contained intensity)"
+      :hot?"P3 — Targeted intervention (small entity, high intensity)":"P4 — Monitor";
     var tr=document.createElement("tr");
     tr.innerHTML="<td>"+d.n+"</td><td style='text-align:left;font-weight:400'>"+seg+"</td><td>"+fmt(d.v)+"</td>";
-    tr.addEventListener("click",function(){ toggleState(d.n); });
-    b2.appendChild(tr);
-  });
+    tr.addEventListener("click",function(){tglState(d.n);});b2.appendChild(tr);});
   t2.appendChild(b2);
 }
 
 /* ================= PAGE 5 ================= */
-function renderP5(){
-  var rows=(D.years||[]).map(function(y){ return {n:String(y.year),v:y.reporting_entities||0}; });
-  if(rows.length) hbar("v_entities",rows,"var(--teal)",null,function(v){return v.toFixed(0);});
+function p5(){
+  var rows=(D.years||[]).map(function(y){return{n:String(y.year),v:y.reporting_entities||0};});
+  var W=586,H=150,P={t:6,r:6,b:18,l:26};
+  var s=mk("v_entities",W,H);
+  var mx=Math.max.apply(null,rows.map(function(d){return d.v;}))||1;
+  var tk=tks(mx*1.1,3),top=tk[tk.length-1],bw=(W-P.l-P.r)/Math.max(rows.length,1);
+  tk.forEach(function(v){var y=H-P.b-(H-P.t-P.b)*(v/top);
+    s.appendChild(E("line",{class:"gl",x1:P.l,x2:W-P.r,y1:y,y2:y}));
+    tx(s,P.l-4,y+3,"ax","end").textContent=v.toFixed(0);});
+  rows.forEach(function(d,i){var h=(H-P.t-P.b)*(d.v/top);
+    var r=E("rect",{x:P.l+i*bw+bw*0.15,y:H-P.b-h,width:bw*0.7,height:Math.max(h,1),fill:"var(--teal)",rx:1});
+    r.appendChild(E("title")).textContent=d.n+": "+d.v+" entities";s.appendChild(r);
+    if(i%4===0||i===rows.length-1)tx(s,P.l+i*bw+bw/2,H-P.b+11,"ax","middle").textContent=d.n;});
   /* Flag counts are ETL outputs over the unfiltered 5,152-cell grid - the same
      numbers the Power BI page reads from its FactQuality table. */
-  var t=document.getElementById("t_flags");
-  t.innerHTML="<thead><tr><th>Quality flag</th><th>2001–2010</th><th>2011–2021</th><th>Total</th></tr></thead>"+
-    "<tbody>"+
+  document.getElementById("t_flags").innerHTML=
+    "<thead><tr><th>Quality flag</th><th>2001–2010</th><th>2011–2021</th><th>Total</th></tr></thead><tbody>"+
     "<tr><td>entity_not_formed</td><td></td><td>21</td><td>21</td></tr>"+
     "<tr><td>ok</td><td>2,310</td><td>2,654</td><td>4,964</td></tr>"+
     "<tr><td>source_gap</td><td></td><td>34</td><td>34</td></tr>"+
     "<tr class='tot'><td>Total</td><td>2,310</td><td>2,709</td><td>5,019</td></tr></tbody>";
 }
 
-/* ---------- interactions ---------- */
-function toggleState(n){ F.state = (F.state===n)?null:n; render(); }
-function toggleCrime(n){ if(F.crimes.has(n)) F.crimes.delete(n); else F.crimes.add(n); syncSlicers(); render(); }
-function toggleYear(y){ if(F.years.has(y)) F.years.delete(y); else F.years.add(y); syncSlicers(); render(); }
-
-function syncSlicers(){
-  buildSlicer("sl_year",YR,F.years,render);
-  buildSlicer("sl_region",REGIONS,F.regions,function(){ mirror(F.regions,"sl_region2",REGIONS); render(); });
-  buildSlicer("sl_region2",REGIONS,F.regions,function(){ mirror(F.regions,"sl_region",REGIONS); render(); });
-  buildSlicer("sl_etype",ETYPES,F.etypes,render);
-  buildSlicer("sl_crime",CR,F.crimes,render);
+/* ---------- interaction ---------- */
+function tglState(n){F.state=(F.state===n)?null:n;sync();render();}
+function tglCrime(n){F.crimes.has(n)?F.crimes.delete(n):F.crimes.add(n);sync();render();}
+function tglYear(y){F.years.has(y)?F.years.delete(y):F.years.add(y);sync();render();}
+function sync(){
+  slicer("sl_year",YR,F.years);slicer("sl_year2",YR,F.years);
+  slicer("sl_region",REGIONS,F.regions);slicer("sl_region2",REGIONS,F.regions);
+  slicer("sl_etype",ETYPES,F.etypes);slicer("sl_crime",CR,F.crimes);
 }
-function mirror(set,host,items){ buildSlicer(host,items,set,render); }
-
 function render(){
-  renderChips();
-  var active=document.querySelector(".page.on");
-  var id=active?active.id:"p1";
-  if(id==="p1") renderP1();
-  else if(id==="p2") renderP2();
-  else if(id==="p3") renderP3();
-  else if(id==="p4") renderP4();
-  else renderP5();
+  chips();
+  var id=(document.querySelector(".canvas.on")||{id:"p1"}).id;
+  if(id==="p1")p1();else if(id==="p2")p2();else if(id==="p3")p3();else if(id==="p4")p4();else p5();
+  fit();
 }
-
 document.querySelectorAll(".tab").forEach(function(b){
   b.addEventListener("click",function(){
-    document.querySelectorAll(".tab").forEach(function(x){ x.setAttribute("aria-selected","false"); });
+    document.querySelectorAll(".tab").forEach(function(x){x.setAttribute("aria-selected","false");});
     b.setAttribute("aria-selected","true");
-    document.querySelectorAll(".page").forEach(function(p){ p.classList.remove("on"); });
+    document.querySelectorAll(".canvas").forEach(function(p){p.classList.remove("on");});
     document.getElementById(b.dataset.p).classList.add("on");
     render();
   });
 });
 document.getElementById("clearAll").addEventListener("click",function(){
-  F.years.clear(); F.regions.clear(); F.etypes.clear(); F.crimes.clear(); F.state=null;
-  syncSlicers(); render();
-});
+  F.years.clear();F.regions.clear();F.etypes.clear();F.crimes.clear();F.state=null;sync();render();});
 
-syncSlicers();
-render();
+sync();render();
 })();
 </script>
 </body>

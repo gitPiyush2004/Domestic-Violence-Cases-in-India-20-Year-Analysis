@@ -28,14 +28,19 @@ report in [`powerbi-showcase/`](powerbi-showcase/index.html).</sub>
 | Site | Folder | What it is |
 |---|---|---|
 | Interactive dashboard | [`dashboard/`](dashboard/index.html) | Five pages, charts rendered from `data.js`, filters and table views |
-| Power BI replica | [`powerbi-showcase/`](powerbi-showcase/index.html) | The Power BI report rebuilt for the browser — same five pages, working slicers and cross-filtering, dark theme |
+| Power BI replica | [`powerbi-showcase/`](powerbi-showcase/index.html) | The Power BI report rebuilt for the browser — same five pages, same canvas, working slicers and cross-filtering |
 
-The replica is not a screenshot gallery. It reads the same `data.js` cube the web dashboard
-uses and recomputes every measure in the browser, so slicing by year or region, or clicking
-a bar, slice or table row, cross-filters the page the way Power BI does. Its figures are
-reconciled against the model: **39.2% DV share · 302,143 for West Bengal · "8 of 36 entities
-carry 72.9%"**, and the ABC classification recomputes inside the slicer exactly as the DAX
-does (2001–2010 alone gives "7 of 33 carry 71.2%").
+The replica is not a screenshot gallery. Each page is a **1280×720 report canvas** holding the
+same tiles at the same coordinates as the Power BI layout, scaled to fit the window — so the
+composition reads as a Power BI page rather than a scrolling web page. Dark chrome frames a
+light canvas, matching the report theme.
+
+It reads the same `data.js` cube the web dashboard uses and recomputes every measure in the
+browser, so slicing by year or region, or clicking a bar, slice or table row, cross-filters
+the page the way Power BI does. Figures are reconciled against the model: **39.2% DV share ·
+302,143 for West Bengal · 136K for 2021 alone · "8 of 36 entities carry 72.9%"** — and the ABC
+classification recomputes inside the slicer exactly as the DAX does (2001–2010 alone gives
+"7 of 33 carry 71.2%").
 
 ---
 
