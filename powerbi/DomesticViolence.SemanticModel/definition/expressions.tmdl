@@ -1,0 +1,9 @@
+/// Repository root. Every query resolves its path from this one value, so cloning
+/// the repo to a new machine is a single-field edit rather than five path fixes.
+/// Change via Transform data > Manage Parameters > RepoRoot.
+expression RepoRoot = "C:\Users\hp\Desktop\Domestic Violance Cases\repo" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 2c1f0a10-0400-4a00-9000-000000000400
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text

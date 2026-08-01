@@ -1,0 +1,164 @@
+/// One row per reporting entity: 28 states + 8 union territories.
+table DimState
+	lineageTag: 2c1f0a10-0100-4a00-9000-000000000100
+
+	column State
+		dataType: string
+		isKey
+		lineageTag: 2c1f0a10-0101-4a00-9000-000000000101
+		summarizeBy: none
+		sourceColumn: State
+		dataCategory: StateOrProvince
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'State Code'
+		dataType: string
+		lineageTag: 2c1f0a10-0102-4a00-9000-000000000102
+		summarizeBy: none
+		sourceColumn: State Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entity Type'
+		dataType: string
+		lineageTag: 2c1f0a10-0103-4a00-9000-000000000103
+		summarizeBy: none
+		sourceColumn: Entity Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Region
+		dataType: string
+		lineageTag: 2c1f0a10-0104-4a00-9000-000000000104
+		summarizeBy: none
+		sourceColumn: Region
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Population 2011'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 2c1f0a10-0105-4a00-9000-000000000105
+		summarizeBy: none
+		sourceColumn: Population 2011
+
+		annotation SummarizationSetBy = User
+
+	column 'Female Population 2011'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 2c1f0a10-0106-4a00-9000-000000000106
+		summarizeBy: none
+		sourceColumn: Female Population 2011
+
+		annotation SummarizationSetBy = User
+
+	column 'Sex Ratio 2011'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 2c1f0a10-0107-4a00-9000-000000000107
+		summarizeBy: none
+		sourceColumn: Sex Ratio 2011
+
+		annotation SummarizationSetBy = User
+
+	column 'Literacy Rate 2011'
+		dataType: double
+		formatString: #,0.0
+		lineageTag: 2c1f0a10-0108-4a00-9000-000000000108
+		summarizeBy: none
+		sourceColumn: Literacy Rate 2011
+
+		annotation SummarizationSetBy = User
+
+	/// ETL-computed reference values. The dashboard uses the dynamic DAX equivalents;
+	/// these are what those are validated against.
+	column 'DV Total Cases (static)'
+		dataType: int64
+		formatString: #,0
+		isHidden
+		lineageTag: 2c1f0a10-0109-4a00-9000-000000000109
+		summarizeBy: none
+		sourceColumn: DV Total Cases (static)
+
+		annotation SummarizationSetBy = User
+
+	column 'DV CAGR % (static)'
+		dataType: double
+		formatString: #,0.00
+		isHidden
+		lineageTag: 2c1f0a10-010a-4a00-9000-00000000010a
+		summarizeBy: none
+		sourceColumn: DV CAGR % (static)
+
+		annotation SummarizationSetBy = User
+
+	column 'Trend Direction'
+		dataType: string
+		lineageTag: 2c1f0a10-010b-4a00-9000-00000000010b
+		summarizeBy: none
+		sourceColumn: Trend Direction
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Risk Zone (static)'
+		dataType: string
+		lineageTag: 2c1f0a10-010c-4a00-9000-00000000010c
+		summarizeBy: none
+		sourceColumn: Risk Zone (static)
+		sortByColumn: 'Risk Zone Sort'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'ABC Class (static)'
+		dataType: string
+		lineageTag: 2c1f0a10-010d-4a00-9000-00000000010d
+		summarizeBy: none
+		sourceColumn: ABC Class (static)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DV Rank (static)'
+		dataType: int64
+		formatString: #,0
+		isHidden
+		lineageTag: 2c1f0a10-010e-4a00-9000-00000000010e
+		summarizeBy: none
+		sourceColumn: DV Rank (static)
+
+		annotation SummarizationSetBy = User
+
+	/// Boundary-change caveats: J&K/Ladakh, the 2020 D&N Haveli merger, Telangana 2014.
+	column 'Boundary Notes'
+		dataType: string
+		lineageTag: 2c1f0a10-010f-4a00-9000-00000000010f
+		summarizeBy: none
+		sourceColumn: Boundary Notes
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Risk Zone Sort'
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: 2c1f0a10-0110-4a00-9000-000000000110
+		summarizeBy: none
+		sourceColumn: Risk Zone Sort
+
+		annotation SummarizationSetBy = User
+
+	partition DimState = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(RepoRoot & "\data\processed\dim_state.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+					Selected = Table.SelectColumns(Promoted, {"state_clean", "state_code", "entity_type", "region", "population_2011", "female_population_2011", "sex_ratio_2011", "literacy_rate_2011", "dv_total_cases", "dv_cagr_pct", "trend_direction", "risk_zone", "abc_class", "rank", "notes"}),
+					Typed = Table.TransformColumnTypes(Selected, {{"state_clean", type text}, {"state_code", type text}, {"entity_type", type text}, {"region", type text}, {"population_2011", Int64.Type}, {"female_population_2011", Int64.Type}, {"sex_ratio_2011", Int64.Type}, {"literacy_rate_2011", type number}, {"dv_total_cases", Int64.Type}, {"dv_cagr_pct", type number}, {"trend_direction", type text}, {"risk_zone", type text}, {"abc_class", type text}, {"rank", Int64.Type}, {"notes", type text}}),
+					Renamed = Table.RenameColumns(Typed, {{"state_clean", "State"}, {"state_code", "State Code"}, {"entity_type", "Entity Type"}, {"region", "Region"}, {"population_2011", "Population 2011"}, {"female_population_2011", "Female Population 2011"}, {"sex_ratio_2011", "Sex Ratio 2011"}, {"literacy_rate_2011", "Literacy Rate 2011"}, {"dv_total_cases", "DV Total Cases (static)"}, {"dv_cagr_pct", "DV CAGR % (static)"}, {"trend_direction", "Trend Direction"}, {"risk_zone", "Risk Zone (static)"}, {"abc_class", "ABC Class (static)"}, {"rank", "DV Rank (static)"}, {"notes", "Boundary Notes"}}),
+					WithRiskSort = Table.AddColumn(Renamed, "Risk Zone Sort", each if [#"Risk Zone (static)"] = "Critical" then 1 else if [#"Risk Zone (static)"] = "High" then 2 else if [#"Risk Zone (static)"] = "Moderate" then 3 else if [#"Risk Zone (static)"] = "Low" then 4 else 9, Int64.Type)
+				in
+					WithRiskSort
+
+	annotation PBI_ResultType = Table

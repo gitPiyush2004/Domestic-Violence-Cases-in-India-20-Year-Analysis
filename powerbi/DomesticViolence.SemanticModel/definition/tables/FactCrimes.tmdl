@@ -1,0 +1,271 @@
+/// Grain: one row per state x year x crime head. Filtered to include_in_analysis.
+table FactCrimes
+	lineageTag: 2c1f0a10-0001-4a00-9000-000000000001
+
+	measure 'Total Cases' = SUM ( FactCrimes[cases] )
+		formatString: #,0
+		lineageTag: 2c1f0a10-0002-4a00-9000-000000000002
+
+	measure 'DV Cases' = CALCULATE ( [Total Cases], DimCrimeType[Crime Code] = "DV" )
+		formatString: #,0
+		lineageTag: 2c1f0a10-0003-4a00-9000-000000000003
+
+	measure 'All Crime Cases' = CALCULATE ( [Total Cases], REMOVEFILTERS ( DimCrimeType ) )
+		formatString: #,0
+		lineageTag: 2c1f0a10-0004-4a00-9000-000000000004
+
+	/// Blank for 2011: Assault on Women is missing from the source that year, so the
+	/// all-crime denominator is short and the share would print a false spike.
+	measure 'DV Share %' =
+			VAR NonComparableYears =
+				CALCULATE ( COUNTROWS ( DimYear ), DimYear[All Crimes Comparable] = FALSE () )
+			RETURN
+				IF ( COALESCE ( NonComparableYears, 0 ) = 0, DIVIDE ( [DV Cases], [All Crime Cases] ) )
+		formatString: 0.0%
+		lineageTag: 2c1f0a10-0005-4a00-9000-000000000005
+
+	measure 'States Reporting' = CALCULATE ( DISTINCTCOUNT ( FactCrimes[state_clean] ) )
+		formatString: #,0
+		lineageTag: 2c1f0a10-0006-4a00-9000-000000000006
+
+	measure 'Years Covered' = CALCULATE ( DISTINCTCOUNT ( FactCrimes[year] ) )
+		formatString: #,0
+		lineageTag: 2c1f0a10-0007-4a00-9000-000000000007
+
+	measure 'DV Cases PY' =
+			VAR Y = SELECTEDVALUE ( DimYear[Year] )
+			RETURN
+				IF ( NOT ISBLANK ( Y ),
+					CALCULATE ( [DV Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = Y - 1 ) ) )
+		formatString: #,0
+		lineageTag: 2c1f0a10-0008-4a00-9000-000000000008
+
+	measure 'DV YoY %' = DIVIDE ( [DV Cases] - [DV Cases PY], [DV Cases PY] )
+		formatString: +0.0%;-0.0%;0.0%
+		lineageTag: 2c1f0a10-0009-4a00-9000-000000000009
+
+	measure 'DV 3Y Moving Avg' =
+			VAR Y = SELECTEDVALUE ( DimYear[Year] )
+			RETURN
+				IF ( NOT ISBLANK ( Y ),
+					CALCULATE (
+						AVERAGEX ( VALUES ( DimYear[Year] ), [DV Cases] ),
+						FILTER ( ALL ( DimYear[Year] ), DimYear[Year] >= Y - 2 && DimYear[Year] <= Y )
+					) )
+		formatString: #,0
+		lineageTag: 2c1f0a10-000a-4a00-9000-00000000000a
+
+	/// ALLSELECTED so the growth rate follows the year slicer window.
+	measure 'DV CAGR %' =
+			VAR VisibleYears = ALLSELECTED ( DimYear[Year] )
+			VAR FirstYear = MINX ( VisibleYears, DimYear[Year] )
+			VAR LastYear = MAXX ( VisibleYears, DimYear[Year] )
+			VAR Periods = LastYear - FirstYear
+			VAR FirstValue = CALCULATE ( [DV Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = FirstYear ) )
+			VAR LastValue = CALCULATE ( [DV Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = LastYear ) )
+			RETURN
+				IF ( Periods > 0 && FirstValue > 0, ( DIVIDE ( LastValue, FirstValue ) ^ DIVIDE ( 1, Periods ) ) - 1 )
+		formatString: 0.00%
+		lineageTag: 2c1f0a10-000b-4a00-9000-00000000000b
+
+	/// Rebases each state to 100 in the first visible year so small states are legible.
+	measure 'DV Index (Base = 100)' =
+			VAR BaseYear = CALCULATE ( MIN ( DimYear[Year] ), ALLSELECTED ( DimYear ) )
+			VAR BaseValue = CALCULATE ( [DV Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = BaseYear ) )
+			RETURN DIVIDE ( [DV Cases], BaseValue ) * 100
+		formatString: #,0
+		lineageTag: 2c1f0a10-000c-4a00-9000-00000000000c
+
+	measure 'Female Population' =
+			SUMX ( VALUES ( DimState[State] ), CALCULATE ( MAX ( DimState[Female Population 2011] ) ) )
+		formatString: #,0
+		lineageTag: 2c1f0a10-000d-4a00-9000-00000000000d
+
+	measure 'DV Rate per Lakh Women' = DIVIDE ( [DV Cases], [Female Population] ) * 100000
+		formatString: #,0.0
+		lineageTag: 2c1f0a10-000e-4a00-9000-00000000000e
+
+	/// Window-safe: divides by years in context so the value stays readable at any slicer width.
+	measure 'DV Rate per Lakh Women (Annual Avg)' =
+			VAR YearsInContext = DISTINCTCOUNT ( FactCrimes[year] )
+			RETURN DIVIDE ( DIVIDE ( [DV Cases], YearsInContext ), [Female Population] ) * 100000
+		formatString: #,0.0
+		lineageTag: 2c1f0a10-000f-4a00-9000-00000000000f
+
+	measure 'DV Rate vs National' =
+			VAR StateRate = [DV Rate per Lakh Women]
+			VAR NationalRate = CALCULATE ( DIVIDE ( [DV Cases], [Female Population] ) * 100000, REMOVEFILTERS ( DimState ) )
+			RETURN DIVIDE ( StateRate, NationalRate )
+		formatString: 0.00
+		lineageTag: 2c1f0a10-0010-4a00-9000-000000000010
+
+	/// Pareto engine: share of national volume carried by states ranked at or above this one.
+	measure 'DV Cumulative Share %' =
+			VAR CurrentState = SELECTEDVALUE ( DimState[State] )
+			VAR CurrentValue = [DV Cases]
+			VAR StateTotals = ADDCOLUMNS ( ALLSELECTED ( DimState[State] ), "@dv", CALCULATE ( [DV Cases] ) )
+			VAR GrandTotal = SUMX ( StateTotals, [@dv] )
+			VAR RunningTotal = SUMX ( FILTER ( StateTotals, [@dv] >= CurrentValue ), [@dv] )
+			RETURN
+				IF ( NOT ISBLANK ( CurrentState ) && CurrentValue > 0, DIVIDE ( RunningTotal, GrandTotal ) )
+		formatString: 0.0%
+		lineageTag: 2c1f0a10-0011-4a00-9000-000000000011
+
+	measure 'ABC Class' =
+			VAR Cumulative = [DV Cumulative Share %]
+			RETURN
+				SWITCH ( TRUE (), ISBLANK ( Cumulative ), BLANK (), Cumulative <= 0.70, "A", Cumulative <= 0.90, "B", "C" )
+		lineageTag: 2c1f0a10-0012-4a00-9000-000000000012
+
+	measure 'States in Class A' = COUNTROWS ( FILTER ( VALUES ( DimState[State] ), [ABC Class] = "A" ) )
+		formatString: #,0
+		lineageTag: 2c1f0a10-0013-4a00-9000-000000000013
+
+	measure 'Class A Cases' = SUMX ( FILTER ( VALUES ( DimState[State] ), [ABC Class] = "A" ), [DV Cases] )
+		formatString: #,0
+		lineageTag: 2c1f0a10-0014-4a00-9000-000000000014
+
+	measure 'Class A Share %' =
+			DIVIDE ( [Class A Cases], CALCULATE ( [DV Cases], REMOVEFILTERS ( DimState ) ) )
+		formatString: 0.0%
+		lineageTag: 2c1f0a10-0015-4a00-9000-000000000015
+
+	/// Card text that restates the concentration finding for the current slicer state.
+	measure 'ABC Headline' =
+			VAR N = [States in Class A]
+			VAR Share = [Class A Share %]
+			VAR Total = COUNTROWS ( ALLSELECTED ( DimState[State] ) )
+			RETURN
+				IF ( NOT ISBLANK ( N ),
+					FORMAT ( N, "0" ) & " of " & FORMAT ( Total, "0" ) & " entities carry "
+						& FORMAT ( Share, "0.0%" ) & " of recorded domestic violence" )
+		lineageTag: 2c1f0a10-0016-4a00-9000-000000000016
+
+	measure 'Risk Threshold Moderate' = 2.5
+		formatString: #,0.0
+		lineageTag: 2c1f0a10-0017-4a00-9000-000000000017
+
+	measure 'Risk Threshold High' = 9.1
+		formatString: #,0.0
+		lineageTag: 2c1f0a10-0018-4a00-9000-000000000018
+
+	measure 'Risk Threshold Critical' = 22.9
+		formatString: #,0.0
+		lineageTag: 2c1f0a10-0019-4a00-9000-000000000019
+
+	/// Quartiles of the 2021 rate distribution, from data/processed/risk_thresholds.json.
+	measure 'Risk Zone' =
+			VAR Rate = [DV Rate per Lakh Women (Annual Avg)]
+			RETURN
+				SWITCH (
+					TRUE (),
+					ISBLANK ( Rate ), BLANK (),
+					Rate >= [Risk Threshold Critical], "Critical",
+					Rate >= [Risk Threshold High], "High",
+					Rate >= [Risk Threshold Moderate], "Moderate",
+					"Low"
+				)
+		lineageTag: 2c1f0a10-001a-4a00-9000-00000000001a
+
+	measure 'DV Rank' =
+			IF ( NOT ISBLANK ( [DV Cases] ), RANKX ( ALLSELECTED ( DimState[State] ), [DV Cases], , DESC, DENSE ) )
+		formatString: #,0
+		lineageTag: 2c1f0a10-001b-4a00-9000-00000000001b
+
+	measure 'DV Rate Rank' =
+			IF ( NOT ISBLANK ( [DV Cases] ),
+				RANKX ( ALLSELECTED ( DimState[State] ), [DV Rate per Lakh Women (Annual Avg)], , DESC, DENSE ) )
+		formatString: #,0
+		lineageTag: 2c1f0a10-001c-4a00-9000-00000000001c
+
+	/// Positive means the state is more intense than its case count suggests.
+	measure 'Volume vs Intensity Gap' = [DV Rank] - [DV Rate Rank]
+		formatString: +0;-0;0
+		lineageTag: 2c1f0a10-001d-4a00-9000-00000000001d
+
+	measure 'Priority Segment' =
+			VAR Class = [ABC Class]
+			VAR Zone = [Risk Zone]
+			VAR Growing = [DV CAGR %] > 0
+			RETURN
+				SWITCH (
+					TRUE (),
+					ISBLANK ( Class ) || ISBLANK ( Zone ), BLANK (),
+					Class = "A" && Zone IN { "Critical", "High" }, "P1 - Scale intervention (high volume, high intensity)",
+					Class = "A", "P2 - Sustain capacity (high volume, contained intensity)",
+					Zone IN { "Critical", "High" }, "P3 - Targeted intervention (small entity, high intensity)",
+					Growing, "P4 - Monitor (low now, rising)",
+					"P5 - Maintain"
+				)
+		lineageTag: 2c1f0a10-001e-4a00-9000-00000000001e
+
+	measure 'Filter Context Label' =
+			VAR YearMin = MIN ( DimYear[Year] )
+			VAR YearMax = MAX ( DimYear[Year] )
+			VAR StateCnt = [States Reporting]
+			VAR AllStates = COUNTROWS ( ALL ( DimState[State] ) )
+			VAR Scope = IF ( StateCnt = AllStates, "all India", FORMAT ( StateCnt, "#,0" ) & " entities" )
+			RETURN "Recorded cases, " & YearMin & "-" & YearMax & ", " & Scope
+		lineageTag: 2c1f0a10-001f-4a00-9000-00000000001f
+
+	column state_clean
+		dataType: string
+		isHidden
+		lineageTag: 2c1f0a10-0020-4a00-9000-000000000020
+		summarizeBy: none
+		sourceColumn: state_clean
+
+		annotation SummarizationSetBy = Automatic
+
+	column year
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: 2c1f0a10-0021-4a00-9000-000000000021
+		summarizeBy: none
+		sourceColumn: year
+
+		annotation SummarizationSetBy = User
+
+	column crime_code
+		dataType: string
+		isHidden
+		lineageTag: 2c1f0a10-0022-4a00-9000-000000000022
+		summarizeBy: none
+		sourceColumn: crime_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column cases
+		dataType: int64
+		formatString: #,0
+		isHidden
+		lineageTag: 2c1f0a10-0023-4a00-9000-000000000023
+		summarizeBy: sum
+		sourceColumn: cases
+
+		annotation SummarizationSetBy = Automatic
+
+	/// ok | source_gap | entity_not_formed - kept visible for the data-quality page.
+	column data_quality_flag
+		dataType: string
+		lineageTag: 2c1f0a10-0024-4a00-9000-000000000024
+		summarizeBy: none
+		sourceColumn: data_quality_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactCrimes = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(RepoRoot & "\data\processed\fact_crimes_long.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+					Trimmed = Table.SelectColumns(Promoted, {"state_clean", "year", "crime_code", "cases", "data_quality_flag", "include_in_analysis"}),
+					Typed = Table.TransformColumnTypes(Trimmed, {{"state_clean", type text}, {"year", Int64.Type}, {"crime_code", type text}, {"cases", Int64.Type}, {"data_quality_flag", type text}, {"include_in_analysis", type text}}),
+					Analysable = Table.SelectRows(Typed, each Text.Lower([include_in_analysis]) = "true"),
+					Final = Table.RemoveColumns(Analysable, {"include_in_analysis"})
+				in
+					Final
+
+	annotation PBI_ResultType = Table

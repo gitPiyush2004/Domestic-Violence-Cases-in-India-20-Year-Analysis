@@ -1,0 +1,81 @@
+// ===========================================================================
+// 01 - CORE MEASURES
+// ===========================================================================
+// Every measure in this project is explicit. Implicit measures (dragging a
+// numeric column onto a visual and letting Power BI pick SUM) are disabled,
+// because "cases" is the only additive column in the model and letting a user
+// drag population_2011 onto a chart would silently average a Census figure
+// across 21 fact rows.
+// ===========================================================================
+
+
+// --- The one additive measure ---------------------------------------------
+Total Cases = SUM ( FactCrimes[cases] )
+
+
+// --- Focus crime -----------------------------------------------------------
+// IPC 498A, cruelty by a husband or his relatives. The largest single head of
+// recorded crime against women in India.
+DV Cases =
+CALCULATE ( [Total Cases], DimCrimeType[Crime Code] = "DV" )
+
+
+// --- Denominator for share -------------------------------------------------
+// REMOVEFILTERS on the crime dimension only. Any state / year / region filter
+// the user has applied stays in force, so "DV as a share of all crime" is
+// answered inside whatever slice they are looking at, not nationally.
+All Crime Cases =
+CALCULATE ( [Total Cases], REMOVEFILTERS ( DimCrimeType ) )
+
+
+// --- Share, guarded --------------------------------------------------------
+// 2011 is the trap in this dataset. Assault on Women reads 0 for all 35
+// reporting entities that year - a dropped column in the source export, not a
+// real collapse. The all-crime denominator for 2011 is therefore ~40,000 cases
+// short, which inflates DV share to about 55% against a genuine 39.2% baseline.
+//
+// A footnote does not stop a stakeholder reading that spike off a chart, so the
+// measure refuses to compute instead. DimYear[All Crimes Comparable] is FALSE
+// for 2011; when any non-comparable year is in context the measure returns
+// BLANK() and the line visual shows a visible gap.
+//
+// This is the single most defensible decision in the model: the dashboard is
+// designed to be silent where the data is unsound rather than plausible.
+DV Share % =
+VAR NonComparableYears =
+    CALCULATE (
+        COUNTROWS ( DimYear ),
+        DimYear[All Crimes Comparable] = FALSE ()
+    )
+RETURN
+    IF (
+        COALESCE ( NonComparableYears, 0 ) = 0,
+        DIVIDE ( [DV Cases], [All Crime Cases] )
+    )
+
+
+// --- Coverage measures -----------------------------------------------------
+// Used on the cover page so the audience can see the shape of the slice they
+// have filtered to, not just the totals.
+States Reporting =
+CALCULATE ( DISTINCTCOUNT ( FactCrimes[state_clean] ) )
+
+Years Covered =
+CALCULATE ( DISTINCTCOUNT ( FactCrimes[year] ) )
+
+Fact Rows =
+COUNTROWS ( FactCrimes )
+
+
+// --- Dynamic subtitle ------------------------------------------------------
+// Drives a card that narrates the current filter state back to the viewer, so a
+// screenshot of the dashboard is self-describing when it is pasted into a deck.
+Filter Context Label =
+VAR YearMin   = MIN ( DimYear[Year] )
+VAR YearMax   = MAX ( DimYear[Year] )
+VAR StateCnt  = [States Reporting]
+VAR AllStates = COUNTROWS ( ALL ( DimState[State] ) )
+VAR Scope     =
+    IF ( StateCnt = AllStates, "all India", FORMAT ( StateCnt, "#,0" ) & " entities" )
+RETURN
+    "Recorded cases, " & YearMin & "-" & YearMax & ", " & Scope

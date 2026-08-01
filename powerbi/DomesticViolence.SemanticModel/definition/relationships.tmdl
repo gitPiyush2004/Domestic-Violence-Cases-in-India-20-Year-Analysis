@@ -1,0 +1,17 @@
+/// Classic star: three one-to-many relationships, all single-direction filtering
+/// from dimension to fact. No bidirectional filters anywhere in this model -
+/// with three independent dimensions over one fact there is no many-to-many to
+/// resolve, and bidirectional filtering would only add ambiguity and slow the
+/// engine down.
+
+relationship DimState_FactCrimes
+	fromColumn: FactCrimes.state_clean
+	toColumn: DimState.State
+
+relationship DimYear_FactCrimes
+	fromColumn: FactCrimes.year
+	toColumn: DimYear.Year
+
+relationship DimCrimeType_FactCrimes
+	fromColumn: FactCrimes.crime_code
+	toColumn: DimCrimeType.'Crime Code'

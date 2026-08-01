@@ -1,0 +1,90 @@
+/// One row per year, 2001-2021. Deliberately a year dimension, not a calendar table:
+/// the source grain is annual and a marked date table would imply daily precision.
+table DimYear
+	lineageTag: 2c1f0a10-0200-4a00-9000-000000000200
+
+	column Year
+		dataType: int64
+		formatString: 0
+		isKey
+		lineageTag: 2c1f0a10-0201-4a00-9000-000000000201
+		summarizeBy: none
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = User
+
+	column Decade
+		dataType: string
+		lineageTag: 2c1f0a10-0202-4a00-9000-000000000202
+		summarizeBy: none
+		sourceColumn: Decade
+
+		annotation SummarizationSetBy = Automatic
+
+	/// "Export A (ALL CAPS labels)" vs Export B - the casing split in the source file
+	/// that turned out to mark two different NCRB export vintages.
+	column 'Source Export'
+		dataType: string
+		lineageTag: 2c1f0a10-0203-4a00-9000-000000000203
+		summarizeBy: none
+		sourceColumn: Source Export
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Label Alignment'
+		dataType: string
+		lineageTag: 2c1f0a10-0204-4a00-9000-000000000204
+		summarizeBy: none
+		sourceColumn: Label Alignment
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is COVID Year'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 2c1f0a10-0205-4a00-9000-000000000205
+		summarizeBy: none
+		sourceColumn: Is COVID Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Reporting Entities'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2c1f0a10-0206-4a00-9000-000000000206
+		summarizeBy: none
+		sourceColumn: Reporting Entities
+
+		annotation SummarizationSetBy = User
+
+	/// FALSE for 2011. Drives the guard inside [DV Share %].
+	column 'All Crimes Comparable'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 2c1f0a10-0207-4a00-9000-000000000207
+		summarizeBy: none
+		sourceColumn: All Crimes Comparable
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Coverage Note'
+		dataType: string
+		lineageTag: 2c1f0a10-0208-4a00-9000-000000000208
+		summarizeBy: none
+		sourceColumn: Coverage Note
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimYear = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(RepoRoot & "\data\processed\dim_year.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+					Typed = Table.TransformColumnTypes(Promoted, {{"year", Int64.Type}, {"decade", type text}, {"source_export", type text}, {"label_alignment", type text}, {"is_covid_year", type text}, {"reporting_entities", Int64.Type}, {"all_crimes_comparable", type text}, {"coverage_note", type text}}),
+					ToBool = Table.TransformColumns(Typed, {{"is_covid_year", each Text.Lower(_) = "true", type logical}, {"all_crimes_comparable", each Text.Lower(_) = "true", type logical}}),
+					Renamed = Table.RenameColumns(ToBool, {{"year", "Year"}, {"decade", "Decade"}, {"source_export", "Source Export"}, {"label_alignment", "Label Alignment"}, {"is_covid_year", "Is COVID Year"}, {"reporting_entities", "Reporting Entities"}, {"all_crimes_comparable", "All Crimes Comparable"}, {"coverage_note", "Coverage Note"}})
+				in
+					Renamed
+
+	annotation PBI_ResultType = Table

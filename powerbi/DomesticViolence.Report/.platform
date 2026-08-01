@@ -1,0 +1,5 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": { "type": "Report", "displayName": "DomesticViolence" },
+  "config": { "version": "2.0", "logicalId": "7d9e5b31-4c68-4a92-b715-3e8f2c0d6a94" }
+}

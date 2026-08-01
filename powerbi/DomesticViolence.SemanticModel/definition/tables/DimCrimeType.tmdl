@@ -1,0 +1,115 @@
+/// The seven crime heads. Unpivoting the wide source into this dimension is the
+/// central modelling decision: it turns seven near-duplicate measures into one
+/// measure and one slicer, and makes "which head grew fastest" a chartable axis.
+table DimCrimeType
+	lineageTag: 2c1f0a10-0300-4a00-9000-000000000300
+
+	column 'Crime Code'
+		dataType: string
+		isKey
+		lineageTag: 2c1f0a10-0301-4a00-9000-000000000301
+		summarizeBy: none
+		sourceColumn: Crime Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Crime Type'
+		dataType: string
+		lineageTag: 2c1f0a10-0302-4a00-9000-000000000302
+		summarizeBy: none
+		sourceColumn: Crime Type
+		sortByColumn: 'Crime Sort'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The statute behind each head, e.g. DV = Cruelty by Husband or his Relatives (IPC 498A).
+	column 'IPC Section'
+		dataType: string
+		lineageTag: 2c1f0a10-0303-4a00-9000-000000000303
+		summarizeBy: none
+		sourceColumn: IPC Section
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Total Cases 2001-2021'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 2c1f0a10-0304-4a00-9000-000000000304
+		summarizeBy: none
+		sourceColumn: Total Cases 2001-2021
+
+		annotation SummarizationSetBy = User
+
+	column 'Share of All Crime %'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 2c1f0a10-0305-4a00-9000-000000000305
+		summarizeBy: none
+		sourceColumn: Share of All Crime %
+
+		annotation SummarizationSetBy = User
+
+	column 'CAGR % (static)'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 2c1f0a10-0306-4a00-9000-000000000306
+		summarizeBy: none
+		sourceColumn: CAGR % (static)
+
+		annotation SummarizationSetBy = User
+
+	column 'Is Focus Crime'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 2c1f0a10-0307-4a00-9000-000000000307
+		summarizeBy: none
+		sourceColumn: Is Focus Crime
+
+		annotation SummarizationSetBy = Automatic
+
+	/// FALSE for AoW, AoM and WT - each carries a documented statutory or reporting
+	/// break. Surfaced as a column so a visual can grey the series rather than a
+	/// footnote nobody reads.
+	column 'Is Comparable Series'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 2c1f0a10-0308-4a00-9000-000000000308
+		summarizeBy: none
+		sourceColumn: Is Comparable Series
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Series Break Note'
+		dataType: string
+		lineageTag: 2c1f0a10-0309-4a00-9000-000000000309
+		summarizeBy: none
+		sourceColumn: Series Break Note
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Crime Sort'
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: 2c1f0a10-030a-4a00-9000-00000000030a
+		summarizeBy: none
+		sourceColumn: Crime Sort
+
+		annotation SummarizationSetBy = User
+
+	partition DimCrimeType = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(RepoRoot & "\data\processed\dim_crime_type.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+					Typed = Table.TransformColumnTypes(Promoted, {{"crime_code", type text}, {"crime_type", type text}, {"ipc_section", type text}, {"total_cases_2001_2021", Int64.Type}, {"share_of_all_crime_pct", type number}, {"cagr_pct", type number}, {"is_focus_crime", type text}, {"series_break_note", type text}, {"is_comparable_series", type text}}),
+					ToBool = Table.TransformColumns(Typed, {{"is_focus_crime", each Text.Lower(_) = "true", type logical}, {"is_comparable_series", each Text.Lower(_) = "true", type logical}}),
+					Selected = Table.SelectColumns(ToBool, {"crime_code", "crime_type", "ipc_section", "total_cases_2001_2021", "share_of_all_crime_pct", "cagr_pct", "is_focus_crime", "is_comparable_series", "series_break_note"}),
+					Renamed = Table.RenameColumns(Selected, {{"crime_code", "Crime Code"}, {"crime_type", "Crime Type"}, {"ipc_section", "IPC Section"}, {"total_cases_2001_2021", "Total Cases 2001-2021"}, {"share_of_all_crime_pct", "Share of All Crime %"}, {"cagr_pct", "CAGR % (static)"}, {"is_focus_crime", "Is Focus Crime"}, {"is_comparable_series", "Is Comparable Series"}, {"series_break_note", "Series Break Note"}}),
+					Sorted = Table.Sort(Renamed, {{"Total Cases 2001-2021", Order.Descending}}),
+					WithIndex = Table.AddIndexColumn(Sorted, "Crime Sort", 1, 1, Int64.Type)
+				in
+					WithIndex
+
+	annotation PBI_ResultType = Table

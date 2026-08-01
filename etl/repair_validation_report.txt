@@ -1,0 +1,140 @@
+PROOF OF THE 2020-21 ROW-MISALIGNMENT REPAIR
+source: data/raw/CrimesOnWomenData.csv  (736 rows, 2001-2021)
+
+==============================================================================
+TEST 1  ANOMALY DETECTION - is the raw file actually broken?
+==============================================================================
+Method: for every entity, compare its 2020 total against its 2017-19 mean.
+        A ratio outside [0.25x, 4x] is not a real-world movement in
+        administrative crime counts; it is a data fault.
+
+        entities tested        : 32
+        entities outside bounds: 16  <-- this is the smoking gun
+
+        entity                  2017-19 mean       2020    ratio
+        Delhi UT                      11,590          9     0.00x
+        Rajasthan                     30,127         42     0.00x
+        West Bengal                   26,721         23     0.00x
+        Maharashtra                   27,741        158     0.01x
+        Chandigarh                       456         18     0.04x
+        Uttar Pradesh                 47,741      2,094     0.04x
+        Telangana                     14,918        686     0.05x
+        Mizoram                          107         22     0.21x
+        Odisha                        17,990      3,847     0.21x
+        Meghalaya                        299         70     0.23x
+        A & N Islands                     62        293     4.70x
+        Tamil Nadu                     3,215     15,174     4.72x
+        Punjab                         4,554     33,106     7.27x
+        Uttarakhand                    2,013     32,338    16.07x
+        Tripura                          801     38,523    48.09x
+        Sikkim                            55      2,905    52.82x
+
+        Read the two ends of that table together. In a single year Delhi,
+        Rajasthan and West Bengal collapse to under 1% of their own
+        history, while Sikkim (x52.8) and Tripura (x48.1) explode. Those
+        are not policing outcomes; that is volume being re-parked under
+        the wrong names. Cases did not move between states; LABELS did.
+
+        Note the filter: entities averaging <50 cases are excluded because
+        small denominators make the ratio unstable. D & N Haveli sits just
+        under that line yet shows the same signature even more starkly
+        (2019 total 7 -> 2020 total 8,861), 
+        which is what first drew attention to the problem.
+
+==============================================================================
+TEST 2  PROFILE MATCHING - which entity does each measure row belong to?
+==============================================================================
+Method: each entity's 2017-19 mean across the 7 crime types is a
+        fingerprint. Match every measure row to its nearest fingerprint
+        in log space. The candidate set is ALL entities, so this test is
+        free to vindicate the file's own labels.
+
+        2019  (CONTROL - believed clean)
+          agrees with the FILE's labels : 34/36
+          agrees with NCRB 2020 ordering: 10/34
+          -> 2019 vindicates its own labels. The method is sound and
+             the misalignment does NOT extend back into 2019.
+
+        2020  (believed broken)
+          agrees with the FILE's labels : 10/36
+          agrees with NCRB 2020 ordering: 28/34
+          -> the measure rows belong to the NCRB ordering, not to the
+             labels printed beside them.
+
+        2021  (believed broken)
+          agrees with the FILE's labels : 10/36
+          agrees with NCRB 2020 ordering: 31/34
+          -> the measure rows belong to the NCRB ordering, not to the
+             labels printed beside them.
+
+        2020 remap detail (first 12 rows where the label is wrong):
+        pos file label             matched to             NCRB order              dist
+          9 Jammu & Kashmir        Jharkhand              Jharkhand               2.16 OK
+         10 Jharkhand              Karnataka              Karnataka               0.86 OK
+         11 Karnataka              Kerala                 Kerala                  1.53 OK
+         12 Kerala                 Madhya Pradesh         Madhya Pradesh          1.07 OK
+         13 Madhya Pradesh         Maharashtra            Maharashtra             0.89 OK
+         14 Maharashtra            Manipur                Manipur                 1.17 OK
+         15 Manipur                Meghalaya              Meghalaya               1.34 OK
+         16 Meghalaya              Mizoram                Mizoram                 1.08 OK
+         17 Mizoram                Daman & Diu            Nagaland                1.61 ~
+         18 Nagaland               Odisha                 Odisha                  0.59 OK
+         19 Odisha                 Punjab                 Punjab                  0.66 OK
+         20 Punjab                 Rajasthan              Rajasthan               0.78 OK
+        ... 13 more rows re-attached
+
+        Rows marked '~' are entities whose counts are near zero (Mizoram,
+        Lakshadweep, Ladakh). Log-distance cannot discriminate between
+        two all-but-empty vectors, so the positional evidence carries
+        those rows. Every high-volume row matches unambiguously.
+
+==============================================================================
+TEST 3  CONTINUITY - does the repair make the panel behave?
+==============================================================================
+Method: administrative crime counts are sticky year to year. Measure the
+        year-on-year swing distribution for entities with >=200 cases,
+        under both readings of the file. The correct labelling is the one
+        that produces plausible movements.
+
+        AS-IS (file labels)
+          2020: n=28  median|YoY|=  71.2%  mean|YoY|= 282.0%  implausible(>60%)=15
+                Jammu & Kashmir +64%, Kerala +85%, Maharashtra -99%, Meghalaya -78%, Odisha -81%, Punjab +538%, Rajasthan -100%, Tamil Nadu +401%, Telangana -96%, Tripura +4313%, Uttar Pradesh -96%, Uttarakhand +1447%, West Bengal -100%, Chandigarh -96%, Delhi UT -100%
+          2021: n=27  median|YoY|=  15.7%  mean|YoY|=  15.9%  implausible(>60%)=0
+
+        REPAIRED (NCRB order)
+          2020: n=28  median|YoY|=  13.9%  mean|YoY|=  15.2%  implausible(>60%)=0
+          2021: n=27  median|YoY|=  15.7%  mean|YoY|=  15.9%  implausible(>60%)=0
+
+        The repair takes 2019->2020 from a median swing of 71.2% with 15
+        impossible jumps down to 13.9% with none. No alternative labelling
+        was tried and none is needed: NCRB_ORDER_2020 is public record.
+
+==============================================================================
+TEST 4  INVARIANCE - does the repair invent or destroy any cases?
+==============================================================================
+Method: a pure re-labelling cannot change any column total. If a total
+        moved, the repair would be fabricating data.
+
+        measure       as-is total   repaired total    delta
+        Rape              535,702          535,702        0
+        K&A               835,023          835,023        0
+        DD                158,750          158,750        0
+        AoW             1,162,229        1,162,229        0
+        AoM               244,884          244,884        0
+        DV              1,909,978        1,909,978        0
+        WT                 21,156           21,156        0
+
+        All deltas zero. Two consequences worth stating in a review:
+          1. The repair is non-destructive - it moves attribution only.
+          2. Every NATIONAL figure in this project is identical with or
+             without the repair. Only state-level 2020-21 attribution
+             was ever at risk, and that is exactly what the repair fixes.
+
+==============================================================================
+VERDICT: the 2020 and 2021 measure blocks follow NCRB's post-reorganisation
+         entity order (28 states, then 8 UTs with J&K demoted, Ladakh added
+         and the two western UTs merged) while the label column was still
+         generated from the pre-2019 36-entity list. Repairing the join is
+         positionally determined, profile-confirmed, continuity-validated
+         and total-preserving.
+==============================================================================

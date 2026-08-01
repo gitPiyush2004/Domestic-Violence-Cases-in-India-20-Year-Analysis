@@ -1,0 +1,13 @@
+# SQLite warehouse is a build artefact - rebuild with `python3 sql/build_and_run.py`
+sql/*.db
+
+__pycache__/
+*.pyc
+.DS_Store
+.ipynb_checkpoints/
+
+# Power BI Desktop local cache / autorecovery
+*.pbix
+powerbi/**/.pbi/
+powerbi/**/localSettings.json
+powerbi/**/cache.abf

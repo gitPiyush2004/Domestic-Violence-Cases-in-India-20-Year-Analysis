@@ -1,0 +1,85 @@
+// ===========================================================================
+// 03 - RATES AND NORMALISATION
+// ===========================================================================
+// Volume answers "where are the most cases". Rate answers "where is a woman
+// most likely to be affected". They disagree, and the disagreement is the most
+// interesting finding in the project:
+//
+//   West Bengal   - 1st on volume (302,143 cases), 6th on intensity
+//   Assam         - highest 2021 intensity at 84.8 per lakh women, ~1.9x WB
+//
+// A dashboard that only ranks by volume is a population map with extra steps.
+// ===========================================================================
+
+
+// --- Denominator -----------------------------------------------------------
+// SUMX over VALUES, not SUM. Female Population 2011 lives on the state
+// dimension at one row per state; a plain SUM would be correct here too, but
+// SUMX over VALUES(State) makes the grain explicit and stays correct if the
+// dimension ever gains a second row per state (a boundary-change version, say).
+Female Population =
+SUMX (
+    VALUES ( DimState[State] ),
+    CALCULATE ( MAX ( DimState[Female Population 2011] ) )
+)
+
+Population =
+SUMX (
+    VALUES ( DimState[State] ),
+    CALCULATE ( MAX ( DimState[Population 2011] ) )
+)
+
+
+// --- Point-in-time rate ----------------------------------------------------
+// Cases per 100,000 women. "Per lakh" is the Indian convention and matches how
+// NCRB publishes its own rate tables, so the number is directly comparable to
+// the published figures.
+//
+// Use this with a single year in context. With several years selected the
+// numerator accumulates while the denominator stays fixed, which makes the
+// number grow with the width of the window - see the annualised version below.
+DV Rate per Lakh Women =
+DIVIDE ( [DV Cases], [Female Population] ) * 100000
+
+
+// --- Window-safe rate ------------------------------------------------------
+// Divides by the number of years actually in context, so the value is an
+// average annual rate and stays interpretable at any slicer width. This is the
+// one to put on a card; the point-in-time version belongs on a per-year axis.
+DV Rate per Lakh Women (Annual Avg) =
+VAR YearsInContext = DISTINCTCOUNT ( FactCrimes[year] )
+RETURN
+    DIVIDE ( DIVIDE ( [DV Cases], YearsInContext ), [Female Population] ) * 100000
+
+
+// --- All-crime rate --------------------------------------------------------
+All Crime Rate per Lakh Women =
+DIVIDE ( [All Crime Cases], [Female Population] ) * 100000
+
+
+// --- Rate vs the national benchmark ----------------------------------------
+// Expresses a state as a multiple of the all-India rate for the same years.
+// 1.0 is the national average; 2.0 means twice the national intensity. Easier
+// to read on a map legend than an absolute rate, and it survives a year change.
+DV Rate vs National =
+VAR StateRate = [DV Rate per Lakh Women]
+VAR NationalRate =
+    CALCULATE (
+        DIVIDE ( [DV Cases], [Female Population] ) * 100000,
+        REMOVEFILTERS ( DimState )
+    )
+RETURN
+    DIVIDE ( StateRate, NationalRate )
+
+
+// --- Caveat surfaced as a measure ------------------------------------------
+// Rates use a fixed Census 2011 denominator, because it is the only
+// census-grade population figure available anywhere in a 2001-2021 window
+// (the 2021 census was postponed). That makes every rate here a comparable
+// index across states, not a live incidence rate - a state whose population
+// grew fastest since 2011 has its rate overstated at the end of the series.
+//
+// Bound to a tooltip on every rate visual so the caveat travels with the number.
+Rate Basis Note =
+"Cases per 100,000 women. Denominator: Census 2011 (fixed). "
+    & "Comparable across states; not a live incidence rate."

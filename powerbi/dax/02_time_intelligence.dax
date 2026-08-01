@@ -1,0 +1,118 @@
+// ===========================================================================
+// 02 - TIME INTELLIGENCE
+// ===========================================================================
+// There is no calendar table in this model and that is deliberate.
+//
+// NCRB publishes annual totals. The finest grain that exists is the year. A
+// marked date table would let someone write SAMEPERIODLASTYEAR against 21
+// synthetic 1-January timestamps - it would return correct numbers while
+// implying a daily precision the source does not have, and it would drag an
+// auto date/time hierarchy into every year field in the report.
+//
+// Year-over-year is therefore an explicit integer offset. It is honest about
+// the grain, it is faster, and in an interview it is a decision you can defend
+// rather than a default you accepted.
+// ===========================================================================
+
+
+// --- Prior year ------------------------------------------------------------
+// SELECTEDVALUE returns BLANK at a total row where many years are in context,
+// which correctly suppresses YoY on totals instead of comparing a 21-year sum
+// against a 20-year sum.
+DV Cases PY =
+VAR Y = SELECTEDVALUE ( DimYear[Year] )
+RETURN
+    IF (
+        NOT ISBLANK ( Y ),
+        CALCULATE (
+            [DV Cases],
+            FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = Y - 1 )
+        )
+    )
+
+DV YoY Cases = [DV Cases] - [DV Cases PY]
+
+DV YoY % = DIVIDE ( [DV Cases] - [DV Cases PY], [DV Cases PY] )
+
+
+// --- Smoothing -------------------------------------------------------------
+// Three-year trailing mean. Reported-crime series are noisy because they track
+// reporting propensity and administrative change as much as incidence; the
+// smoothed line is what should carry the narrative, with the raw line behind it.
+DV 3Y Moving Avg =
+VAR Y = SELECTEDVALUE ( DimYear[Year] )
+RETURN
+    IF (
+        NOT ISBLANK ( Y ),
+        CALCULATE (
+            AVERAGEX ( VALUES ( DimYear[Year] ), [DV Cases] ),
+            FILTER (
+                ALL ( DimYear[Year] ),
+                DimYear[Year] >= Y - 2 && DimYear[Year] <= Y
+            )
+        )
+    )
+
+
+// --- Compound annual growth rate -------------------------------------------
+// ALLSELECTED, not ALL: the CAGR recomputes over whatever window the user has
+// sliced to, so dragging the year slicer to 2015-2021 gives the CAGR of that
+// window rather than always reporting the 2001-2021 figure.
+DV CAGR % =
+VAR VisibleYears = ALLSELECTED ( DimYear[Year] )
+VAR FirstYear    = MINX ( VisibleYears, DimYear[Year] )
+VAR LastYear     = MAXX ( VisibleYears, DimYear[Year] )
+VAR Periods      = LastYear - FirstYear
+VAR FirstValue   =
+    CALCULATE ( [DV Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = FirstYear ) )
+VAR LastValue    =
+    CALCULATE ( [DV Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = LastYear ) )
+RETURN
+    IF (
+        Periods > 0 && FirstValue > 0,
+        ( DIVIDE ( LastValue, FirstValue ) ^ DIVIDE ( 1, Periods ) ) - 1
+    )
+
+
+// --- Indexed series --------------------------------------------------------
+// Rebases every state to 100 in the first visible year. Without this, a
+// multi-state trend chart is just a ranking by population - Uttar Pradesh sits
+// at the top and every small state is a flat line on the floor. Indexed, the
+// chart answers "who is changing fastest", which is the actual question.
+DV Index (Base = 100) =
+VAR BaseYear =
+    CALCULATE ( MIN ( DimYear[Year] ), ALLSELECTED ( DimYear ) )
+VAR BaseValue =
+    CALCULATE ( [DV Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = BaseYear ) )
+RETURN
+    DIVIDE ( [DV Cases], BaseValue ) * 100
+
+
+// --- Total change over the visible window ----------------------------------
+DV Growth % (Window) =
+VAR VisibleYears = ALLSELECTED ( DimYear[Year] )
+VAR FirstYear    = MINX ( VisibleYears, DimYear[Year] )
+VAR LastYear     = MAXX ( VisibleYears, DimYear[Year] )
+VAR FirstValue   =
+    CALCULATE ( [DV Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = FirstYear ) )
+VAR LastValue    =
+    CALCULATE ( [DV Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = LastYear ) )
+RETURN
+    DIVIDE ( LastValue - FirstValue, FirstValue )
+
+
+// --- COVID call-out --------------------------------------------------------
+// 2020 fell 11.0% and 2021 rebounded 22.1%. The defensible reading is that
+// lockdown suppressed access to reporting - police stations, courts, shelters -
+// and the backlog surfaced in 2021. It is not evidence that violence fell.
+DV COVID Commentary =
+VAR Y = SELECTEDVALUE ( DimYear[Year] )
+VAR Chg = [DV YoY %]
+RETURN
+    SWITCH (
+        TRUE (),
+        Y = 2020, "2020: reporting access suppressed by lockdown, not incidence",
+        Y = 2021, "2021: rebound consistent with a released reporting backlog",
+        ISBLANK ( Chg ), BLANK (),
+        BLANK ()
+    )

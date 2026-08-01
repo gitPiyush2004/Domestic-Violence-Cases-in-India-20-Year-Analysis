@@ -1,0 +1,141 @@
+// ===========================================================================
+// 05 - RISK ZONES, RANKING AND THE PRIORITY MATRIX
+// ===========================================================================
+// The second segmentation, and the one that disagrees with ABC on purpose.
+//
+// ABC bands by volume; risk zones band by intensity (cases per lakh women).
+// Thresholds are the quartiles of the 2021 rate distribution, taken from
+// data/processed/risk_thresholds.json - 2.5 / 9.1 / 22.9. They are quartiles
+// rather than round numbers deliberately: round thresholds encode an opinion
+// about what counts as "high", quartiles let the distribution speak and survive
+// a data refresh without the bands quietly changing meaning.
+//
+// Where the two segmentations disagree is the finding. A state that is Class C
+// on volume but Critical on intensity is small and badly affected, and every
+// volume-ranked league table in the country buries it.
+// ===========================================================================
+
+
+// --- Thresholds as measures ------------------------------------------------
+// Kept as named measures rather than magic numbers inside the SWITCH so the
+// banding logic and the reference lines on the scatter chart cannot drift apart.
+Risk Threshold Moderate = 2.5
+Risk Threshold High     = 9.1
+Risk Threshold Critical = 22.9
+
+
+// --- Live banding ----------------------------------------------------------
+Risk Zone =
+VAR Rate = [DV Rate per Lakh Women (Annual Avg)]
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( Rate ),                 BLANK (),
+        Rate >= [Risk Threshold Critical], "Critical",
+        Rate >= [Risk Threshold High],     "High",
+        Rate >= [Risk Threshold Moderate], "Moderate",
+                                           "Low"
+    )
+
+// Numeric companion for conditional formatting and for sorting a legend into
+// severity order instead of alphabetical order.
+Risk Zone Rank =
+SWITCH ( [Risk Zone], "Critical", 1, "High", 2, "Moderate", 3, "Low", 4, 9 )
+
+
+// --- Ranking ---------------------------------------------------------------
+// ALLSELECTED so the rank is relative to the states the user has left visible.
+// DENSE so that filtering to ten states gives ranks 1-10, not the original
+// national ranks scattered with gaps.
+DV Rank =
+IF (
+    NOT ISBLANK ( [DV Cases] ),
+    RANKX ( ALLSELECTED ( DimState[State] ), [DV Cases], , DESC, DENSE )
+)
+
+DV Rate Rank =
+IF (
+    NOT ISBLANK ( [DV Cases] ),
+    RANKX (
+        ALLSELECTED ( DimState[State] ),
+        [DV Rate per Lakh Women (Annual Avg)],
+        ,
+        DESC,
+        DENSE
+    )
+)
+
+
+// --- The volume / intensity gap -------------------------------------------
+// The single number that proves volume ranking alone is insufficient. A large
+// positive value means the state is far more intense than its case count
+// suggests - it is being missed by every league table.
+Volume vs Intensity Gap = [DV Rank] - [DV Rate Rank]
+
+
+// --- Rank momentum ---------------------------------------------------------
+// Where a state ranked in the first visible year against the last. Negative
+// means it climbed the table (got worse relative to its peers).
+DV Rank First Year =
+VAR FirstYear = MINX ( ALLSELECTED ( DimYear[Year] ), DimYear[Year] )
+RETURN
+    CALCULATE (
+        RANKX ( ALLSELECTED ( DimState[State] ), [DV Cases], , DESC, DENSE ),
+        FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = FirstYear )
+    )
+
+DV Rank Last Year =
+VAR LastYear = MAXX ( ALLSELECTED ( DimYear[Year] ), DimYear[Year] )
+RETURN
+    CALCULATE (
+        RANKX ( ALLSELECTED ( DimState[State] ), [DV Cases], , DESC, DENSE ),
+        FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = LastYear )
+    )
+
+DV Rank Momentum = [DV Rank First Year] - [DV Rank Last Year]
+
+
+// --- Priority matrix -------------------------------------------------------
+// Crosses the two segmentations into the recommendation the dashboard exists to
+// make. Volume decides how much resource a state needs; intensity and trend
+// decide how urgently.
+Priority Segment =
+VAR Class   = [ABC Class]
+VAR Zone    = [Risk Zone]
+VAR Growing = [DV CAGR %] > 0
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( Class ) || ISBLANK ( Zone ), BLANK (),
+        Class = "A" && Zone IN { "Critical", "High" },
+            "P1 - Scale intervention (high volume, high intensity)",
+        Class = "A",
+            "P2 - Sustain capacity (high volume, contained intensity)",
+        Zone IN { "Critical", "High" },
+            "P3 - Targeted intervention (small entity, high intensity)",
+        Growing,
+            "P4 - Monitor (low now, rising)",
+            "P5 - Maintain"
+    )
+
+
+// --- Narrative card --------------------------------------------------------
+// Writes the recommendation sentence for whichever single state is selected, so
+// the state deep-dive page explains itself without a manual annotation per state.
+State Verdict =
+VAR St       = SELECTEDVALUE ( DimState[State] )
+VAR Cases    = [DV Cases]
+VAR Rate     = [DV Rate per Lakh Women (Annual Avg)]
+VAR RankVol  = [DV Rank]
+VAR RankInt  = [DV Rate Rank]
+VAR Cagr     = [DV CAGR %]
+RETURN
+    IF (
+        NOT ISBLANK ( St ) && NOT ISBLANK ( Cases ),
+        St & ": " & FORMAT ( Cases, "#,0" ) & " cases (rank " & FORMAT ( RankVol, "0" )
+            & " by volume, rank " & FORMAT ( RankInt, "0" ) & " by intensity at "
+            & FORMAT ( Rate, "0.0" ) & " per lakh women), "
+            & IF ( Cagr >= 0, "growing ", "declining " )
+            & FORMAT ( ABS ( Cagr ), "0.0%" ) & " a year. "
+            & [Priority Segment]
+    )

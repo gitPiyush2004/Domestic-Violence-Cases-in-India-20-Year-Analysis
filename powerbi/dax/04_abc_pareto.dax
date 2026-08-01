@@ -1,0 +1,105 @@
+// ===========================================================================
+// 04 - ABC CLASSIFICATION / PARETO
+// ===========================================================================
+// ABC is inventory-control segmentation borrowed for policy triage. Rank the
+// entities by volume, accumulate, and cut the list where the cumulative share
+// crosses 70% and 90%:
+//
+//   A - the states that carry the top 70% of national volume
+//   B - the next 20%
+//   C - the tail 10%
+//
+// The headline result: 8 of 36 entities carry 72.9% of all recorded domestic
+// violence. That is the most actionable number in the project, because it says
+// a national intervention needs 8 well-resourced programmes, not 36 thin ones.
+//
+// The ETL stores a static abc_class column. These measures recompute it live so
+// the classification responds to the year slicer - the A-list for 2001-2010 is
+// not the A-list for 2011-2021, and being able to show that shift on demand is
+// the difference between a chart and an argument.
+// ===========================================================================
+
+
+// --- Cumulative share, descending ------------------------------------------
+// The Pareto engine. Builds a virtual table of every visible state with its DV
+// total, then sums the ones ranked at or above the current row.
+//
+// Ties share a cumulative value by construction. With 36 entities and totals in
+// the hundreds of thousands an exact tie is vanishingly unlikely, so this is
+// left simple rather than broken with an arbitrary alphabetical tiebreak.
+DV Cumulative Share % =
+VAR CurrentState = SELECTEDVALUE ( DimState[State] )
+VAR CurrentValue = [DV Cases]
+VAR StateTotals =
+    ADDCOLUMNS (
+        ALLSELECTED ( DimState[State] ),
+        "@dv", CALCULATE ( [DV Cases] )
+    )
+VAR GrandTotal = SUMX ( StateTotals, [@dv] )
+VAR RunningTotal =
+    SUMX ( FILTER ( StateTotals, [@dv] >= CurrentValue ), [@dv] )
+RETURN
+    IF (
+        NOT ISBLANK ( CurrentState ) && CurrentValue > 0,
+        DIVIDE ( RunningTotal, GrandTotal )
+    )
+
+
+// --- The classification ----------------------------------------------------
+ABC Class =
+VAR Cumulative = [DV Cumulative Share %]
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( Cumulative ), BLANK (),
+        Cumulative <= 0.70,     "A",
+        Cumulative <= 0.90,     "B",
+                                "C"
+    )
+
+ABC Class Label =
+SWITCH (
+    [ABC Class],
+    "A", "A - Critical (top 70% of volume)",
+    "B", "B - Moderate (next 20%)",
+    "C", "C - Low (tail 10%)",
+    BLANK ()
+)
+
+
+// --- Segment roll-ups ------------------------------------------------------
+// Written as iterators over VALUES(State) because [ABC Class] is a measure and
+// only resolves inside a state row context.
+States in Class A =
+COUNTROWS ( FILTER ( VALUES ( DimState[State] ), [ABC Class] = "A" ) )
+
+Class A Cases =
+SUMX ( FILTER ( VALUES ( DimState[State] ), [ABC Class] = "A" ), [DV Cases] )
+
+Class A Share % =
+DIVIDE (
+    [Class A Cases],
+    CALCULATE ( [DV Cases], REMOVEFILTERS ( DimState ) )
+)
+
+
+// --- The headline sentence, generated -------------------------------------
+// Card measure. Recomputes as the year slicer moves, so the concentration
+// statement in the deck is never stale.
+ABC Headline =
+VAR N     = [States in Class A]
+VAR Share = [Class A Share %]
+VAR Total = COUNTROWS ( ALLSELECTED ( DimState[State] ) )
+RETURN
+    IF (
+        NOT ISBLANK ( N ),
+        FORMAT ( N, "0" ) & " of " & FORMAT ( Total, "0" )
+            & " entities carry " & FORMAT ( Share, "0.0%" )
+            & " of recorded domestic violence"
+    )
+
+
+// --- Pareto reference line -------------------------------------------------
+// Constant 70% line for the cumulative axis of the Pareto combo chart.
+Pareto 70% Line = 0.70
+Pareto 90% Line = 0.90
