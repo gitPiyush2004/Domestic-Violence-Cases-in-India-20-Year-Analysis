@@ -26,10 +26,10 @@ interactive version of the whole report in
 
 **Two static sites ship from this repo**, both zero-build and dependency-free:
 
-| Site | Folder | What it is |
-|---|---|---|
-| Interactive dashboard | [`dashboard/`](dashboard/index.html) | Five pages, charts rendered from `data.js`, filters and table views |
-| Power BI replica | [`powerbi-showcase/`](powerbi-showcase/index.html) | The Power BI report rebuilt for the browser — same five pages, same canvas, working slicers and cross-filtering |
+| Site | Live | Folder | What it is |
+|---|---|---|---|
+| Interactive dashboard | [domestic-violence-dashboard.netlify.app](https://domestic-violence-dashboard.netlify.app) | [`dashboard/`](dashboard/index.html) | Five pages, charts rendered from `data.js`, filters and table views |
+| Power BI replica | [domestic-violence-powerbi-showcase.netlify.app](https://domestic-violence-powerbi-showcase.netlify.app) | [`powerbi-showcase/`](powerbi-showcase/index.html) | The Power BI report rebuilt for the browser — same five pages, same canvas, working slicers and cross-filtering |
 
 The replica is not a screenshot gallery. Each page is a **1280×720 report canvas** holding the
 same tiles at the same coordinates as the Power BI layout, scaled to fit the window — so the
