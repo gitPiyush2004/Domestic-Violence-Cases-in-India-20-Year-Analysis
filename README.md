@@ -28,7 +28,14 @@ report in [`powerbi-showcase/`](powerbi-showcase/index.html).</sub>
 | Site | Folder | What it is |
 |---|---|---|
 | Interactive dashboard | [`dashboard/`](dashboard/index.html) | Five pages, charts rendered from `data.js`, filters and table views |
-| Power BI walkthrough | [`powerbi-showcase/`](powerbi-showcase/index.html) | The Power BI report presented page by page, for sharing without Power BI installed |
+| Power BI replica | [`powerbi-showcase/`](powerbi-showcase/index.html) | The Power BI report rebuilt for the browser — same five pages, working slicers and cross-filtering, dark theme |
+
+The replica is not a screenshot gallery. It reads the same `data.js` cube the web dashboard
+uses and recomputes every measure in the browser, so slicing by year or region, or clicking
+a bar, slice or table row, cross-filters the page the way Power BI does. Its figures are
+reconciled against the model: **39.2% DV share · 302,143 for West Bengal · "8 of 36 entities
+carry 72.9%"**, and the ABC classification recomputes inside the slicer exactly as the DAX
+does (2001–2010 alone gives "7 of 33 carry 71.2%").
 
 ---
 
