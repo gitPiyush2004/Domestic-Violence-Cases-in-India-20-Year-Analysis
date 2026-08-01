@@ -120,22 +120,25 @@ RETURN
 
 
 // --- Narrative card --------------------------------------------------------
-// Writes the recommendation sentence for whichever single state is selected, so
-// the state deep-dive page explains itself without a manual annotation per state.
+// Writes the sentence for whichever state is selected, so the deep-dive page
+// explains itself during a demo instead of needing one annotation per state.
+//
+// Always returns a string, and that matters. The first version used SELECTEDVALUE
+// with no default inside an IF with no else branch, so with no single state
+// selected it returned BLANK - and the card rendered as an error tile rather than
+// as empty. Every numeric goes through FORMAT rather than relying on implicit
+// conversion in the & operator, and every branch produces text.
 State Verdict =
-VAR St       = SELECTEDVALUE ( DimState[State] )
-VAR Cases    = [DV Cases]
-VAR Rate     = [DV Rate per Lakh Women (Annual Avg)]
-VAR RankVol  = [DV Rank]
-VAR RankInt  = [DV Rate Rank]
-VAR Cagr     = [DV CAGR %]
+VAR St      = SELECTEDVALUE ( DimState[State], "" )
+VAR Cases   = COALESCE ( [DV Cases], 0 )
+VAR Rate    = COALESCE ( [DV Rate per Lakh Women (Annual Avg)], 0 )
+VAR RankVol = COALESCE ( [DV Rank], 0 )
+VAR RankInt = COALESCE ( [DV Rate Rank], 0 )
 RETURN
     IF (
-        NOT ISBLANK ( St ) && NOT ISBLANK ( Cases ),
-        St & ": " & FORMAT ( Cases, "#,0" ) & " cases (rank " & FORMAT ( RankVol, "0" )
-            & " by volume, rank " & FORMAT ( RankInt, "0" ) & " by intensity at "
-            & FORMAT ( Rate, "0.0" ) & " per lakh women), "
-            & IF ( Cagr >= 0, "growing ", "declining " )
-            & FORMAT ( ABS ( Cagr ), "0.0%" ) & " a year. "
-            & [Priority Segment]
+        St = "" || Cases = 0,
+        "Select a single state to see its verdict",
+        St & ": " & FORMAT ( Cases, "#,0" ) & " cases. Rank " & FORMAT ( RankVol, "0" )
+            & " by volume, rank " & FORMAT ( RankInt, "0" ) & " by intensity ("
+            & FORMAT ( Rate, "0.0" ) & " per lakh women a year)."
     )

@@ -76,12 +76,17 @@ COUNTROWS ( FactCrimes )
 // --- Dynamic subtitle ------------------------------------------------------
 // Drives a card that narrates the current filter state back to the viewer, so a
 // screenshot of the dashboard is self-describing when it is pasted into a deck.
+// Every numeric goes through FORMAT rather than relying on implicit conversion in
+// the & operator, and every VAR is COALESCEd, so the measure can never return
+// BLANK. A card bound to a text measure that returns BLANK renders as an error
+// tile, not as an empty tile.
 Filter Context Label =
-VAR YearMin   = MIN ( DimYear[Year] )
-VAR YearMax   = MAX ( DimYear[Year] )
-VAR StateCnt  = [States Reporting]
-VAR AllStates = COUNTROWS ( ALL ( DimState[State] ) )
+VAR YearMin   = COALESCE ( MIN ( DimYear[Year] ), 0 )
+VAR YearMax   = COALESCE ( MAX ( DimYear[Year] ), 0 )
+VAR StateCnt  = COALESCE ( [States Reporting], 0 )
+VAR AllStates = COALESCE ( COUNTROWS ( ALL ( DimState[State] ) ), 0 )
 VAR Scope     =
     IF ( StateCnt = AllStates, "all India", FORMAT ( StateCnt, "#,0" ) & " entities" )
 RETURN
-    "Recorded cases, " & YearMin & "-" & YearMax & ", " & Scope
+    "Recorded cases, " & FORMAT ( YearMin, "0" ) & "-" & FORMAT ( YearMax, "0" )
+        & ", " & Scope

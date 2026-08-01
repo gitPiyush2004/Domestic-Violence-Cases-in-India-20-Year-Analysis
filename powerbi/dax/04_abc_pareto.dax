@@ -46,15 +46,29 @@ RETURN
 
 
 // --- The classification ----------------------------------------------------
+// Bands on the cumulative share reached BEFORE this state is added, so the state
+// that crosses the 70% line falls inside class A rather than outside it.
+//
+// This is not a detail. Banding on the inclusive cumulative (Cum <= 0.70) drops
+// Madhya Pradesh - whose running total lands on 72.9% - into class B and makes
+// the dashboard report "7 of 36 carry 68.0%", while the ETL and the SQL layer
+// both report "8 of 36 carry 72.9%". Same data, same intent, one boundary rule
+// apart. Which side the crossing item goes is a business rule; it belongs in one
+// place and gets referenced, not re-decided per language. The ETL is the system
+// of record, so the DAX follows it.
 ABC Class =
-VAR Cumulative = [DV Cumulative Share %]
+VAR StateTotals =
+    ADDCOLUMNS ( ALLSELECTED ( DimState[State] ), "@dv", CALCULATE ( [DV Cases] ) )
+VAR GrandTotal       = SUMX ( StateTotals, [@dv] )
+VAR OwnShare         = DIVIDE ( [DV Cases], GrandTotal )
+VAR CumulativeBefore = [DV Cumulative Share %] - OwnShare
 RETURN
     SWITCH (
         TRUE (),
-        ISBLANK ( Cumulative ), BLANK (),
-        Cumulative <= 0.70,     "A",
-        Cumulative <= 0.90,     "B",
-                                "C"
+        ISBLANK ( [DV Cumulative Share %] ), BLANK (),
+        CumulativeBefore < 0.70,             "A",
+        CumulativeBefore < 0.90,             "B",
+                                             "C"
     )
 
 ABC Class Label =
@@ -95,7 +109,6 @@ RETURN
         NOT ISBLANK ( N ),
         FORMAT ( N, "0" ) & " of " & FORMAT ( Total, "0" )
             & " entities carry " & FORMAT ( Share, "0.0%" )
-            & " of recorded domestic violence"
     )
 
 

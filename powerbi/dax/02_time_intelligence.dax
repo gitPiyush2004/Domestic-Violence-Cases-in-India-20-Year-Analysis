@@ -74,6 +74,46 @@ RETURN
     )
 
 
+// --- Generic versions, for charts that slice by crime head ------------------
+// The DV-prefixed measures below hardcode [DV Cases]. That is correct for a
+// DV-only chart and useless the moment crime type goes on the legend - every
+// series but domestic violence draws flat. These are the same calculations over
+// [Total Cases], so they respond to whatever dimension is in context.
+//
+// They also replace binding a chart straight to the ETL's stored cagr_pct
+// column. That column is summarizeBy: none - correct, because averaging a growth
+// rate across crime heads is meaningless - but a chart axis needs something it
+// is allowed to aggregate, so the visual rendered empty. A measure is the right
+// answer regardless, since it recomputes inside the year slicer.
+
+Index (Base = 100) =
+VAR BaseYear =
+    CALCULATE ( MIN ( DimYear[Year] ), ALLSELECTED ( DimYear ) )
+VAR BaseValue =
+    CALCULATE ( [Total Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = BaseYear ) )
+RETURN
+    DIVIDE ( [Total Cases], BaseValue ) * 100
+
+CAGR % =
+VAR VisibleYears = ALLSELECTED ( DimYear[Year] )
+VAR FirstYear    = MINX ( VisibleYears, DimYear[Year] )
+VAR LastYear     = MAXX ( VisibleYears, DimYear[Year] )
+VAR Periods      = LastYear - FirstYear
+VAR FirstValue   =
+    CALCULATE ( [Total Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = FirstYear ) )
+VAR LastValue    =
+    CALCULATE ( [Total Cases], FILTER ( ALL ( DimYear[Year] ), DimYear[Year] = LastYear ) )
+RETURN
+    IF (
+        Periods > 0 && FirstValue > 0,
+        ( DIVIDE ( LastValue, FirstValue ) ^ DIVIDE ( 1, Periods ) ) - 1
+    )
+
+// MAX, not SUM: the entity count is an attribute of the year, not something to
+// add up across years.
+Source Reporting Entities = MAX ( DimYear[Reporting Entities] )
+
+
 // --- Indexed series --------------------------------------------------------
 // Rebases every state to 100 in the first visible year. Without this, a
 // multi-state trend chart is just a ranking by population - Uttar Pradesh sits
