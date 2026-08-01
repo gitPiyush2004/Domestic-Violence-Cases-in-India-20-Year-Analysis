@@ -385,9 +385,28 @@ function E(t,a){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribu
 function mk(host,w,h){var el=document.getElementById(host);el.textContent="";
   var s=E("svg",{viewBox:"0 0 "+w+" "+h,width:w,height:h});el.appendChild(s);return s;}
 function tx(s,x,y,c,a){var t=E("text",{x:x,y:y,class:c||"ax"});if(a)t.setAttribute("text-anchor",a);s.appendChild(t);return t;}
-function tks(mx,n){if(mx<=0)return[0];var raw=mx/n,mag=Math.pow(10,Math.floor(Math.log10(raw)));
+/* Ticks that are GUARANTEED to cover the maximum.
+   The previous loop stopped at the last tick <= max, so an axis could top out
+   below the data: a single 8.91% CAGR bar was scaled against a 5% ceiling and
+   drew 178% of the plot width, straight out of its tile. Always emit one more
+   tick than the data needs. */
+function tks(mx,n){
+  if(mx<=0)return[0];
+  var raw=mx/n, mag=Math.pow(10,Math.floor(Math.log10(raw)));
   var st=[1,2,2.5,5,10].map(function(m){return m*mag;}).find(function(v){return v>=raw;})||10*mag;
-  var o=[];for(var v=0;v<=mx+st*0.001;v+=st)o.push(v);return o;}
+  var o=[], v=0;
+  while(v < mx - st*1e-9){ o.push(v); v+=st; }
+  o.push(v);
+  return o;
+}
+/* Column band width, capped and centred.
+   Dividing the plot evenly by the number of categories is right at 21 years and
+   absurd at one: filtering to a single year drew a bar the full width of the
+   chart. Cap the band and centre the group so one column looks like a column. */
+function cols(avail,n,maxW){
+  var w=Math.min(avail/Math.max(n,1),maxW||46);
+  return {w:w, off:(avail-w*n)/2};
+}
 
 function slicer(host,items,set,after){
   var el=document.getElementById(host); if(!el) return; el.textContent="";
@@ -460,23 +479,24 @@ function p1(){
   var W=782,H=214,P={t:14,r:8,b:20,l:40};
   var s=mk("v_trend",W,H);
   var mx=Math.max.apply(null,ser.map(function(d){return d.v;}))||1;
-  var tk=tks(mx*1.15,4),top=tk[tk.length-1],bw=(W-P.l-P.r)/ser.length;
+  var tk=tks(mx*1.15,4),top=tk[tk.length-1];
+  var band=cols(W-P.l-P.r,ser.length,46), bw=band.w, x0=P.l+band.off;
   tk.forEach(function(v){var y=H-P.b-(H-P.t-P.b)*(v/top);
     s.appendChild(E("line",{class:"gl",x1:P.l,x2:W-P.r,y1:y,y2:y}));
     tx(s,P.l-5,y+3,"ax","end").textContent=compact(v);});
   ser.forEach(function(d,i){
-    var h=(H-P.t-P.b)*(d.v/top),x=P.l+i*bw+bw*0.18;
+    var h=(H-P.t-P.b)*(d.v/top),x=x0+i*bw+bw*0.18;
     var r=E("rect",{x:x,y:H-P.b-h,width:bw*0.64,height:Math.max(h,1),fill:"var(--s1)",rx:1,class:"hit"});
     r.addEventListener("click",function(){tglYear(d.y);});
     r.appendChild(E("title")).textContent=d.y+": "+fmt(d.v);
     s.appendChild(r);
     if(ser.length<=12||i%3===0||i===ser.length-1)
-      tx(s,P.l+i*bw+bw/2,H-P.b+12,"ax","middle").textContent=d.y;
+      tx(s,x0+i*bw+bw/2,H-P.b+12,"ax","middle").textContent=d.y;
   });
   if(ser.length>2){var dp="";
     ser.forEach(function(d,i){var st=Math.max(0,i-2),w=ser.slice(st,i+1),
       m=w.reduce(function(p,q){return p+q.v;},0)/w.length;
-      dp+=(i?" L":"M")+(P.l+i*bw+bw/2)+" "+(H-P.b-(H-P.t-P.b)*(m/top));});
+      dp+=(i?" L":"M")+(x0+i*bw+bw/2)+" "+(H-P.b-(H-P.t-P.b)*(m/top));});
     s.appendChild(E("path",{d:dp,fill:"none",stroke:"#2b2b2b","stroke-width":1.4,opacity:.85}));}
 
   var mix=CR.map(function(c,i){return{n:c,v:sum(si,[i],yi),i:i};}).filter(function(d){return d.v>0;});
@@ -522,10 +542,23 @@ function p2(){
     s.appendChild(E("line",{class:"gl",x1:P.l,x2:W-P.r,y1:y,y2:y}));
     tx(s,P.l-5,y+3,"ax","end").textContent=compact(v);});
   var xs=function(i){return P.l+(W-P.l-P.r)*(yi.length<2?0.5:i/(yi.length-1));};
-  lines.forEach(function(L){var d="";
-    L.pts.forEach(function(p,i){if(p==null)return;d+=(d?" L":"M")+xs(i)+" "+(H-P.b-(H-P.t-P.b)*(p/top));});
-    var pa=E("path",{d:d,fill:"none",stroke:"var(--s"+((L.ci%7)+1)+")","stroke-width":1.5});
-    pa.appendChild(E("title")).textContent=L.n;s.appendChild(pa);});
+  lines.forEach(function(L){
+    var d="",n=0,lx=0,ly=0;
+    L.pts.forEach(function(p,i){if(p==null)return;
+      lx=xs(i); ly=H-P.b-(H-P.t-P.b)*(p/top);
+      d+=(d?" L":"M")+lx+" "+ly; n++;});
+    var col="var(--s"+((L.ci%7)+1)+")";
+    if(n>1){
+      var pa=E("path",{d:d,fill:"none",stroke:col,"stroke-width":1.5});
+      pa.appendChild(E("title")).textContent=L.n; s.appendChild(pa);
+    }
+    /* A one-point series draws nothing as a path, which is what a single-year
+       filter used to produce - an empty chart. Mark the point instead. */
+    if(n===1){
+      var c=E("circle",{cx:lx,cy:ly,r:4,fill:col});
+      c.appendChild(E("title")).textContent=L.n; s.appendChild(c);
+    }
+  });
   yi.forEach(function(y,i){if(yi.length<=12||i%3===0||i===yi.length-1)
     tx(s,xs(i),H-P.b+12,"ax","middle").textContent=YR[y];});
   var lx=P.l,ly=H-8;
@@ -625,23 +658,23 @@ function p4(){
   var W=1214,H=244,P={t:10,r:32,b:62,l:44};
   var s=mk("v_pareto",W,H);
   var mx=rows.length?rows[0].v:1,tk=tks(mx*1.05,4),top=tk[tk.length-1];
-  var bw=(W-P.l-P.r)/Math.max(rows.length,1);
+  var band=cols(W-P.l-P.r,rows.length,46), bw=band.w, x0=P.l+band.off;
   tk.forEach(function(v){var y=H-P.b-(H-P.t-P.b)*(v/top);
     s.appendChild(E("line",{class:"gl",x1:P.l,x2:W-P.r,y1:y,y2:y}));
     tx(s,P.l-5,y+3,"ax","end").textContent=compact(v);});
   [0.5,1].forEach(function(f){tx(s,W-P.r+5,H-P.b-(H-P.t-P.b)*f+3,"ax").textContent=(f*100)+"%";});
   rows.forEach(function(d,i){
-    var h=(H-P.t-P.b)*(d.v/top),x=P.l+i*bw+bw*0.15;
+    var h=(H-P.t-P.b)*(d.v/top),x=x0+i*bw+bw*0.15;
     var col=d.cls==="A"?"var(--s1)":(d.cls==="B"?"var(--brand2)":"#d9a3a6");
     var r=E("rect",{x:x,y:H-P.b-h,width:Math.max(bw*0.7,1),height:Math.max(h,1),fill:col,rx:1,class:"hit"});
     r.addEventListener("click",function(){tglState(d.n);});
     r.appendChild(E("title")).textContent=d.n+": "+fmt(d.v)+" — class "+d.cls+", cumulative "+pct(d.cum);
     s.appendChild(r);
-    var cxp=P.l+i*bw+bw/2;
+    var cxp=x0+i*bw+bw/2;
     var t=tx(s,cxp,H-P.b+8,"ax","end");
     t.textContent=(d.n.length>14?d.n.slice(0,13)+"…":d.n);
     t.setAttribute("transform","rotate(-45 "+cxp+" "+(H-P.b+8)+")");});
-  var dp="";rows.forEach(function(d,i){dp+=(i?" L":"M")+(P.l+i*bw+bw/2)+" "+(H-P.b-(H-P.t-P.b)*d.cum);});
+  var dp="";rows.forEach(function(d,i){dp+=(i?" L":"M")+(x0+i*bw+bw/2)+" "+(H-P.b-(H-P.t-P.b)*d.cum);});
   s.appendChild(E("path",{d:dp,fill:"none",stroke:"#2b2b2b","stroke-width":1.4,opacity:.85}));
   [0.7,0.9].forEach(function(f){var y=H-P.b-(H-P.t-P.b)*f;
     s.appendChild(E("line",{x1:P.l,x2:W-P.r,y1:y,y2:y,stroke:"var(--brand)","stroke-dasharray":"4 4","stroke-width":1,opacity:.5}));});
@@ -678,14 +711,15 @@ function p5(){
   var W=586,H=150,P={t:6,r:6,b:18,l:26};
   var s=mk("v_entities",W,H);
   var mx=Math.max.apply(null,rows.map(function(d){return d.v;}))||1;
-  var tk=tks(mx*1.1,3),top=tk[tk.length-1],bw=(W-P.l-P.r)/Math.max(rows.length,1);
+  var tk=tks(mx*1.1,3),top=tk[tk.length-1];
+  var band=cols(W-P.l-P.r,rows.length,30), bw=band.w, x0=P.l+band.off;
   tk.forEach(function(v){var y=H-P.b-(H-P.t-P.b)*(v/top);
     s.appendChild(E("line",{class:"gl",x1:P.l,x2:W-P.r,y1:y,y2:y}));
     tx(s,P.l-4,y+3,"ax","end").textContent=v.toFixed(0);});
   rows.forEach(function(d,i){var h=(H-P.t-P.b)*(d.v/top);
-    var r=E("rect",{x:P.l+i*bw+bw*0.15,y:H-P.b-h,width:bw*0.7,height:Math.max(h,1),fill:"var(--teal)",rx:1});
+    var r=E("rect",{x:x0+i*bw+bw*0.15,y:H-P.b-h,width:bw*0.7,height:Math.max(h,1),fill:"var(--teal)",rx:1});
     r.appendChild(E("title")).textContent=d.n+": "+d.v+" entities";s.appendChild(r);
-    if(i%4===0||i===rows.length-1)tx(s,P.l+i*bw+bw/2,H-P.b+11,"ax","middle").textContent=d.n;});
+    if(i%4===0||i===rows.length-1)tx(s,x0+i*bw+bw/2,H-P.b+11,"ax","middle").textContent=d.n;});
   /* Flag counts are ETL outputs over the unfiltered 5,152-cell grid - the same
      numbers the Power BI page reads from its FactQuality table. */
   document.getElementById("t_flags").innerHTML=
