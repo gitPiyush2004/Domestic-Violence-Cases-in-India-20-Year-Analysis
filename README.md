@@ -16,7 +16,7 @@ against women in India: **1,909,978 cases, 39.2% of all 4.87M recorded cases** o
 | **Coverage** | 36 states and union territories · 21 years · 7 crime heads |
 | **Stack** | Python (pandas) · SQL (SQLite) · Power BI (PBIP/TMDL + DAX + M) · Excel VBA · HTML/CSS/JS |
 
-![Power BI — Executive Overview](PowerBi.png)
+![Power BI — Executive Overview](Power.png)
 
 <sub>Executive Overview — the full 1280×720 report page. Red is reserved for the two
 focus-crime figures so the eye lands on them; every other series is warm neutral.
