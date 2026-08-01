@@ -348,7 +348,23 @@ var ALLC=CR.map(function(_,i){return i;});
 
 /* ---------- fit the 1280x720 canvas to the viewport ---------- */
 var frame=document.getElementById("frame"), stage=document.querySelector(".stage");
+/* ?bare renders the canvas on its own at native size - no header, tabs, filter
+   bar or footer. Used to capture the README screenshot headlessly:
+     msedge --headless=new --screenshot=out.png --window-size=1304,744 \
+            "file:///.../index.html?bare&page=p1"
+   so the image in the docs is generated from the live page rather than being a
+   photograph of someone's screen that silently goes stale. */
+var BARE=/[?&]bare/.test(location.search);
 function fit(){
+  if(BARE){
+    ["header","nav",".bar","footer","#hint"].forEach(function(s){
+      var e=document.querySelector(s); if(e) e.style.display="none";});
+    stage.style.padding="12px"; stage.style.overflow="visible";
+    stage.style.height="744px";
+    frame.style.transform="scale(1)"; frame.style.marginLeft="0";
+    frame.style.width="1280px"; frame.style.height="720px";
+    return;
+  }
   var avail=stage.clientWidth-2;
   /* Never shrink below 0.42 - past that the axis labels stop being readable and
      a horizontal scroll is the better trade. */
@@ -788,6 +804,13 @@ document.querySelectorAll(".tab").forEach(function(b){
 document.getElementById("clearAll").addEventListener("click",function(){
   F.years.clear();F.regions.clear();F.etypes.clear();F.crimes.clear();F.state=null;sync();render();});
 
+/* ?page=p3 selects a page up front, so each canvas can be captured headlessly. */
+var want=(location.search.match(/[?&]page=(p[1-5])/)||[])[1];
+if(want){
+  document.querySelectorAll(".tab").forEach(function(b){
+    if(b.dataset.p===want) b.click();
+  });
+}
 sync();render();
 })();
 </script>

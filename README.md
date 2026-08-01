@@ -18,10 +18,11 @@ against women in India: **1,909,978 cases, 39.2% of all 4.87M recorded cases** o
 
 ![Power BI — Executive Overview](docs/img/powerbi-overview.png)
 
-<sub>Executive Overview, top band. Red is reserved for the two focus-crime figures so the
-eye lands on them; every other series is warm neutral. Page-by-page walkthrough in
-[`docs/DASHBOARD_GUIDE.md`](docs/DASHBOARD_GUIDE.md), and a shareable version of the whole
-report in [`powerbi-showcase/`](powerbi-showcase/index.html).</sub>
+<sub>Executive Overview — the full 1280×720 report page. Red is reserved for the two
+focus-crime figures so the eye lands on them; every other series is warm neutral.
+Page-by-page walkthrough in [`docs/DASHBOARD_GUIDE.md`](docs/DASHBOARD_GUIDE.md), and an
+interactive version of the whole report in
+[`powerbi-showcase/`](powerbi-showcase/index.html).</sub>
 
 **Two static sites ship from this repo**, both zero-build and dependency-free:
 
